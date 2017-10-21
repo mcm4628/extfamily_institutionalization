@@ -1,8 +1,13 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]
+if [ $# -lt 1 ]
 then
-    echo "Usage:  $0 <field_list_file>"
+    echo "Usage:  $0 <field_list_file> [<SIPP2014_data_file>]"
+    echo ""
+    echo "   Optionoally, provide a second parameter specifying the"
+    echo "   location of the SIPP 2014 data file."
+    echo "   In the absernce of a second parameter the location"
+    echo "   defaults to ./pu2014w1.dat"
     echo ""
     echo "   The format of the <field_list_file> should be"
     echo "   one variable per line, with the variable name first"
@@ -21,6 +26,13 @@ then
     exit 1
 fi
 
+if [ $# -gt 1 ]
+then
+    datafile=$2
+else
+    datafile=./pu2014w1.dat
+fi
+
 
 infile=$1
 
@@ -30,6 +42,6 @@ sed -e 's/\$//' -e "s/\-/ /" < $infile > $$.fields
 # cat $$.fields
 # exit 1
 
-./extract_data.pl $$.fields < ./pu2014w1.dat
+./extract_data.pl $$.fields < $datafile
 
 rm $$.fields
