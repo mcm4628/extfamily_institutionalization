@@ -9,4 +9,4 @@ global adult_age 18
 global refmon 4
 
 
-do "$child_base_code/do_and_log" merge_waves
+do "$childhh_base_code/do_and_log" merge_waves

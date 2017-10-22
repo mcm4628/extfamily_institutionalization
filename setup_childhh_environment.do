@@ -39,7 +39,7 @@ else {
     if ("`usebox'" == "usebox") {
         display "TODO:  Decide what the Box location is going to be if we have one."
         exit
-        global child_base_code ""
+        global childhh_base_code ""
         cd $childhh_base_code
     }
     else {
