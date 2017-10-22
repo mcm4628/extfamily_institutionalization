@@ -9,4 +9,8 @@ global adult_age 18
 global refmon 4
 
 
+
+global projdir "/Users/Robert/ChildHH/SIPP2008"
+
+
 do "$childhh_base_code/do_and_log" merge_waves
