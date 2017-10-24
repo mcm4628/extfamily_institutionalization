@@ -1,6 +1,6 @@
 global replace "replace"
 
-global logdir "/Users/Robert/TempChildHH/logs"
-global tempdir "/Users/Robert/TempChildHH/temp"
+global logdir "$homedir/TempChildHH/logs"
+global tempdir "$homedir/TempChildHH/temp"
 
 global boxdir "$homedir/Box Sync"
