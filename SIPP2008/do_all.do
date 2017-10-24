@@ -14,3 +14,6 @@ global projdir "/Users/Robert/ChildHH/SIPP2008"
 
 
 do "$childhh_base_code/do_and_log" merge_waves
+do "$childhh_base_code/do_and_log" make_auxiliary_datasets
+do "$childhh_base_code/do_and_log" convert_to_wide
+do "$childhh_base_code/do_and_log" normalize_ages
