@@ -1,11 +1,13 @@
 *
 * Creates variables identifying whether there is a type-2 biological mother in the household each month.
 *
-* First restrict the sample to individuaps with any type 2 people in a reference month.
+* First restrict the sample to individuals with any type 2 people in a reference month.
 * and calculate the number of individuals who were biologically related to ego as parent or child. 
 * Note that numpc could include type 1 and type 2 individuals. Separate code deals with type 1 biological mothers.
 *
 * Finally, use et2_ sequence of variables to identify biological mothers (who are female, have rel==5, and are older than ego
+
+but there is a problem with the et2_ variables, they often are inconsistent with the rrel variables
 
 use "$SIPP2014data/selected.dta", clear
 
