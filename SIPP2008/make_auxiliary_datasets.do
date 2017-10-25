@@ -1,7 +1,5 @@
 *** TODO:  Maybe some/all of these should go to shared data?
 
-*** TODO:  If any of these have race or sex, we need to compute the fixed-up version first and keep just that around.
-
 *** TODO:  Can these three very similar sets of code be unified into a single repeated block?
 
 *** Make the shhadid member database.

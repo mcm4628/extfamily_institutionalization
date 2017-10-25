@@ -1,7 +1,6 @@
 *** Fix up age so the waves are consistent with each other.
 
 *** TODO:  Document our decisions.
-*** TODO:  Make sure we're not carrying extraneous variables.
 
 use "$tempdir/person_wide"
 

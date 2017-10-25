@@ -7,8 +7,6 @@
 *** the individual even though for some people reports vary
 *** across waves.
 
-*** TODO:  Confirm there are no extraneous variables in the data sets we're merging in.
-*** TODO:  Drop extraneous variables (like per-wave race) to avoid future errors of not using our computed single-value variable.  Save a temporary debug dataset if necessary, for reviewing the decisions.
 
 use "$tempdir/allwaves"
 
