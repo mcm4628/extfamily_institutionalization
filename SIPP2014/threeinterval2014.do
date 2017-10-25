@@ -76,14 +76,20 @@ do "$projcode\SIPP2014\anydiff48w.do"
 do "$projcode\SIPP2014\anydiff14w.do"
 
 do "$projcode\SIPP2014\hhldrw.do"
+* person-number of householder. Allows us to know whether cohabiting partner is householder
 
 do "$projcode\SIPP2014\pchangehc.do"
+* creates person-number of partner/spouse in each month
 
 do "$projcode\SIPP2014\idpartner.do"
+* create partner_change variables then renames pnum to biomom_pnum so that we can merge file onto child records
 
 do "$projcode\SIPP2014\t2parentw.do"
+* sets up to allow childrenHH14 to identify all bio_moms in the household. This file just focuses on type-2 biomoms
 
 do "$projcode\SIPP2014\childrenHH14.do"
+* This creates all the variables describing biomom and biodad and merges in the partner change data
+* The result is a wide file (one record per person) called partner_change.dta
 
 do "$projcode\SIPP2014\combine_intervals.do"
 
