@@ -549,5 +549,6 @@ drop min_adult_age max_adult_age min_child_age max_child_age
 drop monotonic
 drop num_adjbkwd_matches num_adjfwd_matches num_bkwd_matches num_fwd_matches
 drop record_disposition
+drop TAGE*
 
 save "$tempdir/person_wide_adjusted_ages", $replace

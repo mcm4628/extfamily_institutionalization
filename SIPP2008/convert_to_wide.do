@@ -151,8 +151,13 @@ save "$tempdir/person_wide_debug", $replace
 
 
 
+* Drop the variables we don't need any more because we computed my_race and my_sex.
 drop ERACE* race* ESEX*
 drop any_race_diff any_sex_diff sex*
+
+
+* Also drop some other variables we don't need any more.
+drop EBORNUS* EORIGIN*
 
 save "$tempdir/person_wide", $replace
 
