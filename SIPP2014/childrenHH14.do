@@ -181,6 +181,14 @@ merge 1:1 ssuid pnum monthcode using "$tempdir/t2parent.dta"
 **************
 
 tab biomom t2biomom
+
+keep if biomom==1 & t2biomom==1
+
+tab biomom_pnum t2biomom_pnum
+
+*how is it possible to have both a t2biomom and a t1biomom?
+
+/*
 tab biodad t2biodad
 
 replace biomom=1 if t2biomom==1
@@ -234,23 +242,4 @@ sort ssuid pnum
 save "$tempdir/partner_change.dta", replace
 
 
-/*
-*
 
-* I've made many changes and probably broke below
-
-/*
-
-gen singpar1=1 if par1present==1 & par2present==0
-replace singpar1=0 if par1present==1 & par2present==1
-
-gen singpar2=1 if par1present==1 & par1HHsp==0
-replace singpar2=0 if par1HHsp==1 | par1HHsp==2
-
-gen unmarriedpar=1 if par1present==1 & par1HHsp==0
-replace unmarriedpar=1 if parpresent==1 & par1HHsp==2
-replace unmarriedpar=0 if par1HHsp==1
-
-tab unmarriedpar par1sex 
-
-tab singpar1 singpar2
