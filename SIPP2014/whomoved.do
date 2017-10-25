@@ -1,63 +1,29 @@
 *Stack two intervals to see "Who Moved"
 
-use "$tempdir/longbiomom.dta", clear
+* first stage is to read in data files with information basic demographics and partnerchange
 
-sort ssuid pnum monthcode
+use "$tempdir/demo.dta", clear
 
-keep if monthcode==8
 
-merge 1:1 ssuid pnum using "$tempdir/demo.dta"
-keep if _merge==3
-
-drop _merge
-
-save "$tempdir/longbiomom8.dta", replace
-
-use "$tempdir/longbiomom.dta", clear
-
-sort ssuid pnum monthcode
-
-keep if monthcode==4
-
-merge 1:1 ssuid pnum using "$tempdir/demo.dta"
+merge 1:1 ssuid pnum using "$tempdir/partner_change.dta"
+* Note that partner_change.dta has variables describing biological mothers partnership changes
+* but only for individuals less than age 18
 
 keep if _merge==3
 
-drop _merge
-
-save "$tempdir/longbiomom4.dta", replace
-
-merge 1:1 ssuid pnum using "$tempdir/anydiff48.dta"
-
-save "$tempdir/anyd48biomom.dta", replace
-
-use "$tempdir/anydiff812.dta", clear
-
-sort ssuid pnum 
-
-merge 1:1 ssuid pnum using "$tempdir/longbiomom8.dta"
+tab biomom8 biomom12
 
 drop _merge
 
-gen anydiff=anydiff812
-
-gen moved=moved812
-
-append using "$tempdir/anyd48biomom.dta"
-
-drop _merge
-
-merge m:1 ssuid pnum using "$tempdir/partner_change.dta
+merge 1:1 ssuid pnum using "$tempdir/anydiff812.dta"
 
 keep if _merge==3
 
 drop _merge
 
-gen partner_change=partner_change48 if monthcode==4
-replace partner_change=partner_change812 if monthcode==8
-
-gen mom_educ=biomomeduc12
-recode mom_educ (31/38=1)(39=2)(40/43=3)(44/47=4), gen (momced)
+*gen mom_educ=biomomeduc12
+*recode mom_educ (31/38=1)(39=2)(40/43=3)(44/47=4), gen (momced)
+* this variable is on longbiomom, but now I'm troubleshooting and don't care
 
 gen raceth=4
 replace raceth=1 if erace==1 & eorigin==2
@@ -65,27 +31,15 @@ replace raceth=2 if erace==2
 replace raceth=3 if erace !=2 & eorigin==1
 replace raceth=4 if erace==3
 
-recode biomomeduc (31/38=1)(39=2)(40/42=3)(43/46=4)
+*recode biomomeduc (31/38=1)(39=2)(40/42=3)(43/46=4)
 
-replace anydiff=anydiff48 if missing(anydiff)
-replace tage=tage4 if missing(tage)
-replace moved=moved48 if missing(moved)
+tab anydiff812 moved812
 
-keep if tage < 17
+tab Compchange anyparent
+tab anyparent partner_change812
 
-there's a problem. Sometimes biological parent moves out or in and partner_change==0
-
-tab Compchange biomomeduc
-tab Compchange raceth
-
-tab anydiff moved
-
-tab typrelout5 partner_change
-tab typrelout6 partner_change
-tab typrelout7 partner_change
-
-tab typrelout27 partner_change
-tab partner_change
+tab typrelout27 partner_change812
+tab partner_change812
 
 /*
 
