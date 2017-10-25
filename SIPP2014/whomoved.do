@@ -7,6 +7,7 @@ sort ssuid pnum monthcode
 keep if monthcode==8
 
 merge 1:1 ssuid pnum using "$tempdir/demo.dta"
+keep if _merge==3
 
 drop _merge
 
@@ -19,6 +20,8 @@ sort ssuid pnum monthcode
 keep if monthcode==4
 
 merge 1:1 ssuid pnum using "$tempdir/demo.dta"
+
+keep if _merge==3
 
 drop _merge
 
@@ -42,6 +45,20 @@ gen moved=moved812
 
 append using "$tempdir/anyd48biomom.dta"
 
+drop _merge
+
+merge m:1 ssuid pnum using "$tempdir/partner_change.dta
+
+keep if _merge==3
+
+drop _merge
+
+gen partner_change=partner_change48 if monthcode==4
+replace partner_change=partner_change812 if monthcode==8
+
+gen mom_educ=biomomeduc12
+recode mom_educ (31/38=1)(39=2)(40/43=3)(44/47=4), gen (momced)
+
 gen raceth=4
 replace raceth=1 if erace==1 & eorigin==2
 replace raceth=2 if erace==2
@@ -56,10 +73,21 @@ replace moved=moved48 if missing(moved)
 
 keep if tage < 17
 
+there's a problem. Sometimes biological parent moves out or in and partner_change==0
+
 tab Compchange biomomeduc
 tab Compchange raceth
 
 tab anydiff moved
+
+tab typrelout5 partner_change
+tab typrelout6 partner_change
+tab typrelout7 partner_change
+
+tab typrelout27 partner_change
+tab partner_change
+
+/*
 
 tab typrelout1 raceth
 tab typrelout2 raceth
