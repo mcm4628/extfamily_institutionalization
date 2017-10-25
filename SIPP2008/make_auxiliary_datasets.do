@@ -314,3 +314,34 @@ drop EBORNUS
 rename EPPPNUM immigrant_epppnum
 
 save "$tempdir/person_immigrant", $replace
+
+
+
+*** We also need a dataset of reference persons.
+use "$tempdir/allwaves"
+keep SSUID EPPPNUM SHHADID* ERRP*
+reshape long ERRP SHHADID, i(SSUID EPPPNUM) j(SWAVE)
+keep if ((ERRP == 1) | (ERRP == 2))
+drop ERRP
+rename EPPPNUM ref_person
+duplicates drop
+save "$tempdir/ref_person_long", $replace
+
+reshape wide ref_person, i(SSUID SHHADID) j(SWAVE)
+save "$tempdir/ref_person_wide", $replace
+
+
+*** And we need a dataset of partners of reference persons.
+use "$tempdir/allwaves"
+keep SSUID EPPPNUM SHHADID* ERRP*
+reshape long ERRP SHHADID, i(SSUID EPPPNUM) j(SWAVE)
+gen partner_is_married = 1 if (ERRP == 3)
+gen partner_is_unmarried = 1 if (ERRP == 10)
+keep if ((ERRP == 3) | (ERRP == 10))
+drop ERRP
+rename EPPPNUM partner_of_ref_person
+duplicates drop
+save "$tempdir/partner_of_ref_person_long", $replace
+
+reshape wide partner_of_ref_person partner_is_married partner_is_unmarried, i(SSUID SHHADID) j(SWAVE)
+save "$tempdir/partner_of_ref_person_wide", $replace
