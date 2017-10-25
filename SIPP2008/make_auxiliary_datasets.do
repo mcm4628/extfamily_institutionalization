@@ -319,8 +319,7 @@ save "$tempdir/person_immigrant", $replace
 
 *** We also need a dataset of reference persons.
 use "$tempdir/allwaves"
-keep SSUID EPPPNUM SHHADID* ERRP*
-reshape long ERRP SHHADID, i(SSUID EPPPNUM) j(SWAVE)
+keep SSUID EPPPNUM SHHADID ERRP SWAVE
 keep if ((ERRP == 1) | (ERRP == 2))
 drop ERRP
 rename EPPPNUM ref_person
@@ -333,8 +332,7 @@ save "$tempdir/ref_person_wide", $replace
 
 *** And we need a dataset of partners of reference persons.
 use "$tempdir/allwaves"
-keep SSUID EPPPNUM SHHADID* ERRP*
-reshape long ERRP SHHADID, i(SSUID EPPPNUM) j(SWAVE)
+keep SSUID EPPPNUM SHHADID ERRP SWAVE
 gen partner_is_married = 1 if (ERRP == 3)
 gen partner_is_unmarried = 1 if (ERRP == 10)
 keep if ((ERRP == 3) | (ERRP == 10))
