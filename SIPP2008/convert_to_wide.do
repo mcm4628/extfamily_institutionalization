@@ -129,8 +129,8 @@ drop _merge
 
 * Figure out first and last wave of appearance for each person
 * (which is probably the same as the whole household).
-* TODO - CHECK that SHHADID is never missing in the base data;
-* we assume here that a missing SHHADID means the person was absent
+* SHHADID is never missing in the base data, so we can
+* assume here that a missing SHHADID means the person was absent
 * from that wave.
 
 gen my_last_wave = ${first_wave} if (!missing(SHHADID${first_wave}))
