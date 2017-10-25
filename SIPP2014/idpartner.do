@@ -46,6 +46,10 @@ drop rrel*
 
 reshape wide sp_pnum spisrefp np ns s_pnum p_pnum wpfinwgt , i(ssuid pnum) j(monthcode)
 
+
+* changecoh and changespo are indicators of whether there were any changes 
+* in the reference year.
+
 gen changecoh=0
 gen changespo=0
 
@@ -55,24 +59,18 @@ replace changecoh=1 if p_pnum`i' != p_pnum`j'
 replace changespo=1 if s_pnum`i' != s_pnum`j' 
 }
 
-
-
-gen partner_change14=0
-replace partner_change14=1 if sp_pnum1 != sp_pnum4
-
-gen partner_change48=0
-replace partner_change48=1 if sp_pnum4 != sp_pnum8
-
-gen partner_change812=0
-replace partner_change812=1 if sp_pnum8 != sp_pnum12
-
-tab partner_change14
-tab partner_change48
-tab partner_change812
-
 tab sp_pnum1 sp_pnum4
 
 merge 1:1 ssuid pnum using "$tempdir/pchangehc.dta"
+
+gen partner_change14=0
+replace partner_change14=1 if epnspco_ehc1 != epnspco_ehc4
+
+gen partner_change48=0
+replace partner_change48=1 if epnspco_ehc4 != epnspco_ehc8
+
+gen partner_change812=0
+replace partner_change812=1 if epnspco_ehc8 != epnspco_ehc12
 
 drop _merge
 
