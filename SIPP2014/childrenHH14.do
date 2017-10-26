@@ -30,7 +30,7 @@ replace parpresent=1 if epnpar2 >=101 & epnpar2 <= 499
 replace parpresent=1 if epnpar1 >=101 & epnpar1 <= 499
 replace parpresent=0 if missing(parpresent)
 
-*par1 and par2present include only biological, step, or adoptive parents
+*par1 and par2present include only type 1 biological, step, or adoptive parents
 
 gen par1present=1 if epnpar1 >= 101 & epnpar1 <= 499
 replace par1present=0 if missing(par1present)
