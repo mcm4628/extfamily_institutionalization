@@ -69,6 +69,8 @@ rename pnum t2biopc1_pnum
 
 merge ssuid t2biopc1_pnum using "$tempdir/t2biopc.dta"
 
+keep if _merge==2 | _merge==3
+
 rename tt2_age t2bpc1_age 
 rename et2_sex t2bpc1_sex 
 
@@ -84,6 +86,8 @@ rename pnum t2biopc2_pnum
 
 merge ssuid t2biopc2_pnum using "$tempdir/t2biopc1.dta"
 
+keep if _merge==2 | _merge==3
+
 rename tt2_age t2bpc2_age 
 rename et2_sex t2bpc2_sex 
 
@@ -98,6 +102,7 @@ rename pnum t2biopc3_pnum
 
 merge ssuid t2biopc3_pnum using "$tempdir/t2biopc2.dta"
 
+keep if _merge==2 | _merge==3
 rename tt2_age t2bpc3_age 
 rename et2_sex t2bpc3_sex 
 
@@ -110,6 +115,7 @@ use "$SIPP2014data/t2persons.dta", clear
 rename pnum t2biopc4_pnum
 
 merge ssuid t2biopc4_pnum using "$tempdir/t2biopc3.dta"
+keep if _merge==2 | _merge==3
 
 rename tt2_age t2bpc4_age 
 rename et2_sex t2bpc4_sex 
@@ -123,6 +129,7 @@ use "$SIPP2014data/t2persons.dta", clear
 rename pnum t2biopc5_pnum
 
 merge ssuid t2biopc5_pnum using "$tempdir/t2biopc4.dta"
+keep if _merge==2 | _merge==3
 
 rename tt2_age t2bpc5_age 
 rename et2_sex t2bpc5_sex 
@@ -138,22 +145,32 @@ gen t2biomom=0
 gen t2biomom_pnum=999
 gen t2biodad=0
 gen t2biodad_pnum=999
+gen t2biomom_age=-1
 
 
 forvalues p=1/5{
 replace t2biomom=1 if t2bpc`p'_age > tage & t2bpc`p'_sex==2
 replace t2biomom_pnum=t2biopc`p'_pnum if t2bpc`p'_age > tage & t2bpc`p'_sex==2
+replace t2biomom_age=t2bpc`p'_age if t2bpc`p'_age > tage & t2bpc`p'_sex==2
 replace t2biodad=1 if t2bpc`p'_age > tage & t2bpc`p'_sex==1
 replace t2biodad_pnum=t2biopc`p'_pnum if t2bpc`p'_age > tage & t2bpc`p'_sex==1
 }
 
 tab t2biomom t2biodad
 
-keep ssuid pnum monthcode t2biomom t2biodad t2biomom_pnum t2biodad_pnum
+keep ssuid pnum monthcode t2biomom t2biodad t2biomom_pnum t2biodad_pnum t2biomom_age
 
 sort ssuid pnum monthcode 
 
 save "$tempdir/t2parent.dta", replace
+
+keep if t2biomom==1
+
+by ssuid pnum: keep if _n==1
+
+drop monthcode
+
+save "$tempdir/t2biomom.dta", replace
 
 *
 * Written for the ET2 variables, but they don't appear to be working as expected
