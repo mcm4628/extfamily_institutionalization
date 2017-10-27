@@ -174,7 +174,7 @@ save "$tempdir/typ1par_allmon.dta", replace
 ******************************************************
 **
 
-merge 1:1 ssuid pnum monthcode using "$tempdir/t2parent.dta"
+merge m:1 ssuid pnum using "$tempdir/t2biomom.dta"
 
 **************
 * Checks and saves
@@ -182,14 +182,14 @@ merge 1:1 ssuid pnum monthcode using "$tempdir/t2parent.dta"
 
 tab biomom t2biomom
 
-keep if biomom==1 & t2biomom==1
-
 tab biomom_pnum t2biomom_pnum
 
 *how is it possible to have both a t2biomom and a t1biomom?
 
-/*
 tab biodad t2biodad
+
+replace biomom_pnum=t2biomom_pnum if biomom==0 & t2biomom==1
+replace biomomage=t2biomom_age if biomom==0 & t2biomom==1
 
 replace biomom=1 if t2biomom==1
 replace biodad=1 if t2biodad==1
