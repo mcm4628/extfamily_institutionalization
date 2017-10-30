@@ -6,7 +6,7 @@ global tempdir "$homedir/stata_tmp"
 
 global boxdir "$homedir/Box Sync"
 global projdir "$boxdir/SIPP"
-global projcode "$projdir/code"
+global projcode "t:\GitHub\ChildHH"
 global SIPP2014data "$projdir/data/SIPP2014"
 global SIPP2008data "$projdir/data/SIPP2008"
 global SIPPshared "$projdir/data/shared"
