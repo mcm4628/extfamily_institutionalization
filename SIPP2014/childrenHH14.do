@@ -185,6 +185,15 @@ tab biomom t2biomom
 tab biomom_pnum t2biomom_pnum
 
 *how is it possible to have both a t2biomom and a t1biomom?
+*preserve
+*
+*keep if biomom==1 & t2biomom==1
+*
+*keep ssuid 
+*
+*save "$SIPPshared/badcases.dta"
+*
+*restore
 
 tab biodad t2biodad
 
