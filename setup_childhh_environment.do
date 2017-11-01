@@ -1,17 +1,9 @@
 * Set up the base ChildHH (Children's Households) environment.
 
-* If you pass an argument it must be "usebox"
-* indicating that you want to use the default Box directory
-* for the project.  Currently we don't have one, so this will
-* cause the script to halt.
-
-* The default behavior is to assume the current directory
-* is the one with the base ChildHH code.
+* The current directory is assumed to be the one with the base ChildHH code.
 
 * We expect to find your setup file, named setup_<username>.do
 * in the base ChildHH directory (as defined above).
-
-args usebox
 
 
 * Find my home directory, depending on OS.
@@ -32,21 +24,7 @@ else {
 }
 
 
-if ("`usebox'" == "") {
-    global childhh_base_code "`c(pwd)'"
-}
-else {
-    if ("`usebox'" == "usebox") {
-        display "TODO:  Decide what the Box location is going to be if we have one."
-        exit
-        global childhh_base_code ""
-        cd $childhh_base_code
-    }
-    else {
-        display "Unrecognized argument:  `usebox'"
-        exit
-    }
-}
+global childhh_base_code "`c(pwd)'"
 
 
 
