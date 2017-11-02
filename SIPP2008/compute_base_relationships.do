@@ -261,7 +261,7 @@ append using `errp_norelation2'
 
 duplicates drop
 
-save "$tempdir/relationships", $replace
+save "$tempdir/base_relationships", $replace
 
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
@@ -292,7 +292,7 @@ list
 * We'll just drop "other relative" when we have two different relationships,
 * believing that the other report is more likely accurate.
 clear
-use "$tempdir/relationships"
+use "$tempdir/base_relationships"
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
 tab numrels
@@ -332,7 +332,7 @@ list
 * who claim one of their parents is someone who is actually one of
 * their children.
 clear
-use "$tempdir/relationships"
+use "$tempdir/base_relationships"
 
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
