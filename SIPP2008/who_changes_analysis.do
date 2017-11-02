@@ -95,6 +95,33 @@ program define report_relationships
     tab relationship1 relationship2
 
     save "$tempdir/`person_type'_missing_rel", $replace
+
+
+
+    *** Now try using all the relationships we know.
+    use "$tempdir/`person_type's_long"
+    keep if (adj_age < $adult_age)
+    gen relfrom = EPPPNUM
+    gen relto = `person_type'_epppnum
+    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/relationships"
+    drop if _merge == 2
+    drop _merge
+
+    tab relationship
+    tab relationship, m
+    tab relationship adj_age
+    tab relationship adj_age, m
+    tab relationship SWAVE
+    tab relationship SWAVE, m
+
+    tab relationship if (n_`person_type's == 1)
+    tab relationship if (n_`person_type's == 1), m
+    tab relationship adj_age if (n_`person_type's == 1)
+    tab relationship adj_age if (n_`person_type's == 1), m
+    tab relationship SWAVE if (n_`person_type's == 1)
+    tab relationship SWAVE if (n_`person_type's == 1), m
+
+    save "$tempdir/`person_type'_relationships", $replace
 end
 
 report_relationships leaver
