@@ -1,6 +1,3 @@
-global replace "replace"
-log using "$logdir/who_changes_long", text $replace
-
 use "$tempdir/who_changes"
 
 drop shhadid_members* max_shhadid_members*
@@ -48,5 +45,3 @@ use "$tempdir/who_changes_long"
 convert_to_long arriver
 use "$tempdir/who_changes_long"
 convert_to_long stayer
-
-log close

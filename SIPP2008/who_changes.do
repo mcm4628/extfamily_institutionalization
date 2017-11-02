@@ -1,6 +1,3 @@
-global replace "replace"
-log using "$logdir/who_changes", text $replace
-
 use "$tempdir/person_wide_adjusted_ages"
 
 keep SSUID EPPPNUM SHHADID* shhadid_members* max_shhadid_members* adj_age* my_race my_sex
@@ -50,5 +47,3 @@ forvalues wave = $first_wave/$penultimate_wave {
 }
 
 save "$tempdir/who_changes", $replace
-
-log close

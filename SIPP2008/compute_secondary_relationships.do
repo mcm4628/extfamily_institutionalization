@@ -15,7 +15,7 @@ rename relationship relationship1
 joinby SSUID SHHADID SWAVE relative2 using `relmerge'
 tab relationship1 relationship2
 
-save "$tempdir/relationships_tc1", $replace
+save "$tempdir/relationship_pairs_tc1", $replace
 
 
 gen relationship = ""
@@ -31,3 +31,5 @@ keep if (!missing(relationship))
 
 * We force the drop because we don't care about the details if the end result is the same.
 duplicates drop SSUID SWAVE relfrom relto relationship, force
+
+clear

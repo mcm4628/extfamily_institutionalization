@@ -1,8 +1,3 @@
-global replace "replace"
-log using "$logdir/who_changes_analysis", text $replace
-set linesize 250
-
-
 use "$tempdir/person_wide_adjusted_ages"
 keep SSUID EPPPNUM adj_age*
 reshape long adj_age, i(SSUID EPPPNUM) j(SWAVE)
@@ -69,7 +64,7 @@ program define report_relationships
 
     gen relfrom = EPPPNUM
     gen relto = `person_type'_epppnum
-    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/relationships"
+    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/base_relationships"
     drop if _merge == 2
     drop _merge
 
@@ -88,11 +83,12 @@ program define report_relationships
     tab relationship SWAVE if (n_`person_type's == 1), m
 
 
+    * Now let's find out what we know from transitive closure about relationships we don't get from primary data.
     keep if missing(relationship)
 
     keep SSUID SWAVE relfrom relto
     duplicates drop
-    merge 1:m SSUID SWAVE relfrom relto using "$tempdir/transitive_closure"
+    merge 1:m SSUID SWAVE relfrom relto using "$tempdir/relationship_pairs_tc1"
     keep if _merge == 3
     drop _merge
 
@@ -105,5 +101,3 @@ report_relationships leaver
 report_relationships stayer
 report_relationships arriver
 * save "$tempdir/who_changes_analysis", $replace
-
-log close
