@@ -54,7 +54,7 @@ save "$tempdir/relationships_tc1", $replace
 * Also, keep track of where we discovered the realtionships.
 use "$tempdir/base_relationships"
 gen relationship_source = "base"
-append "$tempdir/relationships_tc1"
+append using "$tempdir/relationships_tc1"
 replace relationship_source = "tc1" if (missing(relationship_source))
 
 * The only duplicates should be due to finding the same relationship in base and tc1.

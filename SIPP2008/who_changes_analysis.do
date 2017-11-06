@@ -82,6 +82,7 @@ program define report_relationships
     tab relationship SWAVE if (n_`person_type's == 1)
     tab relationship SWAVE if (n_`person_type's == 1), m
 
+    save "$tempdir/`person_type'_base_relationships", $replace
 
     * Now let's find out what we know from transitive closure about relationships we don't get from primary data.
     keep if missing(relationship)
