@@ -39,9 +39,9 @@ else
 fi
 
 
-infile=$1
+infile="$1"
 
-sed -e 's/\$//' -e "s/\-/ /" < $infile > $$.fields
+sed -e 's/\$//' -e "s/\-/ /" < "$infile" > $$.fields
 
 # echo "FIELDS" 
 # cat $$.fields
