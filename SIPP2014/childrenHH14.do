@@ -40,6 +40,7 @@ replace par2present=0 if missing(par2present)
 
 *This variable was created to identify whether a biological parent has a spouse or partner at the time of interview, but the logic 
 * is different from bioparent because it is an attribute of the parent, not of the child.
+* Also, this is only going to identify spouse-partner at time of interview - not during reference period.
 gen hasHHsp=1 if epnspouse >=101 & epnspouse <=499
 replace hasHHsp=2 if epncohab >=101 & epncohab <=499
 replace hasHHsp=0 if missing(hasHHsp)
@@ -151,6 +152,8 @@ replace biomom=0 if missing(biomom)
 replace biodad=0 if missing(biodad)
 
 * setting the person number of mom's partner at the time of interview *
+* But this isn't the source for partner change information. below, where merge 
+* in idpartner.dta is where we get changes in partners
 
 gen momsp_pnum=par1_pnumsp if biomom==1
 replace momsp_pnum=par2_pnumsp if biomom==2

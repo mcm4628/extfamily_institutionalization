@@ -7,7 +7,7 @@ use "$tempdir/demo.dta", clear
 
 merge 1:1 ssuid pnum using "$tempdir/partner_change.dta"
 * Note that partner_change.dta has variables describing biological mothers partnership changes
-* but only for individuals less than age 18
+* but only for individuals less than age 18. Created with childrenHH14.do
 
 keep if _merge==3
 
