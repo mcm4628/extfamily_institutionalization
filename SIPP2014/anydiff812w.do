@@ -10,6 +10,7 @@ keep if monthcode==12
 save "$tempdir/cwb.dta", replace
 
 use "$tempdir/babyin12.dta", clear
+* Note that babyin is a residence level variables (ssuid eresidence id)
 
 merge 1:m ssuid eresidenceid12 using "$tempdir/SIPP14_8to12.dta"
 
@@ -107,6 +108,11 @@ replace anydiff812=1 if in12not8==1
 replace anydiff812=1 if eresidenceid8 !=eresidenceid12
 
 gen born812=1 if in12not8==1 & tage12==0
+replace born812=0 if missing(born812)
+
+replace moved812=0 if born812==1
+
+tab born812
 
 replace anydiff812=0 if born812==1
 
@@ -114,27 +120,33 @@ tab anydiff812
 
 keep ssuid pnum anydiff812 in12not8 moved812 born812 tage8 anybabyin relout* ///
 relin* nrelin nrelout typrelout* typrelin* Compchange rcares rworks rgetby ///
-agerelin* agerelout*
+agerelin* agerelout* 
 
 gen nhhchange=nrelin+nrelout
 
 gen anyparent=0
 replace anyparent=1 if typrelout5+typrelout6+typrelout7+typrelin5+typrelin6+typrelin7 > 0
+replace anyparent=0 if born812==1
 
 gen anysib=0
 replace anysib=1 if typrelout9+typrelout10+typrelout11+typrelout12+typrelout13+typrelin9+typrelin10+typrelin11+typrelin12+typrelin13 > 0
+replace anysib=0 if born812==1
 
 gen anyrel=0
 replace anyrel=1 if typrelout14+typrelout15+typrelout16+typrelout17+typrelin14+typrelin15+typrelin16+typrelin17 > 0
+replace anyrel=0 if born812==1
 
 gen anygp=0
 replace anygp=1 if typrelin8+typrelout8 > 0 
+replace anygp=0 if born812==1
 
 gen anynr=0
 replace anynr=1 if typrelout19+typrelin19 > 0
+replace anynr=0 if born812==1
 
 gen anychild=0
 replace anychild=1 if typrelout20==1
+replace anychild=0 if born812==1
 
 save "$tempdir/anydiff812.dta", replace
 

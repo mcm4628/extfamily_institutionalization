@@ -32,6 +32,8 @@ replace raceth=2 if erace==2
 replace raceth=3 if erace !=2 & eorigin==1
 replace raceth=4 if erace==3
 
+tab raceth
+
 *recode biomomeduc (31/38=1)(39=2)(40/42=3)(43/46=4)
 
 tab anydiff812 moved812
@@ -42,60 +44,61 @@ tab anyparent partner_change812
 tab typrelout27 partner_change812
 tab partner_change812
 
-/*
+tab typrelout1 raceth [aweight=wpfinwgt]
+tab typrelout2 raceth [aweight=wpfinwgt]
+tab typrelout3 raceth [aweight=wpfinwgt]
+tab typrelout4 raceth [aweight=wpfinwgt]
+tab typrelout5 raceth [aweight=wpfinwgt]
+tab typrelout6 raceth [aweight=wpfinwgt]
+tab typrelout7 raceth [aweight=wpfinwgt]
+tab typrelout8 raceth [aweight=wpfinwgt]
+tab typrelout9 raceth [aweight=wpfinwgt]
+tab typrelout10 raceth [aweight=wpfinwgt]
+tab typrelout11 raceth [aweight=wpfinwgt]
+tab typrelout12 raceth [aweight=wpfinwgt]
+tab typrelout13 raceth [aweight=wpfinwgt]
+tab typrelout14 raceth [aweight=wpfinwgt]
+tab typrelout15 raceth [aweight=wpfinwgt]
+tab typrelout16 raceth [aweight=wpfinwgt]
+tab typrelout17 raceth [aweight=wpfinwgt]
+tab typrelout18 raceth [aweight=wpfinwgt]
+tab typrelout19 raceth [aweight=wpfinwgt]
+tab typrelout20 raceth [aweight=wpfinwgt]
+tab typrelout21 raceth [aweight=wpfinwgt]
+tab typrelout22 raceth [aweight=wpfinwgt]
+tab typrelout23 raceth [aweight=wpfinwgt]
+tab typrelout24 raceth [aweight=wpfinwgt]
+tab typrelout25 raceth [aweight=wpfinwgt]
+tab typrelout26 raceth [aweight=wpfinwgt]
+tab typrelout27 raceth [aweight=wpfinwgt]
 
-tab typrelout1 raceth
-tab typrelout2 raceth
-tab typrelout3 raceth
-tab typrelout4 raceth
-tab typrelout5 raceth
-tab typrelout6 raceth
-tab typrelout7 raceth
-tab typrelout8 raceth
-tab typrelout9 raceth
-tab typrelout10 raceth
-tab typrelout11 raceth
-tab typrelout12 raceth
-tab typrelout13 raceth
-tab typrelout14 raceth
-tab typrelout15 raceth
-tab typrelout16 raceth
-tab typrelout17 raceth
-tab typrelout18 raceth
-tab typrelout19 raceth
-tab typrelout20 raceth
-tab typrelout21 raceth
-tab typrelout22 raceth
-tab typrelout23 raceth
-tab typrelout24 raceth
-tab typrelout25 raceth
-tab typrelout26 raceth
-tab typrelout27 raceth
+tab typrelin1 raceth [aweight=wpfinwgt]
+tab typrelin2 raceth [aweight=wpfinwgt]
+tab typrelin3 raceth [aweight=wpfinwgt]
+tab typrelin4 raceth [aweight=wpfinwgt]
+tab typrelin5 raceth [aweight=wpfinwgt]
+tab typrelin6 raceth [aweight=wpfinwgt]
+tab typrelin7 raceth [aweight=wpfinwgt]
+tab typrelin8 raceth [aweight=wpfinwgt]
+tab typrelin9 raceth [aweight=wpfinwgt]
+tab typrelin10 raceth [aweight=wpfinwgt]
+tab typrelin11 raceth [aweight=wpfinwgt]
+tab typrelin12 raceth [aweight=wpfinwgt]
+tab typrelin13 raceth [aweight=wpfinwgt]
+tab typrelin14 raceth [aweight=wpfinwgt]
+tab typrelin15 raceth [aweight=wpfinwgt]
+tab typrelin16 raceth [aweight=wpfinwgt]
+tab typrelin17 raceth [aweight=wpfinwgt]
+tab typrelin18 raceth [aweight=wpfinwgt]
+tab typrelin19 raceth [aweight=wpfinwgt]
+tab typrelin20 raceth [aweight=wpfinwgt]
+tab typrelin21 raceth [aweight=wpfinwgt]
+tab typrelin22 raceth [aweight=wpfinwgt]
+tab typrelin23 raceth [aweight=wpfinwgt]
+tab typrelin24 raceth [aweight=wpfinwgt]
+tab typrelin25 raceth [aweight=wpfinwgt]
+tab typrelin26 raceth [aweight=wpfinwgt]
+tab typrelin27 raceth [aweight=wpfinwgt]
 
-tab typrelin1 raceth
-tab typrelin2 raceth
-tab typrelin3 raceth
-tab typrelin4 raceth
-tab typrelin5 raceth
-tab typrelin6 raceth
-tab typrelin7 raceth
-tab typrelin8 raceth
-tab typrelin9 raceth
-tab typrelin10 raceth
-tab typrelin11 raceth
-tab typrelin12 raceth
-tab typrelin13 raceth
-tab typrelin14 raceth
-tab typrelin15 raceth
-tab typrelin16 raceth
-tab typrelin17 raceth
-tab typrelin18 raceth
-tab typrelin19 raceth
-tab typrelin20 raceth
-tab typrelin21 raceth
-tab typrelin22 raceth
-tab typrelin23 raceth
-tab typrelin24 raceth
-tab typrelin25 raceth
-tab typrelin26 raceth
-tab typrelin27 raceth
+tab partner_change812 raceth [aweight=wpfinwgt]
+tab anybabyin raceth [aweight=wpfinwgt] 
