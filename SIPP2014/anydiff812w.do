@@ -114,6 +114,10 @@ replace moved812=0 if born812==1
 
 tab born812
 
+forvalues t=1/27 {
+ replace typrelin`t'=0 if born812==1
+}
+
 replace anydiff812=0 if born812==1
 
 tab anydiff812
