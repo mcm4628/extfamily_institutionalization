@@ -68,12 +68,16 @@ program define report_relationships
     drop if _merge == 2
     drop _merge
 
+    display "Tabs for base relationships"
+
     tab relationship
     tab relationship, m
     tab relationship adj_age
     tab relationship adj_age, m
     tab relationship SWAVE
     tab relationship SWAVE, m
+
+    display "Tabs for base relationships when n_`person_type's is 1""
 
     tab relationship if (n_`person_type's == 1)
     tab relationship if (n_`person_type's == 1), m
@@ -108,12 +112,16 @@ program define report_relationships
     drop if _merge == 2
     drop _merge
 
+    display "Tabs for relationships after TC1"
+
     tab relationship
     tab relationship, m
     tab relationship adj_age
     tab relationship adj_age, m
     tab relationship SWAVE
     tab relationship SWAVE, m
+
+    display "Tabs for relationships after TC1 when n_`person_type's is 1""
 
     tab relationship if (n_`person_type's == 1)
     tab relationship if (n_`person_type's == 1), m

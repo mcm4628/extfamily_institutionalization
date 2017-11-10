@@ -64,7 +64,34 @@ duplicates drop SSUID SHHADID SWAVE relfrom relto relationship, force
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
 
+* How many anomalies?
+count if (n > 1)
+tab n
+
+* There are some "conflicts" that aren't really conflicting.
+* We need more complicated code if we get more than two relationships to consider.
+assert n <= 2
+* Copy the second relationship into the first record  and the first into the second so we can figure out what we want.
+by SSUID SHHADID SWAVE relfrom relto:  gen relationship_2 = relationship[_n + 1] if ((n == 2) & (_n == 1))
+by SSUID SHHADID SWAVE relfrom relto:  replace relationship_2 = relationship[_n - 1] if ((n == 2) & (_n == 2))
+* We drop the record that has the less desirable relationship.
+drop if ((n == 2) & (relationship == "CHILDOFPARTNER") & (relationship_2 == "CHILD"))
+drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "AUNTUNCLE"))
+
+* Surprising these were coded as OTHER_REL in the first place.
+drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "SIBLING"))
+drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GRANDCHILD"))
+drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GREATGRANDCHILD"))
+
+* OK?
+drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "CHILDOFPARTNER"))
+drop if ((n == 2) & (relationship == "NOREL") & (relationship_2 == "CHILDOFPARTNER"))
+drop n relationship_2
+
 * List anomalies in case we want to try to understand and recover them.
+by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
+count if (n > 1)
+tab n
 list if (n > 1)
 
 * For now, we'll prefer the original relationship in case of conflicts.
