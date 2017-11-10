@@ -240,6 +240,7 @@ sort ssuid biomom_pnum
 save "$tempdir/widebiomom.dta", replace
 
 merge m:1 ssuid biomom_pnum using "$tempdir/idpartner.dta"
+* Only has partner changes for type 1 biomoms. Not possible for Type 2.
 
 keep if _merge==3
 

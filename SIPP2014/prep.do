@@ -2,7 +2,7 @@
 * File created by Kelly Raley
 *
 * This file creates a string by concatinating all person-numbers in the 
-* household at months 1, 4, 8, and 12. Laster programs (anydiff) will compare 
+* household at months 1, 4, 8, and 12. Later programs (anydiff) will compare 
 * the string in one month to the individual variables for each person in the household
 * to identify who enters and who leaves. To make this comparison, the individual variables
 * must be converted from numeric to string
@@ -203,6 +203,8 @@ replace in12not8=0 if missing(in12not8)
 
 gen babyin=1 if _merge==1 & tage12==0
 replace babyin=0 if missing(babyin)
+
+tab in12not8 babyin
 
 drop _merge
 
