@@ -16,6 +16,7 @@ program define compute_transitive_relationships
     * (actually joining) on B.
     rename relfrom relative2
     rename relationship relationship2
+    rename relationship_source relsource2
     tempfile relmerge
     save `relmerge'
 
@@ -23,6 +24,7 @@ program define compute_transitive_relationships
     use "$tempdir/relationships_tc`prev_iter'"
     rename relto relative2
     rename relationship relationship1
+    rename relationship_source relsource1
 
     * Note the use of joinby rather than m:m merge.
     * Because joinby does what you think m:m merge ought to do.
@@ -66,7 +68,7 @@ program define compute_transitive_relationships
     drop if (n > 1)
 
     drop n
-    drop relative2 relationship1 relationship2
+    drop relative2 relationship1 relationship2 relsource1 relsource2
     gen relationship_source = `iteration'
     save "$tempdir/relationships_from_tc`iteration'", $replace
 
