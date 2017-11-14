@@ -402,6 +402,7 @@ drop ERRP
 
 * Again, we're hard-coding replace because we are doing
 * successive refinement.
+gen relationship_source = 0
 save, replace
 
 
