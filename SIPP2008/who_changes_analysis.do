@@ -1,28 +1,18 @@
-use "$tempdir/person_wide_adjusted_ages"
-keep SSUID EPPPNUM adj_age*
-reshape long adj_age, i(SSUID EPPPNUM) j(SWAVE)
-tempfile age
-save "$tempdir/adjusted_ages_long", $replace
-
-
-
-
-capture program drop report_relationships
-program define report_relationships
+* Look at ages of people who come, go, and stay.
+capture program drop examine_change_ages
+program define examine_change_ages
     args person_type
 
+    * Build a dataset to merge in the age of the leaver/stayer/arriver.
     use "$tempdir/adjusted_ages_long"
     rename EPPPNUM `person_type'_epppnum
     rename adj_age `person_type'_age
     tempfile `person_type'_merge_age
     save ``person_type'_merge_age'
 
-
+    * Let's just look at children.
     use "$tempdir/`person_type's_long"
-
     keep if (adj_age < $adult_age)
-
-    preserve
 
     * Restricting to `person_type'_num == 1 means we use just a single
     * report from each group of `person_type's, which is what we want.
@@ -58,18 +48,27 @@ program define report_relationships
     tab max_`person_type'_age SWAVE
     tab mean_`person_type'_age SWAVE
     tab median_`person_type'_age SWAVE
+end
 
 
-    restore
+capture program drop report_relationships
+program define report_relationships
+    args person_type iteration
+    
+    local next_iter = `iteration' + 1
+    
+    * Let's just look at children.
+    use "$tempdir/`person_type's_long"
+    keep if (adj_age < $adult_age)
 
+    * Bring in the relationships.
     gen relfrom = EPPPNUM
     gen relto = `person_type'_epppnum
-    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/base_relationships"
+    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/relationships_tc`iteration'"
     drop if _merge == 2
     drop _merge
 
-    display "Tabs for base relationships"
-
+    display "Tabs for `person_type's at iteration `iteration'"
     tab relationship
     tab relationship, m
     tab relationship adj_age
@@ -77,8 +76,7 @@ program define report_relationships
     tab relationship SWAVE
     tab relationship SWAVE, m
 
-    display "Tabs for base relationships when n_`person_type's is 1""
-
+    display "Tabs for solo `person_type's at iteration `iteration'"
     tab relationship if (n_`person_type's == 1)
     tab relationship if (n_`person_type's == 1), m
     tab relationship adj_age if (n_`person_type's == 1)
@@ -86,54 +84,31 @@ program define report_relationships
     tab relationship SWAVE if (n_`person_type's == 1)
     tab relationship SWAVE if (n_`person_type's == 1), m
 
-    save "$tempdir/`person_type'_base_relationships", $replace
+    save "$tempdir/`person_type'_relationships_tc`iteration'", $replace
 
-    * Now let's find out what we know from transitive closure about relationships we don't get from primary data.
+    * Now let's find out what we know from the next step of transitive closure
+    * about relationships we don't get from this step.
     keep if missing(relationship)
 
     keep SSUID SWAVE relfrom relto
     duplicates drop
-    merge 1:m SSUID SWAVE relfrom relto using "$tempdir/relationship_pairs_tc1"
+    merge 1:m SSUID SWAVE relfrom relto using "$tempdir/relationship_pairs_tc`next_iter'"
     keep if _merge == 3
     drop _merge
 
     tab relationship1 relationship2
 
-    save "$tempdir/`person_type'_missing_rel", $replace
-
-
-
-    *** Now try using all the relationships we know.
-    use "$tempdir/`person_type's_long"
-    keep if (adj_age < $adult_age)
-    gen relfrom = EPPPNUM
-    gen relto = `person_type'_epppnum
-    merge m:1 SSUID SWAVE relfrom relto using "$tempdir/relationships"
-    drop if _merge == 2
-    drop _merge
-
-    display "Tabs for relationships after TC1"
-
-    tab relationship
-    tab relationship, m
-    tab relationship adj_age
-    tab relationship adj_age, m
-    tab relationship SWAVE
-    tab relationship SWAVE, m
-
-    display "Tabs for relationships after TC1 when n_`person_type's is 1""
-
-    tab relationship if (n_`person_type's == 1)
-    tab relationship if (n_`person_type's == 1), m
-    tab relationship adj_age if (n_`person_type's == 1)
-    tab relationship adj_age if (n_`person_type's == 1), m
-    tab relationship SWAVE if (n_`person_type's == 1)
-    tab relationship SWAVE if (n_`person_type's == 1), m
-
-    save "$tempdir/`person_type'_relationships", $replace
+    save "$tempdir/`person_type'_missing_rel_tc`iteration'", $replace
 end
 
-report_relationships leaver
-report_relationships stayer
-report_relationships arriver
+examine_change_ages leaver
+examine_change_ages stayer
+examine_change_ages arriver
+
+forvalues tc = 1/$max_tc {
+    report_relationships leaver `tc'
+    report_relationships stayer `tc'
+    report_relationships arriver `tc'
+}
+
 * save "$tempdir/who_changes_analysis", $replace

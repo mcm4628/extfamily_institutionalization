@@ -129,7 +129,9 @@ program define compute_transitive_relationships
     save "$tempdir/relationships_tc`iteration'", $replace
 end
 
-compute_transitive_relationships 1
-compute_transitive_relationships 2
-compute_transitive_relationships 3
-compute_transitive_relationships 4
+* We need an extra pass to be able to report on the pairs
+* we might be able to use if we went one more pass.
+local num_tc = $max_tc + 1
+forvalues tc = 1/`num_tc' {
+    compute_transitive_relationships `tc'
+}

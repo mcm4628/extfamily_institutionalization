@@ -18,6 +18,10 @@ do "$childhh_base_code/do_and_log" make_auxiliary_datasets
 do "$childhh_base_code/do_and_log" convert_to_wide
 do "$childhh_base_code/do_and_log" normalize_ages
 do "$childhh_base_code/do_and_log" compute_base_relationships
+
+* The number of transitive closure passes we want to do.
+global max_tc 3
+
 do "$childhh_base_code/do_and_log" compute_secondary_relationships
 do "$childhh_base_code/do_and_log" who_changes
 do "$childhh_base_code/do_and_log" who_changes_long

@@ -551,3 +551,7 @@ drop record_disposition
 drop TAGE*
 
 save "$tempdir/person_wide_adjusted_ages", $replace
+
+keep SSUID EPPPNUM adj_age*
+reshape long adj_age, i(SSUID EPPPNUM) j(SWAVE)
+save "$tempdir/adjusted_ages_long", $replace
