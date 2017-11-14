@@ -48,6 +48,9 @@ program define examine_change_ages
     tab max_`person_type'_age SWAVE
     tab mean_`person_type'_age SWAVE
     tab median_`person_type'_age SWAVE
+    
+    * Maybe ought to save this to be poked at.
+    clear
 end
 
 
