@@ -99,6 +99,7 @@ program define report_relationships
     keep if _merge == 3
     drop _merge
 
+    display "Tabs of `person_type's relationship pairs available at next iteration `next_iter' for relationships missing in iteration `iteration'"
     tab relationship1 relationship2
 
     save "$tempdir/`person_type'_missing_rel_tc`iteration'", $replace

@@ -46,7 +46,7 @@ program define compute_transitive_relationships
     replace relationship = "GREATGRANDCHILD" if ((relationship1 == "GRANDCHILD") & (relationship2 == "CHILD"))
     replace relationship = "SIBLING" if ((relationship1 == "CHILD") & (relationship2 == "PARENT"))
     replace relationship = "CHILDOFPARTNER" if ((relationship1 == "CHILD") & (relationship2 == "PARTNER"))
-    replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "SIBLING"))
+    replace relationship = "NEPHEWNIECE" if ((relationship1 == "CHILD") & (relationship2 == "SIBLING"))
     replace relationship = "CHILD" if ((relationship1 == "CHILD") & (relationship2 == "SPOUSE"))
 
     * Save just records for which we understand A --> C.
@@ -103,7 +103,7 @@ program define compute_transitive_relationships
 
     * We drop the record that has the less desirable relationship.
     drop if ((n == 2) & (relationship == "CHILDOFPARTNER") & (relationship_2 == "CHILD"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "AUNTUNCLE"))
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "NEPHEWNIECE"))
 
     * Surprising these were coded as OTHER_REL in the first place.
     drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "SIBLING"))
