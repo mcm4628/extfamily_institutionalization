@@ -48,6 +48,13 @@ program define compute_transitive_relationships
     replace relationship = "CHILDOFPARTNER" if ((relationship1 == "CHILD") & (relationship2 == "PARTNER"))
     replace relationship = "NEPHEWNIECE" if ((relationship1 == "CHILD") & (relationship2 == "SIBLING"))
     replace relationship = "CHILD" if ((relationship1 == "CHILD") & (relationship2 == "SPOUSE"))
+    replace relationship = "COUSIN" if ((relationship1 == "CHILD") & (relationship2 == "AUNTUNCLE"))
+    replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
+    replace relationship = "OTHER_REL" if ((relationship1 == "CHILD") & (relationship2 == "OTHER_REL"))
+    replace relationship = "OTHER_REL" if ((relationship1 == "GRANDCHILD") & (relationship2 == "OTHER_REL"))
+    replace relationship = "COUSIN" if ((relationship1 == "GRANDCHILD") & (relationship2 == "GRANDPARENT"))
+    replace relationship = "NEPHEWNIECE" if ((relationship1 == "GRANDCHILD") & (relationship2 == "PARENT"))
+    replace relationship = "SIBLING" if ((relationship1 == "PARENT") & (relationship2 == "AUNTUNCLE"))
 
     * Save just records for which we understand A --> C.
     keep if (!missing(relationship))
