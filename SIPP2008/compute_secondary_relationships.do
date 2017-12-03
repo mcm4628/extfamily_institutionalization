@@ -1,6 +1,39 @@
 *** TODO:  Is it more efficient to use categories?
 
 
+
+capture program drop drop_conflicts
+program define drop_conflicts
+    * There are some "conflicts" that aren't really conflicting.
+    * We need more complicated code if we get more than two relationships to consider.
+    * assert n <= 2
+    * For now we'll just drop offenders and come back to this later.
+    *** TODO!!!  Deal with more than two conflicts.
+    drop if n <= 2
+    
+    
+    * Copy the second relationship into the first record and the first into the second 
+    * so we can figure out what we want.
+    by SSUID SHHADID SWAVE relfrom relto:  gen relationship_2 = relationship[_n + 1] if ((n == 2) & (_n == 1))
+    by SSUID SHHADID SWAVE relfrom relto:  replace relationship_2 = relationship[_n - 1] if ((n == 2) & (_n == 2))
+
+    * We drop the record that has the less desirable relationship.
+    drop if ((n == 2) & (relationship == "CHILDOFPARTNER") & (relationship_2 == "CHILD"))
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "NEPHEWNIECE"))
+    drop if ((n == 2) & (relationship == "SIB_OR_COUSIN") & (relationship_2 == "SIBLING"))
+
+    * Surprising these were coded as OTHER_REL in the first place.
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "SIBLING"))
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GRANDCHILD"))
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GREATGRANDCHILD"))
+
+    * OK?  We're elevating other relative and no relationship to child of partner.
+    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "CHILDOFPARTNER"))
+    drop if ((n == 2) & (relationship == "NOREL") & (relationship_2 == "CHILDOFPARTNER"))
+    drop n relationship_2
+end
+
+
 capture program drop compute_transitive_relationships
 program define compute_transitive_relationships
 
@@ -49,12 +82,15 @@ program define compute_transitive_relationships
     replace relationship = "NEPHEWNIECE" if ((relationship1 == "CHILD") & (relationship2 == "SIBLING"))
     replace relationship = "CHILD" if ((relationship1 == "CHILD") & (relationship2 == "SPOUSE"))
     replace relationship = "COUSIN" if ((relationship1 == "CHILD") & (relationship2 == "AUNTUNCLE"))
-    replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
     replace relationship = "OTHER_REL" if ((relationship1 == "CHILD") & (relationship2 == "OTHER_REL"))
     replace relationship = "OTHER_REL" if ((relationship1 == "GRANDCHILD") & (relationship2 == "OTHER_REL"))
-    replace relationship = "COUSIN" if ((relationship1 == "GRANDCHILD") & (relationship2 == "GRANDPARENT"))
+    replace relationship = "SIB_OR_COUSIN" if ((relationship1 == "GRANDCHILD") & (relationship2 == "GRANDPARENT"))
     replace relationship = "NEPHEWNIECE" if ((relationship1 == "GRANDCHILD") & (relationship2 == "PARENT"))
-    replace relationship = "SIBLING" if ((relationship1 == "PARENT") & (relationship2 == "AUNTUNCLE"))
+
+    * This is too general.  I could be the partner of the bio parent.  See 019925587235 wave 15, 1201 to 1203:  
+    * sibling via 1201, sibling or cousin via 101, cousin via 902 because 902 is judged aunt-uncle by virtue of 
+    * child --> grandparent.
+    replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
 
     * Save just records for which we understand A --> C.
     keep if (!missing(relationship))
@@ -68,9 +104,18 @@ program define compute_transitive_relationships
     * List anomalies in case we want to try to understand and recover them.
     * "Anomaly" means we generated two different relationships for the same pair of people.
     * TODO:  Review these!
-    display "Anomalies in transitive relationships at iteration `iteration'"
-    list if (n > 1)
+    display "Anomalies in transitive relationships at iteration `iteration', before corrections"
+    count if (n > 1)
+    tab n
 
+    drop_conflicts
+
+    display "Anomalies in transitive relationships at iteration `iteration', after corrections"
+    sort SSUID SHHADID SWAVE relfrom relto
+    by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
+    count if (n > 1)
+    tab n
+    list if (n > 1)
     * And then get rid of them, for now.
     drop if (n > 1)
 
@@ -98,29 +143,7 @@ program define compute_transitive_relationships
     count if (n > 1)
     tab n
 
-    * There are some "conflicts" that aren't really conflicting.
-    * We need more complicated code if we get more than two relationships to consider.
-    assert n <= 2
-    
-    
-    * Copy the second relationship into the first record and the first into the second 
-    * so we can figure out what we want.
-    by SSUID SHHADID SWAVE relfrom relto:  gen relationship_2 = relationship[_n + 1] if ((n == 2) & (_n == 1))
-    by SSUID SHHADID SWAVE relfrom relto:  replace relationship_2 = relationship[_n - 1] if ((n == 2) & (_n == 2))
-
-    * We drop the record that has the less desirable relationship.
-    drop if ((n == 2) & (relationship == "CHILDOFPARTNER") & (relationship_2 == "CHILD"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "NEPHEWNIECE"))
-
-    * Surprising these were coded as OTHER_REL in the first place.
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "SIBLING"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GRANDCHILD"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GREATGRANDCHILD"))
-
-    * OK?  We're elevating other relative and no relationship to child of partner.
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "CHILDOFPARTNER"))
-    drop if ((n == 2) & (relationship == "NOREL") & (relationship_2 == "CHILDOFPARTNER"))
-    drop n relationship_2
+    drop_conflicts
 
     * List anomalies in case we want to try to understand and recover them.
     * TODO:  Review these.
