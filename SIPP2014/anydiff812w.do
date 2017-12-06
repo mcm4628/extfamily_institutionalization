@@ -119,6 +119,8 @@ forvalues t=1/27 {
 }
 
 replace anydiff812=0 if born812==1
+replace nrelin=0 if born812==1
+replace nrelout=0 if born812==1
 
 tab anydiff812
 
