@@ -5,4 +5,5 @@ global tempdir "$homedir/TempChildHH/temp"
 
 global boxdir "$homedir/Box Sync"
 
-global projdir "$homedir/ChildHH/SIPP2008"
+global sipp2008_code "$homedir/ChildHH/SIPP2008"
+global sipp2008_logs "$homedir/TempChildHH/logs"

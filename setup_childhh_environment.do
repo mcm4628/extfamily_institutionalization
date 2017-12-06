@@ -43,6 +43,9 @@ do setup_`c(username)'
 
 * We require that logdir and boxdir be set.
 * Maybe we'll require some others as well.
+*
+* We are transitioning to requiring a logdir for each project,
+* perhaps, but for now let's keep the overall logdir as well.
 if ("$logdir" == "") {
     display as error "logdir macro not set."
     exit
