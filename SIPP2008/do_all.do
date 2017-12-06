@@ -23,9 +23,18 @@ if ("$sipp2008_logs" == "") {
 }
 
 
-* Possible to-do:  We could create the log directory if it doesn't exist.
-* Alternatively, we could check to make sure they do exist.
-* For now, you're on your own.
+* We check to make sure the required directories exist.
+capture confirmdir "$sipp2008_logs"
+if `r(confirmdir)' {
+    display as error "The sipp2008_logs macro specifies a directory that does not exist:  $sipp2008_logs"
+    exit
+}
+
+capture confirmdir "$sipp2008_code"
+if `r(confirmdir)' {
+    display as error "The sipp2008_code macro specifies a directory that does not exist:  $sipp2008_code"
+    exit
+}
 
 
 
