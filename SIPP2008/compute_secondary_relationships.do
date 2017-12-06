@@ -9,7 +9,7 @@ program define drop_conflicts
     * assert n <= 2
     * For now we'll just drop offenders and come back to this later.
     *** TODO!!!  Deal with more than two conflicts.
-    drop if n <= 2
+    drop if n > 2
     
     
     * Copy the second relationship into the first record and the first into the second 
