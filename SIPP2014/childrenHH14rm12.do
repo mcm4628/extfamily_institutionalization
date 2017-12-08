@@ -1,6 +1,21 @@
-use "$SIPP2014data/selected.dta", clear
+use "$SIPP2014/selected.dta", clear
 
 drop if monthcode !=12
+
+drop if tage > 17
+
+forvalues t=1/19{
+  gen typrel`t'=0
+}
+forvalues r=1/30{
+  forvalues t=1/19 {
+  replace typrel`t'=typrel`t'+1 if rrel`r'==`t'
+}
+}
+
+forvalues t=1/19{
+ tab typrel`t'
+}
 
 * Note that parpresent includes parents or guardians 
 gen parpresent=1 if erefpar >= 101 & erefpar <= 499
