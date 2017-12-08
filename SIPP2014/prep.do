@@ -14,7 +14,7 @@
 ********************************************************************************
 
 
-use "$SIPP2014data/selected.dta", clear
+use "$SIPP2014/selected.dta", clear
 
 egen allHH = concat(rrel_pnum*), punct(" ")
 
