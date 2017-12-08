@@ -45,9 +45,13 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_a
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships
 
 * The number of transitive closure passes we want to do.
-global max_tc 3
+global max_tc 1
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_long
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_analysis
+
+
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" pairs
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" pair_analysis
