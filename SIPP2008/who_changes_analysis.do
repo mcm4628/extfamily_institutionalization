@@ -67,6 +67,7 @@ program define report_relationships
     * Bring in the relationships.
     gen relfrom = EPPPNUM
     gen relto = `person_type'_epppnum
+    drop if relfrom == relto
     merge m:1 SSUID SWAVE relfrom relto using "$tempdir/relationships_tc`iteration'"
     drop if _merge == 2
     drop _merge
