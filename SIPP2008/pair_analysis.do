@@ -63,7 +63,7 @@ forvalues tc = 0/$max_tc {
     tab all_rels if (wordcount(all_rels) > 1)
     tab all_rels if (num_rel_missing > 0)
     tab all_rels if ((wordcount(all_rels) > 1) & (num_rel_missing > 0))
-    tab num_relationships if (wordcount(all_rels) == )
+    tab num_relationships if (wordcount(all_rels) == 0)
 
     save "$tempdir/child_pair_rels_unified_tc`tc'", $replace
 }
