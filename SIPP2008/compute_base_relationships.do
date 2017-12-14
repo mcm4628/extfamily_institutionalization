@@ -6,7 +6,7 @@
 
 * To avoid problems with observations that can generate more than
 * one relationship (e.g., the reference person is likely to be
-* related to multiple people) we compute each realtionship into
+* related to multiple people) we compute each relationship into
 * its own temporary dataset and append them all together.
 
 
@@ -18,6 +18,7 @@ preserve
 gen relfrom = EPPPNUM if ((!missing(EPNMOM)) & (EPNMOM != 9999))
 gen relto = EPNMOM if ((!missing(EPNMOM)) & (EPNMOM != 9999))
 gen relationship = "CHILD" if ((!missing(EPNMOM)) & (EPNMOM != 9999))
+tab relationship SWAVE
 * Ignore people who report themselves as their own parent.
 replace relationship = "" if ((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))
 keep SSUID SHHADID SWAVE relfrom relto relationship
@@ -31,6 +32,7 @@ preserve
 gen relfrom = EPNMOM if ((!missing(EPNMOM)) & (EPNMOM != 9999))
 gen relto = EPPPNUM if ((!missing(EPNMOM)) & (EPNMOM != 9999))
 gen relationship = "PARENT" if ((!missing(EPNMOM)) & (EPNMOM != 9999))
+tab relationship SWAVE
 replace relationship = "" if ((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
@@ -43,6 +45,7 @@ preserve
 gen relfrom = EPPPNUM if ((!missing(EPNDAD)) & (EPNDAD != 9999))
 gen relto = EPNDAD if ((!missing(EPNDAD)) & (EPNDAD != 9999))
 gen relationship = "CHILD" if ((!missing(EPNDAD)) & (EPNDAD != 9999))
+tab relationship SWAVE
 replace relationship = "" if ((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
@@ -55,6 +58,7 @@ preserve
 gen relfrom = EPNDAD if ((!missing(EPNDAD)) & (EPNDAD != 9999))
 gen relto = EPPPNUM if ((!missing(EPNDAD)) & (EPNDAD != 9999))
 gen relationship = "PARENT" if ((!missing(EPNDAD)) & (EPNDAD != 9999))
+tab relationship SWAVE
 replace relationship = "" if ((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
@@ -74,6 +78,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 3)
 gen relto = ref_person if (ERRP == 3)
 gen relationship = "SPOUSE" if (ERRP == 3)
+tab relationship SWAVE
 * Ignore the spouse claim of people who claim to be a spouse and a child of the ref person.
 replace relationship = "" if ((EPNMOM == ref_person) | (EPNDAD == ref_person))
 keep SSUID SHHADID SWAVE relfrom relto relationship
@@ -87,6 +92,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 3)
 gen relto = EPPPNUM if (ERRP == 3)
 gen relationship = "SPOUSE" if (ERRP == 3)
+tab relationship SWAVE
 * Ignore the spouse claim of people who claim to be a spouse and a child of the ref person.
 replace relationship = "" if ((EPNMOM == ref_person) | (EPNDAD == ref_person))
 keep SSUID SHHADID SWAVE relfrom relto relationship
@@ -100,6 +106,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 4)
 gen relto = ref_person if (ERRP == 4)
 gen relationship = "CHILD" if (ERRP == 4)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_child1
@@ -111,6 +118,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 4)
 gen relto = EPPPNUM if (ERRP == 4)
 gen relationship = "PARENT" if (ERRP == 4)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_child2
@@ -122,6 +130,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 5)
 gen relto = ref_person if (ERRP == 5)
 gen relationship = "GRANDCHILD" if (ERRP == 5)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_grandchild1
@@ -133,6 +142,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 5)
 gen relto = EPPPNUM if (ERRP == 5)
 gen relationship = "GRANDPARENT" if (ERRP == 5)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_grandchild2
@@ -144,6 +154,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 6)
 gen relto = ref_person if (ERRP == 6)
 gen relationship = "PARENT" if (ERRP == 6)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_parent1
@@ -155,6 +166,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 6)
 gen relto = EPPPNUM if (ERRP == 6)
 gen relationship = "CHILD" if (ERRP == 6)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_parent2
@@ -166,6 +178,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 7)
 gen relto = ref_person if (ERRP == 7)
 gen relationship = "SIBLING" if (ERRP == 7)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_sibling1
@@ -177,6 +190,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 7)
 gen relto = EPPPNUM if (ERRP == 7)
 gen relationship = "SIBLING" if (ERRP == 7)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_sibling2
@@ -188,6 +202,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 8)
 gen relto = ref_person if (ERRP == 8)
 gen relationship = "OTHER_REL" if (ERRP == 8)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_otherrel1
@@ -199,6 +214,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 8)
 gen relto = EPPPNUM if (ERRP == 8)
 gen relationship = "OTHER_REL" if (ERRP == 8)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_otherrel2
@@ -210,6 +226,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 9)
 gen relto = ref_person if (ERRP == 9)
 gen relationship = "F_CHILD" if (ERRP == 9)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_fosterchild1
@@ -221,6 +238,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 9)
 gen relto = EPPPNUM if (ERRP == 9)
 gen relationship = "F_PARENT" if (ERRP == 9)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_fosterchild2
@@ -232,6 +250,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 10)
 gen relto = ref_person if (ERRP == 10)
 gen relationship = "PARTNER" if (ERRP == 10)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_partner1
@@ -243,6 +262,7 @@ preserve
 gen relfrom = ref_person if (ERRP == 10)
 gen relto = EPPPNUM if (ERRP == 10)
 gen relationship = "PARTNER" if (ERRP == 10)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_partner2
@@ -254,6 +274,7 @@ preserve
 gen relfrom = EPPPNUM if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
 gen relto = ref_person if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
 gen relationship = "NOREL" if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_norelation1
@@ -264,6 +285,7 @@ restore
 gen relfrom = ref_person if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
 gen relto = EPPPNUM if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
 gen relationship = "NOREL" if (ERRP == 11) | (ERRP == 12) | (ERRP == 13)
+tab relationship SWAVE
 keep SSUID SHHADID SWAVE relfrom relto relationship
 drop if missing(relationship)
 tempfile errp_norelation2
