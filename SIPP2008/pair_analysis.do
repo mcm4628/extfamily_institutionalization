@@ -1,3 +1,7 @@
+if ("$max_tc" == "") {
+    display as error "global max_tc not set"
+    exit
+}
 
 forvalues tc = 0/$max_tc {
     use "$tempdir/child_pairs_long"
