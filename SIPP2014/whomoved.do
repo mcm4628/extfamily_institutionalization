@@ -48,7 +48,6 @@ drop _merge
 gen interval=1
 
 append using "$tempdir/whomoved812.dta"
-
 tab interval
 
 *gen mom_educ=biomomeduc12
