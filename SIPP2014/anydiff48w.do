@@ -98,8 +98,15 @@ replace moved48=0 if missing(moved48)
 replace anydiff48=1 if eresidenceid4 !=eresidenceid8
 
 gen born48=1 if in8not4==1 & tage8==0
+replace born48=0 if missing(born48)
 
 replace anydiff48=0 if born48==1
+replace moved48=0 if born48==1
+
+forvalues t=1/27 {
+ replace typrelin`t'=0 if born48==1
+}
+
 
 tab anydiff48
 
