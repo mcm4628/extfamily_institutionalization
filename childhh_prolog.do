@@ -2,17 +2,14 @@
 * This should be executed at least once at the
 * beginning of running (sub)project code.
 
-* It assumes a global macro named $logdir that
-* specifies the location of log files.
-
-* It takes a single parameter, the basename of the log file.  
-* "Basename" just means the name without the .do on the end.
+* It takes two parameters, the log directory and the basename of the log file.  
+* "Basename" just means the name without the .log on the end.
 
 
-args fname
+args logdir fname
 
 capture log close
-log using "$logdir/`fname'", text $replace
+log using "`logdir'/`fname'", text $replace
 
 
 * I would love to turn off line wrap so the state is a single
