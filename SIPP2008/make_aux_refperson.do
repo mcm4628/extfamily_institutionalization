@@ -8,5 +8,5 @@ rename ESEX ref_person_sex
 duplicates drop
 save "$tempdir/ref_person_long", $replace
 
-reshape wide ref_person, i(SSUID SHHADID) j(SWAVE)
+reshape wide ref_person ref_person_sex, i(SSUID SHHADID) j(SWAVE)
 save "$tempdir/ref_person_wide", $replace
