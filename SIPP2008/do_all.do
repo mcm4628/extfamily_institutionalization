@@ -1,12 +1,4 @@
-
-global first_wave 1
-global final_wave 15
-global second_wave = ${first_wave} + 1
-global penultimate_wave = ${final_wave} - 1
-
-global adult_age 18
-
-global refmon 4
+do project_macros
 
 * We require that the user define macros telling us where
 * to find the project code and where to put the logs.
@@ -43,9 +35,6 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxili
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships
-
-* The number of transitive closure passes we want to do.
-global max_tc 1
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes
