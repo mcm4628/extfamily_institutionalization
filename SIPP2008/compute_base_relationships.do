@@ -15,42 +15,68 @@
 * It assumes that there is a single condition defining the relationship,
 * and that the relationship is bidirectional (e.g., if A-->B is MOM then
 * B-->A is always CHILD.
-* It assumes there is at most one other condition that invalidates the
-* relationship.  Just pass a 0 for this condition if there are no such
-* invalid conditions.
+* It refuses to compute self-relationships.
 capture program drop compute_relationships
 program define compute_relationships
-    args person1 person2 relationship_1_2 relationship_2_1 condition false_condition filename_1_2 filename_2_1
+    args person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
 
     preserve
     gen relfrom = `person1' if `condition'
     gen relto = `person2' if `condition'
-    gen relationship = "`relationship_1_2'" if `condition'
-    replace relationship = "" if `false_condition'
-    tab relationship SWAVE
-    keep SSUID SHHADID SWAVE relfrom relto relationship
-    drop if missing(relationship)
+    gen relationship_tc0 = "`relationship_1_2'" if `condition'
+    gen reason_tc0 = "`reason'" if `condition'
+    tab relationship_tc0 SWAVE
+    keep SSUID SHHADID SWAVE relfrom relto relationship_tc0 reason_tc0
+    drop if missing(relationship_tc0)
+    drop if (relfrom == relto)
     save "$tempdir/`filename_1_2'", $replace
     restore
 
     preserve
     gen relfrom = `person2' if `condition'
     gen relto = `person1' if `condition'
-    gen relationship = "`relationship_2_1'" if `condition'
-    replace relationship = "" if `false_condition'
-    tab relationship SWAVE
-    keep SSUID SHHADID SWAVE relfrom relto relationship
-    drop if missing(relationship)
+    gen relationship_tc0 = "`relationship_2_1'" if `condition'
+    gen reason_tc0 = "`reason'" if `condition'
+    tab relationship_tc0 SWAVE
+    keep SSUID SHHADID SWAVE relfrom relto relationship_tc0 reason_tc0
+    drop if missing(relationship_tc0)
+    drop if (relfrom == relto)
     save "$tempdir/`filename_2_1'", $replace
     restore
 end
 
 
+
+* This program fixes up conflicting relationship pairs,
+* taking the first as preferable to the second.
+capture program drop fixup_rel_pair
+program define fixup_rel_pair
+    args preferred_rel second_rel
+
+    display "Preferring `preferred_rel' over `second_rel'"
+    
+    gen meets_condition = (((relationship_tc01 == "`preferred_rel'") & (relationship_tc02 == "`second_rel'")) | ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'")))
+    gen needs_swap = ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'"))
+
+    replace numrels = 1 if (meets_condition == 1)
+    replace relationship_tc01 = "`preferred_rel'" if ((meets_condition == 1) & (needs_swap == 1))
+    replace relationship_tc02 = "" if (meets_condition == 1)
+    replace reason_tc01 = reason_tc02 if ((meets_condition == 1) & (needs_swap == 1))
+    replace reason_tc02 = "" if (meets_condition == 1)
+
+    drop meets_condition needs_swap
+end
+
+
 use "$tempdir/allwaves"
 
-* Compute parent/child relationships from EPNMOM and EPNDAD but ignore people who claim they are their own children.
-compute_relationships EPPPNUM EPNMOM CHILD PARENT "((!missing(EPNMOM)) & (EPNMOM != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_mom mom
-compute_relationships EPPPNUM EPNDAD CHILD PARENT "((!missing(EPNDAD)) & (EPNDAD != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_dad dad
+* Compute parent/child relationships from EPNMOM and EPNDAD.
+compute_relationships EPPPNUM EPNMOM BIOCHILD BIOMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 1))" biochild_of_mom biomom
+compute_relationships EPPPNUM EPNDAD BIOCHILD BIODAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 1))" biochild_of_dad biodad
+compute_relationships EPPPNUM EPNMOM STEPCHILD STEPMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 2))" stepchild_of_mom stepmom
+compute_relationships EPPPNUM EPNDAD STEPCHILD STEPDAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 2))" stepchild_of_dad stepdad
+compute_relationships EPPPNUM EPNMOM ADOPTCHILD ADOPTMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 3))" adoptchild_of_mom adoptmom
+compute_relationships EPPPNUM EPNDAD ADOPTCHILD ADOPTDAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 3))" adoptchild_of_dad adoptdad
 
 * Merge in a variable indicating the reference person for the household.
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
@@ -59,53 +85,76 @@ drop if (_merge == 2)
 assert (_merge == 3)
 drop _merge
 
-* Spouse of reference person.  Ignore people who also claim to be a child of the reference person.
-compute_relationships EPPPNUM ref_person SPOUSE SPOUSE "(ERRP == 3)" "((EPNMOM == ref_person) | (EPNDAD == ref_person))" errp_spouse1 errp_spouse2
+*** The 1 and 2 suffixes below are convenient but not very descriptive.
+* 1 means the relationship as stated; 2 means the reverse.  E.g., errp_child_of_mom2 are moms of children identified by ERRP == 4.
+
+* Spouse of reference person.
+compute_relationships EPPPNUM ref_person SPOUSE SPOUSE ERRP_3 "(ERRP == 3)" errp_spouse1 errp_spouse2
 
 * Child of reference person.  You'd expect EPNMOM/DAD to capture this, too.
-compute_relationships EPPPNUM ref_person CHILD PARENT "(ERRP == 4)" 0 errp_child1 errp_child2
+compute_relationships EPPPNUM ref_person CHILD MOM ERRP_4 "((ERRP == 4) & (ref_person_sex == 2))" errp_child_of_mom1 errp_child_of_mom2
+compute_relationships EPPPNUM ref_person CHILD DAD ERRP_4 "((ERRP == 4) & (ref_person_sex == 1))" errp_child_of_dad1 errp_child_of_dad2
 
 * Grandchild of reference person.
-compute_relationships EPPPNUM ref_person GRANDCHILD GRANDPARENT "(ERRP == 5)" 0 errp_grandchild1 errp_grandchild2
+compute_relationships EPPPNUM ref_person GRANDCHILD GRANDPARENT ERRP_5 "(ERRP == 5)" errp_grandchild1 errp_grandchild2
 
 * Parent of reference person.
-compute_relationships EPPPNUM ref_person PARENT CHILD "(ERRP == 6)" 0 errp_parent1 errp_parent2
+compute_relationships EPPPNUM ref_person MOM CHILD ERRP_6 "((ERRP == 6) & (ESEX == 2))" errp_mom1 errp_mom2
+compute_relationships EPPPNUM ref_person DAD CHILD ERRP_6 "((ERRP == 6) & (ESEX == 1))" errp_dad1 errp_dad2
 
 * Sibling of reference person.
-compute_relationships EPPPNUM ref_person SIBLING SIBLING "(ERRP == 7)" 0 errp_sibling1 errp_sibling2
+compute_relationships EPPPNUM ref_person SIBLING SIBLING ERRP_7 "(ERRP == 7)" errp_sibling1 errp_sibling2
 
 * Other relative.
-compute_relationships EPPPNUM ref_person OTHER_REL OTHER_REL "(ERRP == 8)" 0 errp_otherrel1 errp_otherrel2
+compute_relationships EPPPNUM ref_person OTHER_REL OTHER_REL ERRP_8 "(ERRP == 8)" errp_otherrel1 errp_otherrel2
 
 * Foster child.
-compute_relationships EPPPNUM ref_person F_CHILD F_PARENT "(ERRP == 9)" 0 errp_fosterchild1 errp_fosterchild2
+compute_relationships EPPPNUM ref_person F_CHILD F_PARENT ERRP_9 "(ERRP == 9)" errp_fosterchild1 errp_fosterchild2
 
 * Partner of reference person.
-compute_relationships EPPPNUM ref_person PARTNER PARTNER "(ERRP == 10)" 0 errp_partner1 errp_partner2
+compute_relationships EPPPNUM ref_person PARTNER PARTNER ERRP_10 "(ERRP == 10)" errp_partner1 errp_partner2
 
 * No relation.
-compute_relationships EPPPNUM ref_person NOREL NOREL "((ERRP == 11) | (ERRP == 12) | (ERRP == 13))" 0 errp_norelation1 errp_norelation2
+compute_relationships EPPPNUM ref_person NOREL NOREL ERRP_GE_11 "((ERRP == 11) | (ERRP == 12) | (ERRP == 13))" errp_norelation1 errp_norelation2
 
 
 * Spouse from EPNSPOUS
-compute_relationships EPPPNUM EPNSPOUS SPOUSE SPOUSE "(EPNSPOUS != 9999)" 0 epnspous1 epnspous2
+compute_relationships EPPPNUM EPNSPOUS SPOUSE SPOUSE EPNSPOUS "(EPNSPOUS != 9999)" epnspous1 epnspous2
 
+* TODO -- Report on anomalies that cause trouble (now or later?) -- Compute parent/child relationships from EPNMOM and EPNDAD but ignore people who claim they are their own children.
+*  compute_relationships EPPPNUM EPNMOM CHILD MOM "((!missing(EPNMOM)) & (EPNMOM != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_mom mom
+* compute_relationships EPPPNUM EPNDAD CHILD PARENT "((!missing(EPNDAD)) & (EPNDAD != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_dad dad
+* TODO -- Report on problem people -- Spouse of reference person.  Ignore people who also claim to be a child of the reference person.
+* compute_relationships EPPPNUM ref_person SPOUSE SPOUSE "(ERRP == 3)" "((EPNMOM == ref_person) | (EPNDAD == ref_person))" errp_spouse1 errp_spouse2
+* TODO - Check for conflict of parent type with ERRP_4.
 
 clear
 
 * Jam them all together
-use "$tempdir/child_of_mom"
-append using "$tempdir/mom"
-append using "$tempdir/child_of_dad"
-append using "$tempdir/dad"
+use "$tempdir/biochild_of_mom"
+append using "$tempdir/biomom"
+append using "$tempdir/biochild_of_dad"
+append using "$tempdir/biodad"
+append using "$tempdir/stepchild_of_mom"
+append using "$tempdir/stepmom"
+append using "$tempdir/stepchild_of_dad"
+append using "$tempdir/stepdad"
+append using "$tempdir/adoptchild_of_mom"
+append using "$tempdir/adoptmom"
+append using "$tempdir/adoptchild_of_dad"
+append using "$tempdir/adoptdad"
 append using "$tempdir/errp_spouse1"
 append using "$tempdir/errp_spouse2"
-append using "$tempdir/errp_child1"
-append using "$tempdir/errp_child2"
+append using "$tempdir/errp_child_of_mom1"
+append using "$tempdir/errp_child_of_mom2"
+append using "$tempdir/errp_child_of_dad1"
+append using "$tempdir/errp_child_of_dad2"
 append using "$tempdir/errp_grandchild1"
 append using "$tempdir/errp_grandchild2"
-append using "$tempdir/errp_parent1"
-append using "$tempdir/errp_parent2"
+append using "$tempdir/errp_mom1"
+append using "$tempdir/errp_mom2"
+append using "$tempdir/errp_dad1"
+append using "$tempdir/errp_dad2"
 append using "$tempdir/errp_sibling1"
 append using "$tempdir/errp_sibling2"
 append using "$tempdir/errp_otherrel1"
@@ -119,17 +168,49 @@ append using "$tempdir/errp_norelation2"
 append using "$tempdir/epnspous1"
 append using "$tempdir/epnspous2"
 
-duplicates drop
+* Now that we carry along reason for the relationship we need to force drop
+* when we have more than one reason for the same relationship.  We won't worry
+* about which reason we keep.
+duplicates drop SSUID SHHADID SWAVE relfrom relto relationship_tc0, force
 
-save "$tempdir/relationships_tc0", $replace
+save "$tempdir/relationships_tc0_all", $replace
 
 
 * Now deal with cases in which we derive more than one relationship
 * between the same pair of people.
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
+by SSUID SHHADID SWAVE relfrom relto:  gen relnum = _n
+
+assert (numrels <= 2)
+
+reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j(relnum)
+
+display "Number of relationships before any fix-ups"
 tab numrels
 
+fixup_rel_pair BIOMOM MOM
+fixup_rel_pair BIODAD DAD
+fixup_rel_pair BIOCHILD CHILD
+
+display "Number of relationships after BIO fixes"
+tab numrels
+
+fixup_rel_pair STEPMOM MOM
+fixup_rel_pair STEPDAD DAD
+fixup_rel_pair STEPCHILD CHILD
+fixup_rel_pair ADOPTMOM MOM
+fixup_rel_pair ADOPTDAD DAD
+fixup_rel_pair ADOPTCHILD CHILD
+
+display "Number of relationships after STEP and ADOPT fixes"
+tab numrels
+
+tab relationship_tc01 relationship_tc02 if (numrels > 1)
+
+save "$tempdir/relationships_tc0_wide", $replace
+
+/*
 * List those with more than one relationship.
 keep if numrels > 1
 list
@@ -239,5 +320,5 @@ tab numrels
 summ numrels, detail
 assert (`r(max)' == 1)
 drop numrels
+*/
 
-clear
