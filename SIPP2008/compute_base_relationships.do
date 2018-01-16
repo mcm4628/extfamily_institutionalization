@@ -179,22 +179,22 @@ save "$tempdir/relationships_tc0_all", $replace
 * Now deal with cases in which we derive more than one relationship
 * between the same pair of people.
 sort SSUID SHHADID SWAVE relfrom relto
-by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
-by SSUID SHHADID SWAVE relfrom relto:  gen relnum = _n
+by SSUID SHHADID SWAVE relfrom relto:  gen numrels_tc0 = _N
+by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc0 = _n
 
-assert (numrels <= 2)
+assert (numrels_tc0 <= 2)
 
-reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j(relnum)
+reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc0)
 
 display "Number of relationships before any fix-ups"
-tab numrels
+tab numrels_tc0
 
 fixup_rel_pair BIOMOM MOM
 fixup_rel_pair BIODAD DAD
 fixup_rel_pair BIOCHILD CHILD
 
 display "Number of relationships after BIO fixes"
-tab numrels
+tab numrels_tc0
 
 fixup_rel_pair STEPMOM MOM
 fixup_rel_pair STEPDAD DAD
@@ -204,9 +204,9 @@ fixup_rel_pair ADOPTDAD DAD
 fixup_rel_pair ADOPTCHILD CHILD
 
 display "Number of relationships after STEP and ADOPT fixes"
-tab numrels
+tab numrels_tc0
 
-tab relationship_tc01 relationship_tc02 if (numrels > 1)
+tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
 
 save "$tempdir/relationships_tc0_wide", $replace
 
