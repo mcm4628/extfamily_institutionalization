@@ -212,7 +212,16 @@ save "$tempdir/relationships_tc0_wide", $replace
 
 
 * We also build a version with conflicts resolved.
-* Since there are so few we just drop them.
+* Since there are so few conflicts, for now we just drop them.
+
+* To know what we have thrown away that we might care about,
+* we keep a list of what we lost.
+preserve
+keep if (numrels_tc0 > 1)
+save "$tempdir/relationships_tc0_lost", $replace
+
+
+restore
 drop if (numrels_tc0 > 1)
 drop numrels_tc0
 
@@ -220,10 +229,16 @@ drop numrels_tc0
 drop relationship_tc02 reason_tc02
 
 * And rename the first to have no suffix.
-rename relationship_tc01 relationship_tc0
-rename reason_tc01 reason_tc0
+rename relationship_tc01 relationship
+rename reason_tc01 reason
 
-save "$tempdir/relationships_tc0_wide_simple", $replace
+save "$tempdir/relationships_tc0_resolved", $replace
+
+
+*** TODO:  We ideally want a single relationship.
+* For starters, compute some stats on conflicts.
+
+
 
 /*
 * List those with more than one relationship.
