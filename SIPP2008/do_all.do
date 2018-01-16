@@ -36,10 +36,10 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships
 
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_long
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_analysis
+* do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships
+* do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes
+* do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_long
+* do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" who_changes_analysis
 
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" pairs
