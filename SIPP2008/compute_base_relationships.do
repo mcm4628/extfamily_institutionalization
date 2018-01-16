@@ -58,7 +58,7 @@ program define fixup_rel_pair
     gen meets_condition = (((relationship_tc01 == "`preferred_rel'") & (relationship_tc02 == "`second_rel'")) | ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'")))
     gen needs_swap = ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'"))
 
-    replace numrels = 1 if (meets_condition == 1)
+    replace numrels_tc0 = 1 if (meets_condition == 1)
     replace relationship_tc01 = "`preferred_rel'" if ((meets_condition == 1) & (needs_swap == 1))
     replace relationship_tc02 = "" if (meets_condition == 1)
     replace reason_tc01 = reason_tc02 if ((meets_condition == 1) & (needs_swap == 1))
