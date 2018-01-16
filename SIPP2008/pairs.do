@@ -1,5 +1,3 @@
-* TODO:  Probably ought to remove pairing with myself.  I take care of it in the long form, but not the wide.
-
 use "$tempdir/person_wide_adjusted_ages"
 
 keep SSUID EPPPNUM SHHADID* shhadid_members* max_shhadid_members* adj_age* my_race my_sex
@@ -10,6 +8,7 @@ forvalues wave = $first_wave/$penultimate_wave {
     }
 }
 
+* TODO:  Probably ought to remove pairing with myself.  I take care of it in the long form, but not the wide.
 save "$tempdir/pairs_wide", $replace
 
 
