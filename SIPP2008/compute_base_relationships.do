@@ -210,6 +210,21 @@ tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
 
 save "$tempdir/relationships_tc0_wide", $replace
 
+
+* We also build a version with conflicts resolved.
+* Since there are so few we just drop them.
+drop if (numrels_tc0 > 1)
+drop numrels_tc0
+
+* And we drop the empty second relationship and reason.
+drop relationship_tc02 reason_tc02
+
+* And rename the first to have no suffix.
+rename relationship_tc01 relationship_tc0
+rename reason_tc01 reason_tc0
+
+save "$tempdir/relationships_tc0_wide_simple", $replace
+
 /*
 * List those with more than one relationship.
 keep if numrels > 1
