@@ -96,19 +96,35 @@ program define compute_transitive_relationships
     * out for A --> C?
     gen relationship = ""
     generate_relationship "GRANDCHILD"		"CHILD"			"CHILD"
+    generate_relationship "GRANDCHILD"		"BIOCHILD"		"BIOCHILD"
+    generate_relationship "GRANDCHILD"		"BIOCHILD"		"CHILD"
+
+    generate_relationship "GRANDPARENT"		"BIOMOM"		"BIOMOM"
+    generate_relationship "GRANDPARENT"		"BIOMOM"		"BIODAD"
+    generate_relationship "GRANDPARENT"		"BIODAD"		"BIOMOM"
+    generate_relationship "GRANDPARENT"		"BIODAD"		"BIODAD"
+
     generate_relationship "GREATGRANDCHILD"	"CHILD"			"GRANDCHILD"
     generate_relationship "GREATGRANDCHILD"	"GRANDCHILD"		"CHILD"
+
     generate_relationship "SIBLING"		"CHILD"			"PARENT"
     generate_relationship "SIBLING"		"BIOCHILD"		"BIOMOM"
     generate_relationship "SIBLING"		"BIOCHILD"		"BIODAD"
+
     generate_relationship "PARENT"		"SPOUSE"		"BIOMOM"
     generate_relationship "PARENT"		"SPOUSE"		"BIODAD"
+
     generate_relationship "PARTNER"		"BIODAD"		"BIOCHILD"
     generate_relationship "PARTNER"		"BIOMOM"		"BIOCHILD"
+
     generate_relationship "CHILDOFPARTNER"	"CHILD"			"PARTNER"
+
     generate_relationship "NEPHEWNIECE"		"CHILD"			"SIBLING"
+
     generate_relationship "CHILD"		"CHILD"			"SPOUSE"
+
     generate_relationship "COUSIN"		"CHILD"			"AUNTUNCLE"
+
     generate_relationship "OTHER_REL"		"CHILD"			"OTHER_REL"
     generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
 
