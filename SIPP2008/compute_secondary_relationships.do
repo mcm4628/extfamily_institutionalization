@@ -2,6 +2,18 @@
 
 
 
+capture program drop generate_relationship
+program define generate_relationship
+    args result_rel rel1 rel2
+    display "Generating `result_rel' from `rel1' `rel2'"
+    replace relationship = "`result_rel'" if ((relationship1 == "`rel1'") & (relationship2 == "`rel2'"))
+end
+
+
+
+/*
+ * I don't think in our more careful paradigm this will be exactly what we want.
+
 capture program drop drop_conflicts
 program define drop_conflicts
     * There are some "conflicts" that aren't really conflicting.
@@ -32,6 +44,7 @@ program define drop_conflicts
     drop if ((n == 2) & (relationship == "NOREL") & (relationship_2 == "CHILDOFPARTNER"))
     drop n relationship_2
 end
+*/
 
 
 capture program drop compute_transitive_relationships
@@ -41,63 +54,102 @@ program define compute_transitive_relationships
     
     local prev_iter = `iteration' - 1
 
-    use "$tempdir/relationships_tc`prev_iter'"
+    use "$tempdir/relationships_tc`prev_iter'_resolved"
 
     * We're going to create a dataset that has all the transitive
     * relationships we can find.  So, if we have A --> B and B --> C
     * we generate a dataset that tells us A --> B --> C by merging
     * (actually joining) on B.
-    rename relfrom relative2
+    rename relfrom intermediate_person
     rename relationship relationship2
-    rename relationship_source relsource2
+    rename reason reason2
+    label variable relationship2 "rel2"
+    label variable reason2 "reason2"
     tempfile relmerge
     save `relmerge'
 
 
-    use "$tempdir/relationships_tc`prev_iter'"
-    rename relto relative2
+    use "$tempdir/relationships_tc`prev_iter'_resolved"
+    rename relto intermediate_person
     rename relationship relationship1
-    rename relationship_source relsource1
+    rename reason reason1
+    label variable relationship1 "rel1"
+    label variable reason1 "reason1"
 
     * Note the use of joinby rather than m:m merge.
     * Because joinby does what you think m:m merge ought to do.
-    joinby SSUID SHHADID SWAVE relative2 using `relmerge'
+    joinby SSUID SHHADID SWAVE intermediate_person using `relmerge'
 
     * We don't care to keep (or validate correctness of) relationship of self to self.
+    display "Dropping self-relationships"
     drop if (relfrom == relto)
 
-    tab relationship1 relationship2
+    display "Tab of A -- > B and B --> C relationships, where we are trying to find A --> C, rowsort"
+    tab relationship1 relationship2, rowsort
+    display "Tab of A -- > B and B --> C relationships, where we are trying to find A --> C, colsort"
+    tab relationship1 relationship2, colsort
 
-    save "$tempdir/relationship_pairs_tc`iteration'", $replace
+    save "$tempdir/relationship_pairs_tc`iteration'_all", $replace
 
 
     * Now given the A --> B --> C relationships, what can we figure
     * out for A --> C?
     gen relationship = ""
-    replace relationship = "GRANDCHILD" if ((relationship1 == "CHILD") & (relationship2 == "CHILD"))
-    replace relationship = "GREATGRANDCHILD" if ((relationship1 == "CHILD") & (relationship2 == "GRANDCHILD"))
-    replace relationship = "GREATGRANDCHILD" if ((relationship1 == "GRANDCHILD") & (relationship2 == "CHILD"))
-    replace relationship = "SIBLING" if ((relationship1 == "CHILD") & (relationship2 == "PARENT"))
-    replace relationship = "CHILDOFPARTNER" if ((relationship1 == "CHILD") & (relationship2 == "PARTNER"))
-    replace relationship = "NEPHEWNIECE" if ((relationship1 == "CHILD") & (relationship2 == "SIBLING"))
-    replace relationship = "CHILD" if ((relationship1 == "CHILD") & (relationship2 == "SPOUSE"))
-    replace relationship = "COUSIN" if ((relationship1 == "CHILD") & (relationship2 == "AUNTUNCLE"))
-    replace relationship = "OTHER_REL" if ((relationship1 == "CHILD") & (relationship2 == "OTHER_REL"))
-    replace relationship = "OTHER_REL" if ((relationship1 == "GRANDCHILD") & (relationship2 == "OTHER_REL"))
-    replace relationship = "SIB_OR_COUSIN" if ((relationship1 == "GRANDCHILD") & (relationship2 == "GRANDPARENT"))
-    replace relationship = "NEPHEWNIECE" if ((relationship1 == "GRANDCHILD") & (relationship2 == "PARENT"))
+    generate_relationship "GRANDCHILD"		"CHILD"			"CHILD"
+    generate_relationship "GREATGRANDCHILD"	"CHILD"			"GRANDCHILD"
+    generate_relationship "GREATGRANDCHILD"	"GRANDCHILD"		"CHILD"
+    generate_relationship "SIBLING"		"CHILD"			"PARENT"
+    generate_relationship "SIBLING"		"BIOCHILD"		"BIOMOM"
+    generate_relationship "SIBLING"		"BIOCHILD"		"BIODAD"
+    generate_relationship "PARENT"		"SPOUSE"		"BIOMOM"
+    generate_relationship "PARENT"		"SPOUSE"		"BIODAD"
+    generate_relationship "PARTNER"		"BIODAD"		"BIOCHILD"
+    generate_relationship "PARTNER"		"BIOMOM"		"BIOCHILD"
+    generate_relationship "CHILDOFPARTNER"	"CHILD"			"PARTNER"
+    generate_relationship "NEPHEWNIECE"		"CHILD"			"SIBLING"
+    generate_relationship "CHILD"		"CHILD"			"SPOUSE"
+    generate_relationship "COUSIN"		"CHILD"			"AUNTUNCLE"
+    generate_relationship "OTHER_REL"		"CHILD"			"OTHER_REL"
+    generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
 
+    *** TODO:  Validate these relationships with Kelly.  The PARTNER ones in particular.
+
+    *** TODO:  Add the easy, but smaller, cases of MOM/DAD type other than BIO.
+
+    *** TODO:  Handle these.  I'm removing them for a moment.
+    * generate_relationship "SIB_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
+    * generate_relationship "NEPHEWNIECE" "GRANDCHILD" "PARENT"
+
+    *** TODO:  Fix this.
     * This is too general.  I could be the partner of the bio parent.  See 019925587235 wave 15, 1201 to 1203:  
     * sibling via 1201, sibling or cousin via 101, cousin via 902 because 902 is judged aunt-uncle by virtue of 
     * child --> grandparent.
-    replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
+    * replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
+
+
+    display "How are we doing at finding relationships?"
+    mdesc relationship 
+
+    * Report relationship pairs we're not handling yet.
+    preserve
+    display "Keeping just missing relationships so we can show the pairs"
+    keep if (missing(relationship))
+    display "Relationship pairs we do not currently handle, rowsort"
+    tab relationship1 relationship2, rowsort
+    display "Relationship pairs we do not currently handle, colsort"
+    tab relationship1 relationship2, colsort
+    restore
 
     * Save just records for which we understand A --> C.
+    display "Keeping only those for which we understand relationships"
     keep if (!missing(relationship))
 
     * We force the drop because we don't care about the details if the end result is the same.
     duplicates drop SSUID SHHADID SWAVE relfrom relto relationship, force
 
+    *** Finish this off, meaning, choose a relationship and merge with the earlier choice
+    * OR don't choose yet, merge, and then decide!
+    /*
     sort SSUID SHHADID SWAVE relfrom relto
     by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
 
@@ -120,7 +172,7 @@ program define compute_transitive_relationships
     drop if (n > 1)
 
     drop n
-    drop relative2 relationship1 relationship2 relsource1 relsource2
+    drop intermediate_person relationship1 relationship2 relsource1 relsource2
     gen relationship_source = `iteration'
     save "$tempdir/relationships_from_tc`iteration'", $replace
 
@@ -158,6 +210,7 @@ program define compute_transitive_relationships
 
     drop n
 
+    */
     save "$tempdir/relationships_tc`iteration'", $replace
 end
 
