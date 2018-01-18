@@ -163,6 +163,46 @@ program define compute_transitive_relationships
     * We force the drop because we don't care about the details if the end result is the same.
     duplicates drop SSUID SHHADID SWAVE relfrom relto relationship, force
 
+
+    rename relationship relationship_tc`iteration'
+    gen reason_tc`iteration' = relationship1 + " " + relationship2 + " via " + string(intermediate_person)
+    drop intermediate_person relationship1 relationship2 reason1 reason2
+    save "$tempdir/relationships_tc`iteration'_all", $replace
+
+
+    sort SSUID SHHADID SWAVE relfrom relto
+    by SSUID SHHADID SWAVE relfrom relto:  gen numrels_tc`iteration' = _N
+    by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc`iteration' = _n
+
+    display "How many relationships have we generated per person-wave?"
+    tab numrels_tc`iteration'
+
+    reshape wide relationship_tc`iteration' reason_tc`iteration', i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc`iteration')
+
+    *** TODO:  Probably need some fixups here, or maybe after merge.
+    save "$tempdir/relationships_tc`iteration'_wide", $replace
+
+
+    * Merge the previous iteration at the "wide" stage, meaning we have done some fixup of 
+    * conflicting relationships, but it's judged to be safe and clear.  So now we're looking
+    * at all reasonable possibilities.
+    * Note that we've not yet done fixup for iteration > 0, so it will probably be cluttered.
+
+    display "Merge the previous iteration"
+    *** TODO:  Careful here.  At iteration > 1 we need to get everything from 0 through prev_iter.
+    * So check that that's what we've decided to store in this dataset,
+    * and I fear on current course that is *not* what we';; have at tc2.
+    merge 1:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc`prev_iter'_wide"
+
+    sort SSUID SHHADID SWAVE relfrom relto
+    by SSUID SHHADID SWAVE relfrom relto:  gen numrels_total = _N
+    display "Total number of relationships at this point"
+    tab numrels_total
+    display "Mismatch betweeh this and expected total?"
+    count if (numrels_total != numrels_tc`iteration' + numrels_tc`prev_iter')
+    * Temporary save so we can see where we stand.
+    save "$tempdir/relationships_tc`iteration'_wide_working", $replace
+
     *** Finish this off, meaning, choose a relationship and merge with the earlier choice
     * OR don't choose yet, merge, and then decide!
     /*
@@ -227,7 +267,6 @@ program define compute_transitive_relationships
     drop n
 
     */
-    save "$tempdir/relationships_tc`iteration'", $replace
 end
 
 * We need an extra pass to be able to report on the pairs
