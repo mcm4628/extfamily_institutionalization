@@ -95,38 +95,76 @@ program define compute_transitive_relationships
     * Now given the A --> B --> C relationships, what can we figure
     * out for A --> C?
     gen relationship = ""
-    generate_relationship "GRANDCHILD"		"CHILD"			"CHILD"
-    generate_relationship "GRANDCHILD"		"BIOCHILD"		"BIOCHILD"
-    generate_relationship "GRANDCHILD"		"BIOCHILD"		"CHILD"
 
-    generate_relationship "GRANDPARENT"		"BIOMOM"		"BIOMOM"
-    generate_relationship "GRANDPARENT"		"BIOMOM"		"BIODAD"
-    generate_relationship "GRANDPARENT"		"BIODAD"		"BIOMOM"
-    generate_relationship "GRANDPARENT"		"BIODAD"		"BIODAD"
+    local all_child_types CHILD BIOCHILD STEPCHILD ADOPTCHILD
+    local all_parent_types MOM BIOMOM STEPMOM ADOPTMOM DAD BIODAD STEPDAD ADOPTDAD PARENT
 
-    generate_relationship "GREATGRANDCHILD"	"CHILD"			"GRANDCHILD"
-    generate_relationship "GREATGRANDCHILD"	"GRANDCHILD"		"CHILD"
+    foreach rel1 in `all_child_types' {
+        foreach rel2 in `all_child_types' {
+            generate_relationship "GRANDCHILD" "`rel1'" "`rel2'"
+        }
+    }
 
-    generate_relationship "SIBLING"		"CHILD"			"PARENT"
-    generate_relationship "SIBLING"		"BIOCHILD"		"BIOMOM"
-    generate_relationship "SIBLING"		"BIOCHILD"		"BIODAD"
+    foreach rel1 in `all_parent_types' {
+        foreach rel2 in `all_parent_types' {
+            generate_relationship "GRANDPARENT" "`rel1'" "`rel2'"
+        }
+    }
 
-    generate_relationship "PARENT"		"SPOUSE"		"BIOMOM"
-    generate_relationship "PARENT"		"SPOUSE"		"BIODAD"
+    foreach rel1 in `all_child_types' {
+        generate_relationship "GREATGRANDCHILD" "`rel1'" "GRANDCHILD"
+    }
+    foreach rel2 in `all_child_types' {
+        generate_relationship "GREATGRANDCHILD" "GRANDCHILD" "`rel2'"
+    }
 
-    generate_relationship "PARTNER"		"BIODAD"		"BIOCHILD"
-    generate_relationship "PARTNER"		"BIOMOM"		"BIOCHILD"
+    foreach rel1 in `all_child_types' {
+        foreach rel2 in `all_parent_types' {
+            generate_relationship "SIBLING" "`rel1'" "`rel2'"
+        }
+    }
 
-    generate_relationship "CHILDOFPARTNER"	"CHILD"			"PARTNER"
+    foreach rel1 in `all_child_types' {
+        generate_relationship "CHILD" "`rel1'" "SPOUSE"
+    }
 
-    generate_relationship "NEPHEWNIECE"		"CHILD"			"SIBLING"
+    * Should this just be CHILD?
+    foreach rel1 in `all_child_types' {
+        generate_relationship "CHILDOFPARTNER" "`rel1'" "PARTNER"
+    }
 
-    generate_relationship "CHILD"		"CHILD"			"SPOUSE"
+    * Dunno if this will actually be useful, but there are 33K of them so let's try it.
+    foreach rel1 in `all_child_types' {
+        generate_relationship "AUNTUNCLE_OR_PARTNER" "`rel1'" "GRANDPARENT"
+    }
 
-    generate_relationship "COUSIN"		"CHILD"			"AUNTUNCLE"
+    foreach rel1 in `all_child_types' {
+        generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
+    }
 
-    generate_relationship "OTHER_REL"		"CHILD"			"OTHER_REL"
-    generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
+    foreach rel1 in `all_child_types' {
+        generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
+    }
+
+    * Is this right?
+    foreach rel1 in `all_child_types' {
+        generate_relationship "NOREL" "`rel1'" "NOREL"
+    }
+
+    * OK with this?
+    foreach rel2 in `all_parent_types' {
+        generate_relationship "PARENT" "SPOUSE" "`rel2'"
+    }
+
+    * Should we call these PARTNERS?  Or something less certain?
+    foreach rel1 in `all_parent_types' {
+        foreach rel2 in `all_child_types' {
+            generate_relationship "PARTNER" "`rel1'" "`rel2'"
+        }
+    }
+
+
+    * generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
 
     *** TODO:  Validate these relationships with Kelly.  The PARTNER ones in particular.
 
@@ -135,12 +173,6 @@ program define compute_transitive_relationships
     *** TODO:  Handle these.  I'm removing them for a moment.
     * generate_relationship "SIB_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
     * generate_relationship "NEPHEWNIECE" "GRANDCHILD" "PARENT"
-
-    *** TODO:  Fix this.
-    * This is too general.  I could be the partner of the bio parent.  See 019925587235 wave 15, 1201 to 1203:  
-    * sibling via 1201, sibling or cousin via 101, cousin via 902 because 902 is judged aunt-uncle by virtue of 
-    * child --> grandparent.
-    * replace relationship = "AUNTUNCLE" if ((relationship1 == "CHILD") & (relationship2 == "GRANDPARENT"))
 
 
     display "How are we doing at finding relationships?"
