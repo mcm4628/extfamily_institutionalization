@@ -135,7 +135,7 @@ program define compute_transitive_relationships
 
     * Dunno if this will actually be useful, but there are 33K of them so let's try it.
     foreach rel1 in `all_child_types' {
-        generate_relationship "AUNTUNCLE_OR_PARTNER" "`rel1'" "GRANDPARENT"
+        generate_relationship "AUNTUNCLE_OR_PARENT" "`rel1'" "GRANDPARENT"
     }
 
     foreach rel1 in `all_child_types' {
@@ -211,7 +211,6 @@ program define compute_transitive_relationships
 
     reshape wide relationship_tc`iteration' reason_tc`iteration', i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc`iteration')
 
-    *** TODO:  Probably need some fixups here, or maybe after merge.
     save "$tempdir/relationships_tc`iteration'_wide", $replace
 
 
@@ -223,82 +222,24 @@ program define compute_transitive_relationships
     display "Merge the previous iteration"
     *** TODO:  Careful here.  At iteration > 1 we need to get everything from 0 through prev_iter.
     * So check that that's what we've decided to store in this dataset,
-    * and I fear on current course that is *not* what we';; have at tc2.
-    merge 1:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc`prev_iter'_wide"
+    * and I fear on current course that is *not* what we'll have at tc2.
+    merge 1:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc`prev_iter'_wide", nogenerate
 
-    sort SSUID SHHADID SWAVE relfrom relto
-    by SSUID SHHADID SWAVE relfrom relto:  gen numrels_total = _N
+    * Fix up the counts
+    replace numrels_tc`iteration' = 0 if missing(numrels_tc`iteration')
+    replace numrels_tc`prev_iter' = 0 if missing(numrels_tc`prev_iter')
+
     display "Total number of relationships at this point"
+    * TODO:  May want to generate this differently and compare to the sum of TC to make sure it's all correct.
+    * TODO:  This is probably wrong after TC1.  It needs to sum from TC0, probably.
+    gen numrels_total = numrels_tc`iteration' + numrels_tc`prev_iter'
     tab numrels_total
-    display "Mismatch betweeh this and expected total?"
-    count if (numrels_total != numrels_tc`iteration' + numrels_tc`prev_iter')
+
     * Temporary save so we can see where we stand.
-    save "$tempdir/relationships_tc`iteration'_wide_working", $replace
+    save "$tempdir/relationships_tc0to`iteration'_wide", $replace
 
     *** Finish this off, meaning, choose a relationship and merge with the earlier choice
     * OR don't choose yet, merge, and then decide!
-    /*
-    sort SSUID SHHADID SWAVE relfrom relto
-    by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
-
-    * List anomalies in case we want to try to understand and recover them.
-    * "Anomaly" means we generated two different relationships for the same pair of people.
-    * TODO:  Review these!
-    display "Anomalies in transitive relationships at iteration `iteration', before corrections"
-    count if (n > 1)
-    tab n
-
-    drop_conflicts
-
-    display "Anomalies in transitive relationships at iteration `iteration', after corrections"
-    sort SSUID SHHADID SWAVE relfrom relto
-    by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
-    count if (n > 1)
-    tab n
-    list if (n > 1)
-    * And then get rid of them, for now.
-    drop if (n > 1)
-
-    drop n
-    drop intermediate_person relationship1 relationship2 relsource1 relsource2
-    gen relationship_source = `iteration'
-    save "$tempdir/relationships_from_tc`iteration'", $replace
-
-
-    *** Append the new relationships to the old ones.
-    * Also, keep track of where we discovered the relationships.
-    use "$tempdir/relationships_tc`prev_iter'"
-    append using "$tempdir/relationships_from_tc`iteration'"
-
-    * The only duplicates should be due to finding the same relationship in 
-    * this iteration as we had before.
-    duplicates drop SSUID SHHADID SWAVE relfrom relto relationship, force
-
-    * See if we have generated conflicting relationships by adding in the new iteration.
-    sort SSUID SHHADID SWAVE relfrom relto
-    by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
-
-    * How many anomalies?
-    display "Number of anomalies after appending iteration `iteration', before corrections"
-    count if (n > 1)
-    tab n
-
-    drop_conflicts
-
-    * List anomalies in case we want to try to understand and recover them.
-    * TODO:  Review these.
-    by SSUID SHHADID SWAVE relfrom relto:  gen n = _N
-    display "Anomalies after appending iteration `iteration'"
-    count if (n > 1)
-    tab n
-    list if (n > 1)
-
-    * For now, we'll prefer the original relationship in case of conflicts.
-    drop if ((n > 1) & (relationship_source == `iteration'))
-
-    drop n
-
-    */
 end
 
 * We need an extra pass to be able to report on the pairs
