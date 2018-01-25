@@ -6,6 +6,7 @@ if ("$max_tc" == "") {
 forvalues tc = 0/$max_tc {
     display "Beginning pair_analysis for TC `tc'"
 
+    /*** I dont' feel like doing this for TC > 0 so for now just don't.
     * First let's see what we threw away that we might care about.
     use "$tempdir/child_pairs_long"
     gen relfrom = EPPPNUM
@@ -17,6 +18,7 @@ forvalues tc = 0/$max_tc {
     display "Lost information in units of relationship:  3 == we had some info and threw it away."
     tab _merge
     clear
+    */
 
 
     use "$tempdir/child_pairs_long"
