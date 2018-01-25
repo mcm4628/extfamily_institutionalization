@@ -271,6 +271,8 @@ program define compute_transitive_relationships
     local grandchild_relations " GRANDCHILD "
     local greatgrandchild_relations " GREATGRANDCHILD "
     local nephewniece_relations " NEPHEWNIECE "
+    *** TODO:  Need to be sure to carry along NOREL where possible.  May be ok already -- need to check.
+    * And consider what can be done with OTHER_REL.
 
     gen relationship = ""
 
