@@ -238,9 +238,92 @@ program define compute_transitive_relationships
     * Temporary save so we can see where we stand.
     save "$tempdir/relationships_tc0to`iteration'_wide", $replace
 
-    *** Finish this off, meaning, choose a relationship and merge with the earlier choice
-    * OR don't choose yet, merge, and then decide!
+    *** TODO:  Comment/explain this and the following.
+    tempfile allrelnames
+    preserve
+    clear
+    set obs 1
+    gen relationship = ""
+    save `allrelnames'
+    restore
+    foreach v of varlist relationship_tc* {
+        preserve
+        keep `v'
+        duplicates drop
+        rename `v' relationship
+        append using `allrelnames'
+        duplicates drop
+        save `allrelnames', replace
+        restore
+    }
+    preserve
+    use `allrelnames'
+    display "All relationship names so far"
+    list
+    restore
+
+    local dad_relations " BIODAD STEPDAD ADOPTDAD DAD F_PARENT PARENT AUNTUNCLE_OR_PARENT "
+    local mom_relations " BIOMOM STEPMOM ADOPTMOM MOM F_PARENT PARENT AUNTUNCLE_OR_PARENT "
+    local child_relations " BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER F_CHILD CHILD "
+    local spouse_relations " SPOUSE PARTNER "
+    local sibling_relations " SIBLING "
+    local grandparent_relations " GRANDPARENT "
+    local grandchild_relations " GRANDCHILD "
+    local greatgrandchild_relations " GREATGRANDCHILD "
+    local nephewniece_relations " NEPHEWNIECE "
+
+    gen relationship = ""
+
+    *** Make the easy decision that if there is only one piece of information we will take it.
+    * First compute the number of non-missing.
+    gen num_nonmissing = 0
+    foreach v of varlist relationship_tc* {
+        replace num_nonmissing = num_nonmissing + 1 if (!missing(`v'))
+    }
+
+    * Now that we know how many are non-missing, use the ones that have just one non-missing.
+    foreach v of varlist relationship_tc* {
+        replace relationship = `v' if ((num_nonmissing == 1) & (!missing(`v')))
+    }
+    drop num_nonmissing
+
+    display "Relationships for which there is only one candidate"
+    tab relationship
+
+
+    display "Now working on resolving consistent relationships"
+    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild {
+        display "Looking for `r'"
+        gen best_foundpos = .
+        gen best_foundlen = .
+        foreach v of varlist relationship_tc* {
+            display "Processing `v'"
+            gen foundpos = strpos("``r'_relations'", " " + `v' + " ") if (`v' != "")
+            replace best_foundlen = strlen(`v') if (foundpos < best_foundpos)
+            replace best_foundpos = foundpos if (foundpos < best_foundpos)
+            list `v' best_foundpos best_foundlen in 1/20
+            drop foundpos
+        }
+        replace relationship = substr("``r'_relations'", best_foundpos + 1, best_foundlen) if (missing(relationship) & (!missing(best_foundpos)) & (best_foundpos > 0))
+        display "Made relationship decision"
+        list relationship relationship_tc* best_foundpos best_foundlen in 1/20
+        drop best_foundpos best_foundlen
+    }
+
+    display "Where to we stand with relationships?"
+    tab relationship, m
+
+    drop relationship_tc* reason_tc* numrels*
+    *** TODO:  Get a real reason if I still want it.
+    gen reason = ""
+
+    save "$tempdir/relationships_tc`iteration'_resolved", $replace
 end
+
+/*
+  3. |           OTHER_REL |
+ 10. |               NOREL |
+*/
 
 * We need an extra pass to be able to report on the pairs
 * we might be able to use if we went one more pass.
