@@ -47,3 +47,6 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_sec
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" pairs
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" pair_analysis
+
+
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change
