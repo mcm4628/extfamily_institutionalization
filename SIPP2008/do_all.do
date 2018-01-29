@@ -1,4 +1,7 @@
-do project_macros
+* The following is executed without being logged.  We can't use do_and_log
+* because we need the macros for temp dir and log dir to pass to it.
+* It's all ok, really, because we list all macros when we use do_and_log later.
+do "$childhh_base_code/SIPP2008/project_macros"
 
 * We require that the user define macros telling us where
 * to find the project code and where to put the logs.
