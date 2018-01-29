@@ -318,7 +318,7 @@ save "$tempdir/person_immigrant", $replace
 
 
 *** We also need a dataset of reference persons.
-do "make_aux_refperson"
+do "$childhh_base_code/SIPP2008/make_aux_refperson"
 
 
 *** And we need a dataset of partners of reference persons.
