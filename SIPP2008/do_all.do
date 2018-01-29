@@ -1,3 +1,5 @@
+* This program requires the mdesc package. If you do not have this, type ssc install mdesc before running.
+
 * The following is executed without being logged.  We can't use do_and_log
 * because we need the macros for temp dir and log dir to pass to it.
 * It's all ok, really, because we list all macros when we use do_and_log later.
