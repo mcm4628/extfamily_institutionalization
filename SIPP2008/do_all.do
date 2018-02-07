@@ -39,6 +39,9 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages
+
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_characteristics
+
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships
