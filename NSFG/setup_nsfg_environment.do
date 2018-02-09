@@ -58,6 +58,11 @@ if ("$boxdir" == "") {
 global nsfg_base "`c(pwd)'"
 global nsfg_data "$boxdir/NSFG"
 
+* This is a super-annoying consequence of having NSFG under the ChildHH umbrella
+* but having ChildHH really mean both the overall project and be somewhat SIPP specific.
+* We will want to rethink this but for now I think this will work.
+global childhh_base_code "$nsfg_base/.."
+
 
 * Files created from original data to be used by other project members or 
 * to support analyses in papers are put in the "shared" directory.
@@ -69,5 +74,6 @@ global NSFG2002 "$nsfg_data/NSFG02"
 global NSFG0610 "$nsfg_data/NSFG06"
 global NSFG1113 "$nsfg_data/NSFG11_13"
 global NSFG1315 "$nsfg_data/NSFG13_15"
-global NSFG_code "$nsfg_data/nsfg_code"
 global combined_data "$nsfg_data/combined_data"
+
+global NSFG_code "$nsfg_base/nsfg_code"
