@@ -130,13 +130,6 @@ forvalues t=1/27 {
  replace typrelin`t'=0 if born812==1
 }
 
-there are too many cases where typerelin5 > 0 
-a close look at data suggests that some are infants being born. It's individuals not in wave 8 but there in wave 12.
-but not at this point in the program.
-
-keep if typrelin5 > 0
-
-/*
 replace anydiff812=0 if born812==1
 replace nrelin=0 if born812==1
 replace nrelout=0 if born812==1
