@@ -1,6 +1,11 @@
 * Compute partner type for young women,
 * using the directly derived relationships (TC0),
 * and the first pass of secondary relationships (TC1).
+
+* Define the age range for "young" women.
+local min_age 17
+local max_age 25
+
 forvalues tc = 0/1 {
     use "$tempdir/person_wide_adjusted_ages"
 
@@ -16,7 +21,7 @@ forvalues tc = 0/1 {
 
 
     * Keep young women.
-    keep if ((my_sex == 2) & (adj_age >= 17) & (adj_age <= 25))
+    keep if ((my_sex == 2) & (adj_age >= `min_age') & (adj_age <= `max_age'))
     * TODO:  my_sex is unlabled.  Sigh.  Go fix that where we generate it.
     
 
