@@ -1,11 +1,11 @@
-use "$combined_data\pyunion0615.dta", clear
+use "$combined_data/pyunion0615.dta", clear
 
 recode year (70/89=0)(90/94=1)(95/99=2)(100/104=3)(105/109=4)(110/115=5), gen(catyear)
 
 keep if catyear > 0
 drop if year==115
 
-global results "$nsfg_base/results"
+global results "$nsfg_data/results"
 putexcel set "$results/unionrates_period.xlsx", sheet(by_age) replace
 
 sort dur catyear

@@ -26,9 +26,6 @@ else {
 }
 
 
-global nsfg_base "`c(pwd)'"
-
-
 
 * Project default is that we don't write over existing files.
 * Change this in your project setup file if you really want,
@@ -58,15 +55,19 @@ if ("$boxdir" == "") {
 }
 
 
+global nsfg_base "`c(pwd)'"
+global nsfg_data "$boxdir/NSFG"
+
+
 * Files created from original data to be used by other project members or 
 * to support analyses in papers are put in the "shared" directory.
 * If a file is in the shared directory, there should be code that takes us from
 * an original data file to the shared data file. The name of the file with 
 * that code should be the same name as the shared data file.
-global NSFG1995 "$nsfg_base/NSFG95"
-global NSFG2002 "$nsfg_base/NSFG02"
-global NSFG0610 "$nsfg_base/NSFG06"
-global NSFG1113 "$nsfg_base/NSFG11_13"
-global NSFG1315 "$nsfg_base/NSFG13_15"
-global NSFG_code "$nsfg_base/nsfg_code"
-global combined_data "$nsfg_base/combined_data"
+global NSFG1995 "$nsfg_data/NSFG95"
+global NSFG2002 "$nsfg_data/NSFG02"
+global NSFG0610 "$nsfg_data/NSFG06"
+global NSFG1113 "$nsfg_data/NSFG11_13"
+global NSFG1315 "$nsfg_data/NSFG13_15"
+global NSFG_code "$nsfg_data/nsfg_code"
+global combined_data "$nsfg_data/combined_data"
