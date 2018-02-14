@@ -9,9 +9,9 @@ local max_age 25
 forvalues tc = 0/1 {
     use "$tempdir/person_wide_adjusted_ages"
 
-    keep SSUID EPPPNUM SHHADID* adj_age* my_sex WPFINWGT*
+    keep SSUID EPPPNUM SHHADID* adj_age* my_sex
 
-    reshape long SHHADID adj_age WPFINWGT, i(SSUID EPPPNUM) j(SWAVE)
+    reshape long SHHADID adj_age, i(SSUID EPPPNUM) j(SWAVE)
 
 
     * This just drops people who were not present in a wave.
