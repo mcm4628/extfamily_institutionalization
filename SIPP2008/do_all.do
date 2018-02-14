@@ -1,4 +1,21 @@
 * This program requires the mdesc package. If you do not have this, type ssc install mdesc before running.
+* This program also requires the confirmdir package. If you do not have this, type ssc install confirmdir before running.
+* The following code is an attempt to make sure these packages are installed before allowing execution.
+capture findfile mdesc.ado
+if ("`r(fn)" == "") {
+    display as error "It appears the mdesc package is not installed."
+    display as error "Try 'ssc install mdesc' to acquire it."
+    exit
+}
+
+capture findfile confirmdir.ado
+if ("`r(fn)" == "") {
+    display as error "It appears the confirmdir package is not installed."
+    display as error "Try 'ssc install confirmdir' to acquire it."
+    exit
+}
+
+
 
 * The following is executed without being logged.  We can't use do_and_log
 * because we need the macros for temp dir and log dir to pass to it.
@@ -21,13 +38,13 @@ if ("$sipp2008_logs" == "") {
 
 
 * We check to make sure the required directories exist.
-capture confirmdir "$sipp2008_logs"
+confirmdir "$sipp2008_logs"
 if `r(confirmdir)' {
     display as error "The sipp2008_logs macro specifies a directory that does not exist:  $sipp2008_logs"
     exit
 }
 
-capture confirmdir "$sipp2008_code"
+confirmdir "$sipp2008_code"
 if `r(confirmdir)' {
     display as error "The sipp2008_code macro specifies a directory that does not exist:  $sipp2008_code"
     exit
