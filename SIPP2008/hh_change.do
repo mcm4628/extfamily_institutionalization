@@ -128,14 +128,14 @@
 * addr_change as missing so that it does not enter the denominator of our calculations.
 
 
-use "$tempdir/person_wide"
+use "$tempdir/person_wide_adjusted_ages"
 
 
 * In the interest of expediency, try to speed things up by keeping only people who are
 * children at some point in their SIPP existence.
 gen is_ever_child = 0
 forvalues wave = $first_wave/$final_wave {
-    replace is_ever_child = 1 if (TAGE`wave' < $adult_age)
+    replace is_ever_child = 1 if (adj_age`wave' < $adult_age)
 }
 keep if is_ever_child
 drop is_ever_child
@@ -376,22 +376,22 @@ forvalues wave = $first_wave/$penultimate_wave {
 
     *** If next wave is ego's first and it's not a birth (age > 0), it's a change.
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
-    replace comp_change`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 2 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0))
-    replace TAGE`wave' = TAGE`next_wave' if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0))
-    replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0))
+    replace comp_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    replace comp_change_reason`wave' = comp_change_reason`wave' + 2 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    replace adj_age`wave' = adj_age`next_wave' if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
 
     * We look at the "gap" from first wave to this wave to see if anyone from the future HH shows up and set changes accordingly.
-    replace child_change`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace child_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace adult_change`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
+    replace child_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
+    replace child_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
+    replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
+    replace adult_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
+    replace adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
+    replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
 
     * At one time we would just count an adult_enter for my initial non-birth appearance.
     * Keep this variable so we can compare to the new results.
-    gen non_birth_adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (TAGE`next_wave' > 0))
+    gen non_birth_adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
 
 
 
@@ -400,7 +400,7 @@ forvalues wave = $first_wave/$penultimate_wave {
     * Again, we also need to populate age and weight from the next wave since ego has no data in this wave.
     replace comp_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 4 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
-    replace TAGE`wave' = TAGE`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
+    replace adj_age`wave' = adj_age`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
     replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
 
     * Child/adult change is similar.
@@ -523,12 +523,12 @@ forvalues wave = $first_wave/$penultimate_wave {
     * UNLESS this is ego's birth.
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
     replace addr_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
-    replace TAGE`wave' = TAGE`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
+    replace adj_age`wave' = adj_age`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
     replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
     * Undo those changes if this is birth.
-    replace addr_change`wave' = . if ((`next_wave' == my_first_wave) & (TAGE`next_wave' == 0))
-    replace TAGE`wave' = . if ((`next_wave' == my_first_wave) & (TAGE`next_wave' == 0))
-    replace WPFINWGT`wave' = . if ((`next_wave' == my_first_wave) & (TAGE`next_wave' == 0))
+    replace addr_change`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
+    replace adj_age`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
+    replace WPFINWGT`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
 
     * If we are moving from a wave in which ego is present to one in which ego is missing
     * there is an address change if we have seen the current SHHADID in the gap 
