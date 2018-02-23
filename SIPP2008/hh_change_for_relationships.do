@@ -66,27 +66,38 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 * This is found_prev_hh_member_in_gap, which is set to 1 if a member is found in the current wave
 * or if a member had already been found by the previous wave.  found_prev_hh_member_in_gap gets
 * set to missing for a wave in which ego has data, so the propagation stops at the beginning of a gap.
+
 gen found_prev_hh_member_in_gap$first_wave = ""
 forvalues wave = $final_wave (-1) $second_wave {
+    display "Wave `wave'"
     gen found_prev_hh_member_in_gap`wave' = " " * strlen(prev_hh_members`wave') if (missing(SHHADID`wave'))
 
-    * Go ahead and copy what we've found so far.
+    * Go ahead and copy what we've found so far (except at the first missing wave).
     if (`wave' < $final_wave) {
         local next_wave = `wave' + 1
-        replace found_prev_hh_member_in_gap`wave' = found_prev_hh_member_in_gap`next_wave' if (missing(SHHADID`wave'))
+        replace found_prev_hh_member_in_gap`wave' = found_prev_hh_member_in_gap`next_wave' if (missing(SHHADID`next_wave'))
     }
 
     forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
         gen my_hh_member = word(prev_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
         replace my_hh_member = "X" if missing(my_hh_member)
         tempvar position
-        gen `position' = strpos(prev_hh_members`wave', " " + my_hh_member + " ") if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_member + " ") != 0))
+        gen `position' = strpos(prev_hh_members`wave', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_member + " ") != 0))
         replace found_prev_hh_member_in_gap`wave' = substr(found_prev_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_prev_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
         drop my_hh_member
     }
 }
 
 
+set linesize 200
+forvalues i = 1/$penultimate_wave {
+    local j = `i' + 1
+    count if ((found_prev_hh_member_in_gap`i' != found_prev_hh_member_in_gap`j') & (indexnot(found_prev_hh_member_in_gap`i', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`j', " ") != 0))
+}
+forvalues i = 1/$penultimate_wave {
+    local j = `i' + 1
+    list SSUID EPPPNUM SHHADID* prev_hh_members* found_prev_hh_member_in_gap* ssuid_members* if ((found_prev_hh_member_in_gap`i' != found_prev_hh_member_in_gap`j') & (indexnot(found_prev_hh_member_in_gap`i', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`j', " ") != 0))
+}
 stop here
 
 * Similarly, walk forward through the waves doing the same sort of computation for future
