@@ -71,14 +71,6 @@ gen found_prev_hh_member_in_gap$first_wave = ""
 forvalues wave = $final_wave (-1) $second_wave {
     display "Wave `wave'"
     gen found_prev_hh_member_in_gap`wave' = " " * strlen(prev_hh_members`wave') if (missing(SHHADID`wave'))
-    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_member = word(prev_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
-        replace my_hh_member = "X" if missing(my_hh_member)
-        tempvar position
-        gen `position' = strpos(prev_hh_members`wave', " " + my_hh_member + " ") if (my_hh_member != "X")
-        replace found_prev_hh_member_in_gap`wave' = substr(found_prev_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_prev_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
-        drop my_hh_member
-    }
 
     * Go ahead and copy what we've found so far (except at the first missing wave).
     if (`wave' < $final_wave) {
@@ -113,14 +105,6 @@ gen found_future_hh_member_in_gap$final_wave = ""
 forvalues wave = $first_wave/$penultimate_wave {
     display "Wave `wave'"
     gen found_future_hh_member_in_gap`wave' = " " * strlen(future_hh_members`wave') if (missing(SHHADID`wave'))
-    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_member = word(future_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
-        replace my_hh_member = "X" if missing(my_hh_member)
-        tempvar position
-        gen `position' = strpos(future_hh_members`wave', " " + my_hh_member + " ") if (my_hh_member != "X")
-        replace found_future_hh_member_in_gap`wave' = substr(found_future_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_future_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
-        drop my_hh_member
-    }
 
     * Go ahead and copy what we've found so far (except at the first missing wave).
     if (`wave' > $first_wave) {
@@ -347,6 +331,11 @@ forvalues wave = $first_wave/$penultimate_wave {
 save "$tempdir/hh_change_for_relationships", $replace
 
 
+*** TODO:  Fix bugs:
+* Omit self from lists of stayers, arrivers, leavers.
+* Catch the arrival case in #19.  Make sure thiw was computed correctly in hh_change -- and why?
+* Catch similar cases when people show up in the gap.
+* Make sure the flags for who shows up in the gap are correct.
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.
