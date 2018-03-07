@@ -71,6 +71,14 @@ gen found_prev_hh_member_in_gap$first_wave = ""
 forvalues wave = $final_wave (-1) $second_wave {
     display "Wave `wave'"
     gen found_prev_hh_member_in_gap`wave' = " " * strlen(prev_hh_members`wave') if (missing(SHHADID`wave'))
+    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
+        gen my_hh_member = word(prev_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
+        replace my_hh_member = "X" if missing(my_hh_member)
+        tempvar position
+        gen `position' = strpos(prev_hh_members`wave', " " + my_hh_member + " ") if (my_hh_member != "X")
+        replace found_prev_hh_member_in_gap`wave' = substr(found_prev_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_prev_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
+        drop my_hh_member
+    }
 
     * Go ahead and copy what we've found so far (except at the first missing wave).
     if (`wave' < $final_wave) {
@@ -89,6 +97,7 @@ forvalues wave = $final_wave (-1) $second_wave {
 }
 
 
+* For now I'm going to leave this in to dump data we can use for confirmation of correctness.
 set linesize 200
 forvalues i = 1/$penultimate_wave {
     local j = `i' + 1
@@ -98,61 +107,34 @@ forvalues i = 1/$penultimate_wave {
     local j = `i' + 1
     list SSUID EPPPNUM SHHADID* prev_hh_members* found_prev_hh_member_in_gap* ssuid_members* if ((found_prev_hh_member_in_gap`i' != found_prev_hh_member_in_gap`j') & (indexnot(found_prev_hh_member_in_gap`i', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`j', " ") != 0))
 }
-stop here
 
-* Similarly, walk forward through the waves doing the same sort of computation for future
-* HH members and SHHADID.
-gen found_future_hh_member$final_wave = 0
-gen found_future_hh_member_in_gap$final_wave = 0
-gen found_future_hh_child$final_wave = 0
-gen found_future_hh_child_in_gap$final_wave = 0
-gen found_future_hh_adult$final_wave = 0
-gen found_future_hh_adult_in_gap$final_wave = 0
-gen found_future_SHHADID$final_wave = .
+* Similarly, walk forward through the waves doing the same sort of computation for future HH members.
+gen found_future_hh_member_in_gap$final_wave = ""
 forvalues wave = $first_wave/$penultimate_wave {
-    gen found_future_hh_member`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_hh_member_in_gap`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_hh_child`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_hh_child_in_gap`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_hh_adult`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_hh_adult_in_gap`wave' = 0 if (missing(SHHADID`wave'))
+    display "Wave `wave'"
+    gen found_future_hh_member_in_gap`wave' = " " * strlen(future_hh_members`wave') if (missing(SHHADID`wave'))
+    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
+        gen my_hh_member = word(future_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
+        replace my_hh_member = "X" if missing(my_hh_member)
+        tempvar position
+        gen `position' = strpos(future_hh_members`wave', " " + my_hh_member + " ") if (my_hh_member != "X")
+        replace found_future_hh_member_in_gap`wave' = substr(found_future_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_future_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
+        drop my_hh_member
+    }
 
-    * Go ahead and copy the fact that we already know we found someone in the gap if we know that.
+    * Go ahead and copy what we've found so far (except at the first missing wave).
     if (`wave' > $first_wave) {
         local prev_wave = `wave' - 1
-        replace found_future_hh_member_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_future_hh_member_in_gap`prev_wave' == 1))
-        replace found_future_hh_child_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_future_hh_child_in_gap`prev_wave' == 1))
-        replace found_future_hh_adult_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_future_hh_adult_in_gap`prev_wave' == 1))
+        replace found_future_hh_member_in_gap`wave' = found_future_hh_member_in_gap`prev_wave' if (missing(SHHADID`prev_wave'))
     }
 
     forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
         gen my_hh_member = word(future_hh_members`wave', `my_hh_member_num') if (missing(SHHADID`wave'))
-        replace found_future_hh_member`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_member + " ") != 0))
-        replace found_future_hh_member_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_member + " ") != 0))
+        replace my_hh_member = "X" if missing(my_hh_member)
+        tempvar position
+        gen `position' = strpos(future_hh_members`wave', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_member + " ") != 0))
+        replace found_future_hh_member_in_gap`wave' = substr(found_future_hh_member_in_gap`wave', 1, `position' - 1) + "1" + substr(found_future_hh_member_in_gap`wave', `position' + 1, .) if (!missing(`position'))
         drop my_hh_member
-    }
-
-    forvalues my_hh_child_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_child = word(future_hh_children`wave', `my_hh_child_num') if (missing(SHHADID`wave'))
-        replace found_future_hh_child`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_child + " ") != 0))
-        replace found_future_hh_child_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_child + " ") != 0))
-        drop my_hh_child
-    }
-
-    forvalues my_hh_adult_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_adult = word(future_hh_adults`wave', `my_hh_adult_num') if (missing(SHHADID`wave'))
-        replace found_future_hh_adult`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_adult + " ") != 0))
-        replace found_future_hh_adult_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_members`wave', " " + my_hh_adult + " ") != 0))
-        drop my_hh_adult
-    }
-
-    gen found_future_SHHADID`wave' = 0 if (missing(SHHADID`wave'))
-    gen found_future_SHHADID_in_gap`wave' = 0 if (missing(SHHADID`wave'))
-    replace found_future_SHHADID`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(future_SHHADID`wave') + " ") != 0))
-    replace found_future_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(future_SHHADID`wave') + " ") != 0))
-    if (`wave' > $first_wave) {
-        local prev_wave = `wave' - 1
-        replace found_future_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_future_SHHADID_in_gap`prev_wave' == 1))
     }
 }
 
@@ -161,60 +143,39 @@ forvalues wave = $first_wave/$penultimate_wave {
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1
 
+    display "Computing comp change for wave `wave'"
+
     *** Start by assuming this wave is not interesting.
     gen comp_change`wave' = .
     gen comp_change_reason`wave' = 0
-
-    gen child_change`wave' = .
-    gen adult_change`wave' = .
-
-    gen child_enter`wave' = .
-    gen adult_enter`wave' = .
-    gen child_exit`wave' = .
-    gen adult_exit`wave' = .
-
-    gen num_child_enter`wave' = 0
-    gen num_adult_enter`wave' = 0
-    gen num_child_exit`wave' = 0
-    gen num_adult_exit`wave' = 0
-
+    gen leavers`wave' = " "
+    gen arrivers`wave' = " "
+    gen stayers`wave' = " "
 
     *** If we have data in both waves, just compare HH members.
     replace comp_change`wave' = (shhadid_members`wave' != shhadid_members`next_wave') if ((!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 1 if ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
     gen comp_change_case = ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
 
+    display "Computing comp change for waves with adjacent data"
+    * Since we have adjacent data, you're a leaver if you're in this HH but not the next and a stayer otherwise.
     forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
         gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        * A child leaves if they do not apepar in the next wave and they are a child in this wave.
-        replace child_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-        replace child_exit`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-        replace num_child_exit`wave' = (num_child_exit`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-
-        * An adult leaves if they do not appear in the next wave and they are an adult in this wave.
-        replace adult_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
-        replace adult_exit`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
-        replace num_adult_exit`wave' = (num_adult_exit`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
+        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0))
+        replace stayers`wave' = stayers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") != 0))
 
         drop my_hh_member
     }
 
+    * Since we have adjacent data, you're an arriver if you're in the next HH but not this one.  We already took care of stayers.
     forvalues my_hh_member_num = 1/`=max_shhadid_members`next_wave'' {
         gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        * A child enters if they do not appear in this wave and they are a child in the next wave.
-        replace child_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`next_wave', " " + my_hh_member + " ") != 0))
-        replace child_enter`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`next_wave', " " + my_hh_member + " ") != 0))
-        replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`next_wave', " " + my_hh_member + " ") != 0))
-
-        * An adult enters if they do not appear in this wave and they are an adult in the next wave.
-        replace adult_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`next_wave', " " + my_hh_member + " ") != 0))
-        replace adult_enter`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`next_wave', " " + my_hh_member + " ") != 0))
-        replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`next_wave', " " + my_hh_member + " ") != 0))
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
@@ -227,54 +188,71 @@ forvalues wave = $first_wave/$penultimate_wave {
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
     replace comp_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 2 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
-    replace adj_age`wave' = adj_age`next_wave' if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
-    replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    gen comp_change_case = ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    replace adj_age`wave' = adj_age`next_wave' if (comp_change_case == 1)
+    replace WPFINWGT`wave' = WPFINWGT`next_wave' if (comp_change_case == 1)
 
+    display "Computing comp change for non-child ego's first wave."
     * We look at the "gap" from first wave to this wave to see if anyone from the future HH shows up and set changes accordingly.
-    replace child_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace child_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_child_in_gap`wave' == 1))
-    replace adult_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0) & (found_future_hh_adult_in_gap`wave' == 1))
+    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
+    forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
+        gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
+        * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
+        replace my_hh_member = "XXXX" if missing(my_hh_member)
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`wave', " " + my_hh_member + " ") != 0))
 
-    * At one time we would just count an adult_enter for my initial non-birth appearance.
-    * Keep this variable so we can compare to the new results.
-    gen non_birth_adult_enter`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+        drop my_hh_member
+    }
+
+    drop comp_change_case
 
 
-
+    display "Computing comp change for ego moving from missing to present."
     *** If we are moving from a wave in which ego is missing to one in which ego is present
     * there is a composition change if we have seen any member of the future household in gap during which ego was missing.
     * Again, we also need to populate age and weight from the next wave since ego has no data in this wave.
     replace comp_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 4 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
-    replace adj_age`wave' = adj_age`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
-    replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
+    gen comp_change_case = ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_member_in_gap`wave' == 1))
+    replace adj_age`wave' = adj_age`next_wave' if (comp_change_case == 1)
+    replace WPFINWGT`wave' = WPFINWGT`next_wave' if (comp_change_case == 1)
 
-    * Child/adult change is similar.
-    replace child_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_child_in_gap`wave' == 1))
-    replace child_enter`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_child_in_gap`wave' == 1))
-    replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_child_in_gap`wave' == 1))
-    replace adult_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace adult_enter`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_adult_in_gap`wave' == 1))
-    replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (found_future_hh_adult_in_gap`wave' == 1))
+    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
+    forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
+        gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
+        * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
+        replace my_hh_member = "XXXX" if missing(my_hh_member)
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`wave', " " + my_hh_member + " ") != 0))
+
+        drop my_hh_member
+    }
+
+    drop comp_change_case
 
 
+    display "Computing comp change for ego moving from present to missing."
     *** If we are moving from a wave in which ego is present to one in which ego is missing
     * there is a composition change if we have seen any member of the current household in gap 
     * during which ego is missing as we look forward.
     replace comp_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_member_in_gap`next_wave' == 1))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 8 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_member_in_gap`next_wave' == 1))
+    gen comp_change_case = ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_member_in_gap`next_wave' == 1))
 
-    replace child_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_child_in_gap`next_wave' == 1))
-    replace child_exit`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_child_in_gap`next_wave' == 1))
-    replace num_child_exit`wave' = (num_child_exit`wave' + 1) if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_child_in_gap`next_wave' == 1))
-    replace adult_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_adult_in_gap`next_wave' == 1))
-    replace adult_exit`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_adult_in_gap`next_wave' == 1))
-    replace num_adult_exit`wave' = (num_adult_exit`wave' + 1) if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_hh_adult_in_gap`next_wave' == 1))
+    * For anyone we see in the "gap" they depart from our perspective.  Others we don't know so we assume we stay together.
+    forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
+        gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
+        * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
+        replace my_hh_member = "XXXX" if missing(my_hh_member)
+        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(prev_hh_members`wave', " " + my_hh_member + " ") != 0))
+
+        drop my_hh_member
+    }
+
+    drop comp_change_case
 
 
+
+    display "Computing comp change for ego missing in a gap in which all past and future HH members are also missing."
     *** If we are moving from a wave in which ego is present to one in which ego is missing
     * and we do not see any member of the current household  or any member of the future
     * household in the gap looking forward,
@@ -291,15 +269,8 @@ forvalues wave = $first_wave/$penultimate_wave {
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        * A child leaves if they do not apepar in the next wave and they are a child in this wave.
-        replace child_change`wave' = 1 if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-        replace child_exit`wave' = 1 if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-        replace num_child_exit`wave' = (num_child_exit`wave' + 1) if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_children`wave', " " + my_hh_member + " ") != 0))
-
-        * An adult leaves if they do not appear in the next wave and they are an adult in this wave.
-        replace adult_change`wave' = 1 if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
-        replace adult_exit`wave' = 1 if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
-        replace num_adult_exit`wave' = (num_adult_exit`wave' + 1) if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0) & (strpos(shhadid_adults`wave', " " + my_hh_member + " ") != 0))
+        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0))
+        replace stayers`wave' = stayers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") != 0))
 
         drop my_hh_member
     }
@@ -308,15 +279,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         gen my_hh_member = word(future_hh_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        * A child enters if they do not appear in this wave and they are a child in the next wave.
-        replace child_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_children`next_wave', " " + my_hh_member + " ") != 0))
-        replace child_enter`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_children`next_wave', " " + my_hh_member + " ") != 0))
-        replace num_child_enter`wave' = (num_child_enter`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_children`next_wave', " " + my_hh_member + " ") != 0))
-
-        * An adult enters if they do not appear in this wave and they are an adult in the next wave.
-        replace adult_change`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_adults`next_wave', " " + my_hh_member + " ") != 0))
-        replace adult_enter`wave' = 1 if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_adults`next_wave', " " + my_hh_member + " ") != 0))
-        replace num_adult_enter`wave' = (num_adult_enter`wave' + 1) if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0) & (strpos(future_hh_adults`next_wave', " " + my_hh_member + " ") != 0))
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
@@ -325,32 +288,6 @@ forvalues wave = $first_wave/$penultimate_wave {
 
     * Add zeros for comp_change if needed.  We need to confirm this is what we want.  We set to zero if comp_change and ego was present this wave and this is not ego's last wave.
     replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(SHHADID`wave') & (`wave' != my_last_wave)))
-    * Fixing up adult/child change is easier.  They need a value if comp_change has one.
-    replace child_change`wave' = 0 if (missing(child_change`wave') & (!missing(comp_change`wave')))
-    replace child_enter`wave' = 0 if (missing(child_enter`wave') & (!missing(comp_change`wave')))
-    replace num_child_enter`wave' = 0 if (missing(num_child_enter`wave') & (!missing(comp_change`wave')))
-    replace child_exit`wave' = 0 if (missing(child_exit`wave') & (!missing(comp_change`wave')))
-    replace num_child_exit`wave' = 0 if (missing(num_child_exit`wave') & (!missing(comp_change`wave')))
-    replace adult_change`wave' = 0 if (missing(adult_change`wave') & (!missing(comp_change`wave')))
-    replace adult_enter`wave' = 0 if (missing(adult_enter`wave') & (!missing(comp_change`wave')))
-    replace num_adult_enter`wave' = 0 if (missing(num_adult_enter`wave') & (!missing(comp_change`wave')))
-    replace adult_exit`wave' = 0 if (missing(adult_exit`wave') & (!missing(comp_change`wave')))
-    replace num_adult_exit`wave' = 0 if (missing(num_adult_exit`wave') & (!missing(comp_change`wave')))
-
-    assert ((child_change`wave' == 1) | (adult_change`wave' == 1)) if (comp_change`wave' == 1)
-    assert ((child_change`wave' == 0) & (adult_change`wave' == 0)) if (comp_change`wave' == 0)
-    assert (missing(child_change`wave') & missing(adult_change`wave')) if missing(comp_change`wave')
-
-    display "Counts for wave `wave'"
-    count if (comp_change`wave' == 1)
-    count if (child_change`wave' == 1) | (adult_change`wave' == 1) 
-    count if ((child_change`wave' == 1) | (adult_change`wave' == 1)) & (comp_change`wave' != 1)
-    count if ((child_change`wave' != 1) & (adult_change`wave' != 1)) & (comp_change`wave' == 1)
-
-
-    * Check the new adult/child results compared to the old hack of adult change on my non-birth appearance.
-    tab adult_change`wave' non_birth_adult_enter`wave', m
-    tab child_change`wave' non_birth_adult_enter`wave', m
 
     label values comp_change_reason`wave' comp_change_reason
 }
@@ -412,4 +349,11 @@ forvalues wave = $first_wave/$penultimate_wave {
 * Similarly we had some code to normalize mom's immigrant status
 * by taking the first reported status (I think).  Deleting that, too.
 
-save "$tempdir/hh_change", $replace
+save "$tempdir/hh_change_for_relationships", $replace
+
+
+
+*** TODO:  Check data.
+* One thing in particular is getting the same person in a set twice.
+* Basic correctness, too.
+* Make sure we never do a bogus comparison against the "" in first wave and last wave for prev and future, respectively.
