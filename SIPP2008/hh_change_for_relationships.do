@@ -228,7 +228,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
-        gen my_pos = strpos(prev_hh_members`wave', " " + my_hh_member + " ") if (comp_change_case == 1)
+        gen my_pos = strpos(prev_hh_members`next_wave', " " + my_hh_member + " ") if (comp_change_case == 1)
         replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_pos != 0) & (substr(found_prev_hh_member_in_gap`next_wave', my_pos, 1) == "1"))
         drop my_pos
 
