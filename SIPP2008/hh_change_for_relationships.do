@@ -164,7 +164,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0))
+        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") == 0))
         replace stayers`wave' = stayers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`next_wave', " " + my_hh_member + " ") != 0))
 
         drop my_hh_member
@@ -175,7 +175,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
@@ -272,7 +272,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0))
+        replace leavers`wave' = leavers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") == 0))
         replace stayers`wave' = stayers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`next_wave', " " + my_hh_member + " ") != 0))
 
         drop my_hh_member
@@ -282,7 +282,7 @@ forvalues wave = $first_wave/$penultimate_wave {
         gen my_hh_member = word(future_hh_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`wave', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
