@@ -179,11 +179,13 @@ forvalues wave = $first_wave/$penultimate_wave {
     display "Computing comp change for non-child ego's first wave."
     * We look at the "gap" from first wave to this wave to see if anyone from the future HH shows up and set changes accordingly.
     * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
-        gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_shhadid_members`next_wave'' {
+        gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
-        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(future_hh_members`wave', " " + my_hh_member + " ") != 0))
+        gen my_pos = strpos(future_hh_members`wave', " " + my_hh_member + " ") if (comp_change_case == 1)
+        replace arrivers`wave' = arrivers`wave' + my_hh_member + " " if ((comp_change_case == 1) & (my_pos != 0) & (substr(found_future_hh_member_in_gap`wave', my_pos, 1) == "1"))
+        drop my_pos
 
         drop my_hh_member
     }
@@ -202,8 +204,8 @@ forvalues wave = $first_wave/$penultimate_wave {
     replace WPFINWGT`wave' = WPFINWGT`next_wave' if (comp_change_case == 1)
 
     * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`wave'' {
-        gen my_hh_member = word(shhadid_members`wave', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_shhadid_members`next_wave'' {
+        gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
         gen my_pos = strpos(future_hh_members`wave', " " + my_hh_member + " ") if (comp_change_case == 1)
@@ -336,6 +338,7 @@ save "$tempdir/hh_change_for_relationships", $replace
 * Catch the arrival case in #19.  Make sure thiw was computed correctly in hh_change -- and why?
 * Catch similar cases when people show up in the gap.
 * Make sure the flags for who shows up in the gap are correct.
+* There seeem to be a bunch of temp variables in the dataset.  Get rid of them.  How are they still there???
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.
