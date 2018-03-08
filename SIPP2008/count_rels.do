@@ -35,7 +35,7 @@ gen num_potential_rels = wordcount(potential_rels)
 
 * This gets N and mean so we can compute number of relationships.
 summ num_potential_rels
-display "Number of relationships:  `r(N)' * `r(mean)'"
+display "Number of relationships:  "  `r(N)' * `r(mean)'
 display "Note that this includes both directions of each relationship,"
 display "e.g., if A relates to B we also have the B to A relationship."
 
@@ -64,7 +64,7 @@ forvalues wave = $first_wave/$final_wave {
 gen num_potential_rels = wordcount(potential_rels)
 
 summ num_potential_rels
-display "Number of relationships:  `r(N)' * `r(mean)'"
+display "Number of relationships:  "  `r(N)' * `r(mean)'
 display "Note that this includes only relationships where the 'source'"
 display "is a child, so we have bidirectional relationships only"
 display "when both A and B are children."
