@@ -24,7 +24,7 @@ save "$tempdir/hh_change_with_relationships", $replace
 
 
 
-foreach changer in leaver arriver {
+foreach changer in leaver arriver stayer {
     clear
 
     use "$tempdir/hh_change_with_relationships"
@@ -123,7 +123,7 @@ drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
 
 
-foreach changer in leaver arriver {
+foreach changer in leaver arriver stayer {
     clear
 
     use "$tempdir/hh_`changer's"
