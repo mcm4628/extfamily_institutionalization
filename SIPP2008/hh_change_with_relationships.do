@@ -132,10 +132,28 @@ foreach changer in leaver arriver {
     destring `changer', gen(relto)
     merge m:1 SSUID relfrom relto using "$tempdir/unified_rel", keepusing(unified_rel)
 
-    list if _merge == 1
+    preserve
+    keep if _merge == 1
+    keep SSUID EPPPNUM relto
+    duplicates drop
+    sort SSUID EPPPNUM relto
+    by SSUID EPPPNUM:  gen relto_num = _n
+    reshape wide relto, i(SSUID EPPPNUM) j(relto_num)
+    merge 1:m SSUID EPPPNUM using "$tempdir/allwaves", keepusing(ERRP EPNMOM EPNDAD EPNSPOUS SWAVE)
+    keep if (_merge == 3)
+    drop _merge
+    save "$tempdir/norel_`changer's", $replace
+    restore
 
     keep if _merge == 3
     drop _merge
 
+    display "Unified relationships for `changer's"
     tab unified_rel, m sort
+    save "$tempdir/`changer'_rels", $replace
 }
+
+
+*** TODO:
+* Looks like grandchild of x who is grandparent of y is useful (at least one case -- who knows how many).
+* Looks like more transitive NOREL might help, too.
