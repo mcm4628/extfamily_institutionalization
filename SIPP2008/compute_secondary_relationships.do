@@ -271,6 +271,8 @@ program define compute_transitive_relationships
     local grandchild_relations " GRANDCHILD "
     local greatgrandchild_relations " GREATGRANDCHILD "
     local nephewniece_relations " NEPHEWNIECE "
+    local norel_relations " NOREL "
+    local otherrel_relations " OTHER_REL "
     *** TODO:  Need to be sure to carry along NOREL where possible.  May be ok already -- need to check.
     * And consider what can be done with OTHER_REL.
 
@@ -294,7 +296,7 @@ program define compute_transitive_relationships
 
 
     display "Now working on resolving consistent relationships"
-    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild {
+    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild newphenniece norel otherrel {
         display "Looking for `r'"
         gen best_foundpos = .
         gen best_foundlen = .
