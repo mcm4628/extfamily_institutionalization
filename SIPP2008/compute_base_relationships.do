@@ -9,7 +9,6 @@
 * related to multiple people) we compute each relationship into
 * its own temporary dataset and append them all together.
 
-
 * This program is an attempt to encapsulate computation of relationships
 * because too much code was being repeated.
 * It assumes that there is a single condition defining the relationship,
@@ -23,7 +22,8 @@ program define compute_relationships
     preserve
     gen relfrom = `person1' if `condition'
     gen relto = `person2' if `condition'
-    gen relationship_tc0 = "`relationship_1_2'" if `condition'
+    gen relationship_tc0 = "`relationship_1_2'":relationship if `condition'
+    label values relationship_tc0 relationship
     gen reason_tc0 = "`reason'" if `condition'
     tab relationship_tc0 SWAVE
     keep SSUID SHHADID SWAVE relfrom relto relationship_tc0 reason_tc0
@@ -35,7 +35,8 @@ program define compute_relationships
     preserve
     gen relfrom = `person2' if `condition'
     gen relto = `person1' if `condition'
-    gen relationship_tc0 = "`relationship_2_1'" if `condition'
+    gen relationship_tc0 = "`relationship_2_1'":relationship if `condition'
+    label values relationship_tc0 relationship
     gen reason_tc0 = "`reason'" if `condition'
     tab relationship_tc0 SWAVE
     keep SSUID SHHADID SWAVE relfrom relto relationship_tc0 reason_tc0
@@ -55,12 +56,12 @@ program define fixup_rel_pair
 
     display "Preferring `preferred_rel' over `second_rel'"
     
-    gen meets_condition = (((relationship_tc01 == "`preferred_rel'") & (relationship_tc02 == "`second_rel'")) | ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'")))
-    gen needs_swap = ((relationship_tc02 == "`preferred_rel'") & (relationship_tc01 == "`second_rel'"))
+    gen meets_condition = (((relationship_tc01 == "`preferred_rel'":relationship) & (relationship_tc02 == "`second_rel'":relationship)) | ((relationship_tc02 == "`preferred_rel'":relationship) & (relationship_tc01 == "`second_rel'":relationship)))
+    gen needs_swap = ((relationship_tc02 == "`preferred_rel'":relationship) & (relationship_tc01 == "`second_rel'":relationship))
 
     replace numrels_tc0 = 1 if (meets_condition == 1)
-    replace relationship_tc01 = "`preferred_rel'" if ((meets_condition == 1) & (needs_swap == 1))
-    replace relationship_tc02 = "" if (meets_condition == 1)
+    replace relationship_tc01 = "`preferred_rel'":relationship if ((meets_condition == 1) & (needs_swap == 1))
+    replace relationship_tc02 = . if (meets_condition == 1)
     replace reason_tc01 = reason_tc02 if ((meets_condition == 1) & (needs_swap == 1))
     replace reason_tc02 = "" if (meets_condition == 1)
 
@@ -69,6 +70,32 @@ end
 
 
 use "$tempdir/allwaves"
+
+#delimit ;
+label define relationship
+    1 "BIOCHILD"
+    2 "BIOMOM"
+    3 "BIODAD"
+    4 "STEPCHILD"
+    5 "STEPMOM"
+    6 "STEPDAD"
+    7 "ADOPTCHILD"
+    8 "ADOPTMOM"
+    9 "ADOPTDAD"
+    10 "CHILD"
+    11 "MOM"
+    12 "DAD"
+    13 "SPOUSE"
+    14 "GRANDCHILD"
+    15 "GRANDPARENT"
+    16 "SIBLING"
+    17 "OTHER_REL"
+    18 "PARTNER"
+    19 "F_CHILD"
+    20 "F_PARENT"
+    21 "NOREL"
+    ;
+#delimit cr
 
 * Compute parent/child relationships from EPNMOM and EPNDAD.
 compute_relationships EPPPNUM EPNMOM BIOCHILD BIOMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 1))" biochild_of_mom biomom
