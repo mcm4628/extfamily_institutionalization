@@ -6,7 +6,39 @@ capture program drop generate_relationship
 program define generate_relationship
     args result_rel rel1 rel2
     display "Generating `result_rel' from `rel1' `rel2'"
-    replace relationship = "`result_rel'" if ((relationship1 == "`rel1'") & (relationship2 == "`rel2'"))
+    replace relationship = "`result_rel'":relationship if ((relationship1 == "`rel1'":relationship) & (relationship2 == "`rel2'":relationship))
+end
+
+
+
+capture program drop make_relationship_list
+program define make_relationship_list, rclass
+display `"make_relationship_list args:  `0'"'
+    local max_rel = "`1'":relationship
+    local my_rel_list "`max_rel'"
+display "first rel:  `my_rel_list'"
+    if (`max_rel' == .) {
+        display as error "relationship not found:  `my_rel_list' `max_rel' `1'"
+        exit 111
+    }
+    local i = 2
+    while ("``i''" != "") {
+display "next rel:  ``i''"
+        local rel_num = "``i''":relationship
+        if (`rel_num' == .) {
+            display as error "relationship not found:  `my_rel_list' `max_rel' ``i''"
+            exit 111
+        }
+display "next rel:  ``i''  `rel_num'"
+        if (`rel_num' < `max_rel') {
+            display as error "relationships out of order in make_relationship_list:  `my_rel_list' `max_rel' `rel_num'"
+            exit 111
+        }
+        local my_rel_list "`my_rel_list',`rel_num'"
+display "new rel list:  `my_rel_list'"
+        local ++i
+    }
+    return local rel_list `"`my_rel_list'"'
 end
 
 
@@ -94,7 +126,8 @@ program define compute_transitive_relationships
 
     * Now given the A --> B --> C relationships, what can we figure
     * out for A --> C?
-    gen relationship = ""
+    gen relationship = .
+    label values relationship relationship
 
     local all_child_types CHILD BIOCHILD STEPCHILD ADOPTCHILD
     local all_parent_types MOM BIOMOM STEPMOM ADOPTMOM DAD BIODAD STEPDAD ADOPTDAD PARENT
@@ -197,7 +230,7 @@ program define compute_transitive_relationships
 
 
     rename relationship relationship_tc`iteration'
-    gen reason_tc`iteration' = relationship1 + " " + relationship2 + " via " + string(intermediate_person)
+    gen reason_tc`iteration' = string(relationship1) + " " + string(relationship2) + " via " + string(intermediate_person)
     drop intermediate_person relationship1 relationship2 reason1 reason2
     save "$tempdir/relationships_tc`iteration'_all", $replace
 
@@ -238,29 +271,6 @@ program define compute_transitive_relationships
     * Temporary save so we can see where we stand.
     save "$tempdir/relationships_tc0to`iteration'_wide", $replace
 
-    *** TODO:  Comment/explain this and the following.
-    tempfile allrelnames
-    preserve
-    clear
-    set obs 1
-    gen relationship = ""
-    save `allrelnames'
-    restore
-    foreach v of varlist relationship_tc* {
-        preserve
-        keep `v'
-        duplicates drop
-        rename `v' relationship
-        append using `allrelnames'
-        duplicates drop
-        save `allrelnames', replace
-        restore
-    }
-    preserve
-    use `allrelnames'
-    display "All relationship names so far"
-    list
-    restore
 
     local dad_relations " BIODAD STEPDAD ADOPTDAD DAD F_PARENT PARENT AUNTUNCLE_OR_PARENT "
     local mom_relations " BIOMOM STEPMOM ADOPTMOM MOM F_PARENT PARENT AUNTUNCLE_OR_PARENT "
@@ -273,10 +283,18 @@ program define compute_transitive_relationships
     local nephewniece_relations " NEPHEWNIECE "
     local norel_relations " NOREL "
     local otherrel_relations " OTHER_REL "
+
+    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild newphenniece norel otherrel {
+display "SPOT 1"
+        make_relationship_list ``r'_relations'
+display "SPOT 2"
+        local `r'_rel_list = "`r(rel_list)'"
+    }
     *** TODO:  Need to be sure to carry along NOREL where possible.  May be ok already -- need to check.
     * And consider what can be done with OTHER_REL.
 
-    gen relationship = ""
+    gen relationship = .
+    label values relationship relationship
 
     *** Make the easy decision that if there is only one piece of information we will take it.
     * First compute the number of non-missing.
@@ -287,7 +305,7 @@ program define compute_transitive_relationships
 
     * Now that we know how many are non-missing, use the ones that have just one non-missing.
     foreach v of varlist relationship_tc* {
-        replace relationship = `v' if ((num_nonmissing == 1) & (!missing(`v')))
+        replace relationship = "`v'":relationship if ((num_nonmissing == 1) & (!missing(`v')))
     }
     drop num_nonmissing
 
@@ -298,20 +316,15 @@ program define compute_transitive_relationships
     display "Now working on resolving consistent relationships"
     foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild newphenniece norel otherrel {
         display "Looking for `r'"
-        gen best_foundpos = .
-        gen best_foundlen = .
+        gen best_rel = .
         foreach v of varlist relationship_tc* {
             display "Processing `v'"
-            gen foundpos = strpos("``r'_relations'", " " + `v' + " ") if (`v' != "")
-            replace best_foundlen = strlen(`v') if (foundpos < best_foundpos)
-            replace best_foundpos = foundpos if (foundpos < best_foundpos)
-            list `v' best_foundpos best_foundlen in 1/20
-            drop foundpos
+            replace best_rel = `v' if ((!missing(`v')) & (`v' < best_rel) & inlist(`v', `r'_rel_list))
+            replace best_rel = 0 if ((!missing(`v')) & (!inlist(`v', `r'_rel_list)))
         }
-        replace relationship = substr("``r'_relations'", best_foundpos + 1, best_foundlen) if (missing(relationship) & (!missing(best_foundpos)) & (best_foundpos > 0))
+        replace relationship = best_rel if (missing(relationship) & (best_rel > 0))
         display "Made relationship decision"
-        list relationship relationship_tc* best_foundpos best_foundlen in 1/20
-        drop best_foundpos best_foundlen
+        drop best_rel
     }
 
     display "Where to we stand with relationships?"
