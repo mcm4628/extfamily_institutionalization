@@ -157,3 +157,5 @@ foreach changer in leaver arriver stayer {
 *** TODO:
 * Looks like grandchild of x who is grandparent of y is useful (at least one case -- who knows how many).
 * Looks like more transitive NOREL might help, too.
+*
+* I see weirdness in adjusted ages, like a single 1 in the midst of large ages.  Examples:  459925246366/201, 077925358381/102.

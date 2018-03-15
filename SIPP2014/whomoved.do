@@ -13,7 +13,7 @@ drop _merge
 
 merge 1:1 ssuid pnum using "$tempdir/anydiff812.dta"
 
-drop if tage8 > 16
+drop if tage8 > 17
 
 tab _merge
 
@@ -52,7 +52,7 @@ sum wpfinwgt
 sort raceth
 
 
-local reltypes "OppositeSexSpouse OppositeSexPartner SameSexSpouse SameSexPartner BioParent StepParent AdoptParent GrandParent BioSib HalfSib StepSib AdopSib OtherSib ParentInLaw SibInLaw AuntUncleNieceNephew OtherRel Foster NonRel Child InfantSib ChildSib YASib OlderSib NA NRChild NRAdult"
+local reltypes "OppositeSexSpouse OppositeSexPartner SameSexSpouse SameSexPartner BioParent StepParent AdoptParent GrandParent BioSib HalfSib StepSib AdopSib OtherSib ParentInLaw SibInLaw AuntUncleNieceNephew OtherRel Foster NonRel Child InfantSib ChildSib YASib OlderSib SibNoAge NRChild NRAdult"
 
 global results "$projdir/Results and Papers/Household Instability (PAA17)"
 
