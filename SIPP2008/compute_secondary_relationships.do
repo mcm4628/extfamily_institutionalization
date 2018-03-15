@@ -13,29 +13,30 @@ end
 
 capture program drop make_relationship_list
 program define make_relationship_list, rclass
-display `"make_relationship_list args:  `0'"'
+    * display `"make_relationship_list args:  `0'"'
     local max_rel = "`1'":relationship
     local my_rel_list "`max_rel'"
-display "first rel:  `my_rel_list'"
+    * display "first rel:  `my_rel_list'"
     if (`max_rel' == .) {
         display as error "relationship not found:  `my_rel_list' `max_rel' `1'"
         exit 111
     }
     local i = 2
     while ("``i''" != "") {
-display "next rel:  ``i''"
+        * display "next rel:  ``i''"
         local rel_num = "``i''":relationship
         if (`rel_num' == .) {
             display as error "relationship not found:  `my_rel_list' `max_rel' ``i''"
             exit 111
         }
-display "next rel:  ``i''  `rel_num'"
+        * display "next rel:  ``i''  `rel_num'"
         if (`rel_num' < `max_rel') {
             display as error "relationships out of order in make_relationship_list:  `my_rel_list' `max_rel' `rel_num'"
             exit 111
         }
+        local max_rel = `rel_num'
         local my_rel_list "`my_rel_list',`rel_num'"
-display "new rel list:  `my_rel_list'"
+        * display "new rel list:  `my_rel_list'  max: `max_rel'"
         local ++i
     }
     return local rel_list `"`my_rel_list'"'
@@ -175,6 +176,7 @@ program define compute_transitive_relationships
         generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
     }
 
+    *** TODO:  We're missing generation of solid AUNTUNCLE.
     foreach rel1 in `all_child_types' {
         generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
     }
@@ -284,11 +286,13 @@ program define compute_transitive_relationships
     local norel_relations " NOREL "
     local otherrel_relations " OTHER_REL "
 
-    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild newphenniece norel otherrel {
-display "SPOT 1"
+    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild nephewniece norel otherrel {
         make_relationship_list ``r'_relations'
-display "SPOT 2"
+        * The error statement does nothing if no error was returned.  If there was, it passes the error back to the caller.
+        error _rc
+
         local `r'_rel_list = "`r(rel_list)'"
+        display "`r'_rel_list = ``r'_rel_list'"
     }
     *** TODO:  Need to be sure to carry along NOREL where possible.  May be ok already -- need to check.
     * And consider what can be done with OTHER_REL.
@@ -305,7 +309,7 @@ display "SPOT 2"
 
     * Now that we know how many are non-missing, use the ones that have just one non-missing.
     foreach v of varlist relationship_tc* {
-        replace relationship = "`v'":relationship if ((num_nonmissing == 1) & (!missing(`v')))
+        replace relationship = `v' if ((num_nonmissing == 1) & (!missing(`v')))
     }
     drop num_nonmissing
 
@@ -314,13 +318,13 @@ display "SPOT 2"
 
 
     display "Now working on resolving consistent relationships"
-    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild newphenniece norel otherrel {
+    foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild nephewniece norel otherrel {
         display "Looking for `r'"
         gen best_rel = .
         foreach v of varlist relationship_tc* {
             display "Processing `v'"
-            replace best_rel = `v' if ((!missing(`v')) & (`v' < best_rel) & inlist(`v', `r'_rel_list))
-            replace best_rel = 0 if ((!missing(`v')) & (!inlist(`v', `r'_rel_list)))
+            replace best_rel = `v' if ((!missing(`v')) & (`v' < best_rel) & inlist(`v', ``r'_rel_list'))
+            replace best_rel = 0 if ((!missing(`v')) & (!inlist(`v', ``r'_rel_list')))
         }
         replace relationship = best_rel if (missing(relationship) & (best_rel > 0))
         display "Made relationship decision"
@@ -347,4 +351,5 @@ end
 local num_tc = $max_tc + 1
 forvalues tc = 1/`num_tc' {
     compute_transitive_relationships `tc'
+    error _rc
 }
