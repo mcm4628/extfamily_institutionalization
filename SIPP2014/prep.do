@@ -20,7 +20,7 @@ egen allHH = concat(rrel_pnum*), punct(" ")
 
 replace allHH=" " + allHH + " "
 
-keep ssuid pnum monthcode allHH rrel_pnum* rrel* eresidenceid tage_ehc
+keep ssuid pnum monthcode allHH rrel_pnum* rrel* eresidenceid tage_ehc 
 
 sort ssuid pnum
 
