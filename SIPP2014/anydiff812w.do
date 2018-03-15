@@ -55,6 +55,7 @@ forvalues t=1/19{
 		replace typrelout`t'=typrelout`t'+1 if relout`i'==`t'
 	}
 }
+
 forvalues t=20/27{
 	gen typrelout`t'=0
 	forvalues i=1/30{
@@ -73,15 +74,21 @@ forvalues t=20/27{
 gen nrelin=0
 
 forvalues i=1/30 {
-gen relin`i'=0
-gen sHHin`i'=strpos(allHH8, sm12rrel_pnum`i')
-gen HHin`i'=sHHin`i'
-gen agerelin`i'=97
-replace HHin`i'=1 if HHin`i' !=0
-replace HHin`i'=1 if HHin`i'==0 & sm12rrel_pnum`i'=="999"
-replace relin`i'=rrel`i'_m12 if HHin`i'==0
-replace agerelin`i'=agerrelm12_`i' if HHin`i'==0
-replace nrelin=nrelin+1 if HHin`i'==0
+	gen relin`i'=0
+	gen pnumin`i'="999"
+	gen sHHin`i'=strpos(allHH8, sm12rrel_pnum`i')
+	gen HHin`i'=sHHin`i'
+	gen agerelin`i'=97
+	replace HHin`i'=1 if HHin`i' !=0
+	replace HHin`i'=1 if HHin`i'==0 & sm12rrel_pnum`i'=="999"
+	replace relin`i'=rrel`i'_m12 if HHin`i'==0
+	replace agerelin`i'=agerrelm12_`i' if HHin`i'==0
+	replace pnumin`i'=sm12rrel_pnum`i' if HHout`i'==0 /* person number of person who moved out */
+	replace nrelin=nrelin+1 if HHin`i'==0
+}
+
+gen parin=0
+forvalues i=1/30{
 }
 
 forvalues t=1/19{
@@ -168,7 +175,7 @@ replace anychild=0 if born812==1
 
 save "$tempdir/anydiff812.dta", replace
 
-drop if tage8 > 16
+drop if tage8 > 16 & born812==0
 
 tab nrelin
 
