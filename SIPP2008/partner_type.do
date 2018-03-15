@@ -36,8 +36,8 @@ forvalues tc = 0/1 {
 * then partner.  If we don't have any relationship data
 * for the person at all we mark partner type as missing.
 #delim ;
-    gen partner_type = cond(relationship == "SPOUSE", 2,
-                       cond(relationship == "PARTNER", 1,
+    gen partner_type = cond(relationship == "SPOUSE":relationship, 2,
+                       cond(relationship == "PARTNER":relationship, 1,
                        cond(_merge == 1, .,
                        0)));
 #delim cr

@@ -96,7 +96,9 @@ reshape wide relationship rel_instances, i(SSUID relfrom relto) j(relnum)
 
 count if (total_instances == rel_instances1)
 
-egen rels = concat(relationship*), punct(" ")
+egen rels = concat(relationship*), punct(",")
+replace rels = subinstr(rels, ".,", "", .)
+replace rels = subinstr(rels, ",.", "", .)
 
 tab rels, sort
 
@@ -104,20 +106,20 @@ tab rels if (total_instances == rel_instances1), sort
 
 
 *** TODO:  Add a flag indicating consistent versus computed.
-gen unified_rel = rels if (total_instances == rel_instances1)
-replace unified_rel = "SPOUSE" if (rels == "PARTNER SPOUSE")
-replace unified_rel = "CHILD" if (rels == "BIOCHILD STEPCHILD")
-replace unified_rel = "MOM" if (rels == "BIOMOM STEPMOM")
-replace unified_rel = "DAD" if (rels == "BIODAD STEPDAD")
-replace unified_rel = "STEPCHILD" if (rels == "CHILDOFPARTNER STEPCHILD")
-replace unified_rel = "BIOMOM" if (rels == "AUNTUNCLE_OR_PARENT BIOMOM")
-replace unified_rel = "CHILD" if (rels == "BIOCHILD CHILDOFPARTNER")
+gen unified_rel = real(rels) if (total_instances == rel_instances1)
+replace unified_rel = "SPOUSE":relationship if (rels == `""PARTNER":relationship,"SPOUSE":relationship"')
+replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship,"STEPCHILD":relationship"')
+replace unified_rel = "MOM":relationship if (rels == `""BIOMOM":relationship,"STEPMOM":relationship"')
+replace unified_rel = "DAD":relationship if (rels == `""BIODAD":relationship,"STEPDAD":relationship"')
+replace unified_rel = "STEPCHILD":relationship if (rels == `""CHILDOFPARTNER":relationship,"STEPCHILD":relationship"')
+replace unified_rel = "BIOMOM":relationship if (rels == `""AUNTUNCLE_OR_PARENT":relationship,"BIOMOM":relationship"')
+replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship,"CHILDOFPARTNER":relationship"')
 
-replace unified_rel = "SPOUSE" if (rels == "OTHER_REL SPOUSE")
+replace unified_rel = "SPOUSE":relationship if (rels == `""OTHER_REL":relationship "SPOUSE":relationship"')
 
-replace unified_rel = "CONFUSED" if missing(unified_rel)
+replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 
-tab rels if (unified_rel == "CONFUSED"), sort
+tab rels if (unified_rel == "CONFUSED":relationship), sort
 
 drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
