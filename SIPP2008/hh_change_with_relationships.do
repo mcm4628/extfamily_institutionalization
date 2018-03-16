@@ -107,6 +107,7 @@ tab rels if (total_instances == rel_instances1), sort
 
 *** TODO:  Add a flag indicating consistent versus computed.
 gen unified_rel = real(rels) if (total_instances == rel_instances1)
+label values unified_rel relationship
 replace unified_rel = "SPOUSE":relationship if (rels == `""PARTNER":relationship,"SPOUSE":relationship"')
 replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship,"STEPCHILD":relationship"')
 replace unified_rel = "MOM":relationship if (rels == `""BIOMOM":relationship,"STEPMOM":relationship"')

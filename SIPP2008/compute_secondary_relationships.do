@@ -1,7 +1,3 @@
-*** TODO:  Is it more efficient to use categories?
-
-
-
 capture program drop generate_relationship
 program define generate_relationship
     args result_rel rel1 rel2

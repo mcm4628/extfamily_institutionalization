@@ -99,6 +99,7 @@ label define relationship
     24 "AUNTUNCLE_OR_PARENT"
     25 "GREATGRANDCHILD"
     26 "NEPHEWNIECE"
+    99 "CONFUSED"
     ;
 #delimit cr
 

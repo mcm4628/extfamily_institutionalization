@@ -74,6 +74,8 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_sec
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_for_relationships
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_with_relationships
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" examine_households
+
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" count_rels
 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" partner_type
