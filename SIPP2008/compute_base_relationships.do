@@ -71,37 +71,19 @@ end
 
 use "$tempdir/allwaves"
 
-#delimit ;
-label define relationship
-    1 "BIOCHILD"
-    2 "BIOMOM"
-    3 "BIODAD"
-    4 "STEPCHILD"
-    5 "STEPMOM"
-    6 "STEPDAD"
-    7 "ADOPTCHILD"
-    8 "ADOPTMOM"
-    9 "ADOPTDAD"
-    10 "MOM"
-    11 "DAD"
-    12 "SPOUSE"
-    13 "GRANDCHILD"
-    14 "GRANDPARENT"
-    15 "SIBLING"
-    16 "OTHER_REL"
-    17 "PARTNER"
-    18 "CHILDOFPARTNER"
-    19 "F_CHILD"
-    20 "CHILD"
-    21 "F_PARENT"
-    22 "NOREL"
-    23 "PARENT"
-    24 "AUNTUNCLE_OR_PARENT"
-    25 "GREATGRANDCHILD"
-    26 "NEPHEWNIECE"
-    99 "CONFUSED"
-    ;
-#delimit cr
+* This builds a label for relationships.
+* It numbers the labels starting at 1, incrementing by 1.
+* You can look at the output of the "label list" in the log to see what number means what.
+local lnum = 1
+foreach r in BIOCHILD BIOMOM BIODAD STEPCHILD STEPMOM STEPDAD ADOPTCHILD ADOPTMOM ADOPTDAD MOM DAD SPOUSE GRANDCHILD GRANDPARENT SIBLING OTHER_REL PARTNER CHILDOFPARTNER F_CHILD CHILD F_PARENT NOREL PARENT AUNTUNCLE AUNTUNCLE_OR_PARENT GREATGRANDCHILD NEPHEWNIECE COUSIN SIBLING_OR_COUSIN CONFUSED {
+    local llist = `"`llist' `lnum' "`r'""'
+    local lnum = `lnum' + 1
+}
+label define relationship `llist'
+display "String for relationship label"
+display `"`llist'"'
+display "Label for relationships"
+label list relationship
 
 * Compute parent/child relationships from EPNMOM and EPNDAD.
 compute_relationships EPPPNUM EPNMOM BIOCHILD BIOMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 1))" biochild_of_mom biomom

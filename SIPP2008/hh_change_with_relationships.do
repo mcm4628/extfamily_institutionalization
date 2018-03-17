@@ -106,6 +106,8 @@ tab rels if (total_instances == rel_instances1), sort
 
 
 *** TODO:  Add a flag indicating consistent versus computed.
+
+*** TODO:  Handle new relationships:  COUSIN, AUNTUNCLE, SIBLING_OR_COUSIN.  May need to reorder.
 gen unified_rel = real(rels) if (total_instances == rel_instances1)
 label values unified_rel relationship
 replace unified_rel = "SPOUSE":relationship if (rels == `""PARTNER":relationship,"SPOUSE":relationship"')
