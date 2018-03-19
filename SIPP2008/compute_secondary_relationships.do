@@ -176,10 +176,15 @@ program define compute_transitive_relationships
     * Dunno if this will actually be useful, but there are 33K of them so let's try it.
     foreach rel1 in `all_child_types' {
         generate_relationship "AUNTUNCLE_OR_PARENT" "`rel1'" "GRANDPARENT"
+
+        generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
     }
 
-    foreach rel1 in `all_child_types' {
-        generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
+
+    foreach rel2 in `all_child_types' {
+        generate_relationship "PARENT" "SIBLING" "`rel2'"
+
+        generate_relationship "PARENT_OR_RELATIVE" "GRANDPARENT" "`rel2'"
     }
 
     *** TODO:  We're missing generation of solid AUNTUNCLE.
@@ -187,12 +192,13 @@ program define compute_transitive_relationships
         generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
     }
 
-    foreach rel1 in `all_child_types' {
-        generate_relationship "NOREL" "`rel1'" "NOREL"
-    }
-
     foreach rel2 in `all_parent_types' {
         generate_relationship "PARENT" "SPOUSE" "`rel2'"
+        generate_relationship "AUNTUNCLE" "SIBLING" "`rel2'"
+
+        generate_relationship "CHILD_OR_NEPHEWNIECE" "GRANDCHILD" "`rel2'"
+
+        generate_relationship "GREATGRANDPARENT" "GRANDPARENT" "`rel2'"
     }
 
     * Should we call these PARTNERS?  Or something less certain?
@@ -374,7 +380,7 @@ program define compute_transitive_relationships
         drop best_rel
     }
 
-    display "Where to we stand with relationships?"
+    display "Where do we stand with relationships?"
     tab relationship, m
 
     drop relationship_tc* reason_tc* numrels*
