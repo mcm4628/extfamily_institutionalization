@@ -225,6 +225,20 @@ program define compute_transitive_relationships
         generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
     }
 
+    generate_relationship "NOREL" "SPOUSE" "NOREL"
+    generate_relationship "NOREL" "NOREL" "SPOUSE" 
+    generate_relationship "NOREL" "GRANDPARENT" "NOREL"
+    generate_relationship "NOREL" "NOREL" "GRANDPARENT" 
+    generate_relationship "NOREL" "GRANDCHILD" "NOREL"
+    generate_relationship "NOREL" "NOREL" "GRANDCHILD" 
+    generate_relationship "NOREL" "SIBLING" "NOREL"
+    generate_relationship "NOREL" "NOREL" "SIBLING" 
+
+    generate_relationship "NOREL" "OTHER_REL" "NOREL"
+    generate_relationship "NOREL" "NOREL" "OTHER_REL" 
+
+    generate_relationship "DONTKNOW" "NOREL" "NOREL"
+
 
     * generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
 
@@ -300,6 +314,8 @@ program define compute_transitive_relationships
     * Temporary save so we can see where we stand.
     save "$tempdir/relationships_tc0to`iteration'_wide", $replace
 
+
+    *** TODO:  Deal with new relationships, including AUNTUNCLE, COUSIN, SIBLING_OR_COUSIN, DONTKNOW.
 
     local dad_relations " BIODAD STEPDAD ADOPTDAD DAD F_PARENT PARENT AUNTUNCLE_OR_PARENT "
     local mom_relations " BIOMOM STEPMOM ADOPTMOM MOM F_PARENT PARENT AUNTUNCLE_OR_PARENT "
