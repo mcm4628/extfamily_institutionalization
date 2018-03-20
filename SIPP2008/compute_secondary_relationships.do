@@ -134,62 +134,57 @@ program define compute_transitive_relationships
     local all_parent_types MOM BIOMOM STEPMOM ADOPTMOM DAD BIODAD STEPDAD ADOPTDAD PARENT
 
     foreach rel1 in `all_child_types' {
+        generate_relationship "CHILD" "`rel1'" "SPOUSE"
+        generate_relationship "CHILD" "`rel1'" "PARTNER"
+
+        generate_relationship "GREATGRANDCHILD" "`rel1'" "GRANDCHILD"
+
+        generate_relationship "AUNTUNCLE_OR_PARENT" "`rel1'" "GRANDPARENT"
+
+        generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
+
+        generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
+
+        generate_relationship "OTHER_REL" "SPOUSE" "`rel1'" 
+
         foreach rel2 in `all_child_types' {
             generate_relationship "GRANDCHILD" "`rel1'" "`rel2'"
         }
+
+        foreach rel2 in `all_parent_types' {
+            generate_relationship "SIBLING" "`rel1'" "`rel2'"
+        }
+
+        generate_relationship "OTHER_REL" "`rel1'" "OTHER_REL"
+        generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
+
+        generate_relationship "NOREL" "`rel1'" "NOREL"
+        generate_relationship "NOREL" "NOREL" "`rel1'" 
+    }
+
+    foreach rel2 in `all_child_types' {
+        generate_relationship "GREATGRANDCHILD" "GRANDCHILD" "`rel2'"
+
+        generate_relationship "PARENT" "SIBLING" "`rel2'"
+
+        generate_relationship "PARENT_OR_RELATIVE" "GRANDPARENT" "`rel2'"
     }
 
     foreach rel1 in `all_parent_types' {
         foreach rel2 in `all_parent_types' {
             generate_relationship "GRANDPARENT" "`rel1'" "`rel2'"
         }
-    }
 
-    foreach rel1 in `all_child_types' {
-        generate_relationship "GREATGRANDCHILD" "`rel1'" "GRANDCHILD"
-    }
-    foreach rel2 in `all_child_types' {
-        generate_relationship "GREATGRANDCHILD" "GRANDCHILD" "`rel2'"
-    }
-
-    foreach rel1 in `all_child_types' {
-        foreach rel2 in `all_parent_types' {
-            generate_relationship "SIBLING" "`rel1'" "`rel2'"
+        * Should we call these PARTNERS?  Or something less certain?
+        foreach rel2 in `all_child_types' {
+            generate_relationship "PARTNER" "`rel1'" "`rel2'"
         }
-    }
 
-    foreach rel1 in `all_child_types' {
-        generate_relationship "CHILD" "`rel1'" "SPOUSE"
-        generate_relationship "CHILD" "`rel1'" "PARTNER"
-    }
-    generate_relationship "GRANDCHILD" "GRANDCHILD" "SPOUSE"
-    generate_relationship "GRANDCHILD" "GRANDCHILD" "PARTNER"
+        generate_relationship "OTHER_REL" "`rel1'" "OTHER_REL"
+        generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
 
-    generate_relationship "SIBLING_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
-
-    generate_relationship "OTHER_REL" "GRANDPARENT" "SPOUSE"
-
-    foreach rel1 in `all_child_types' {
-        generate_relationship "OTHER_REL" "SPOUSE" "`rel1'" 
-    }
-
-    * Dunno if this will actually be useful, but there are 33K of them so let's try it.
-    foreach rel1 in `all_child_types' {
-        generate_relationship "AUNTUNCLE_OR_PARENT" "`rel1'" "GRANDPARENT"
-
-        generate_relationship "NEPHEWNIECE" "`rel1'" "SIBLING"
-    }
-
-
-    foreach rel2 in `all_child_types' {
-        generate_relationship "PARENT" "SIBLING" "`rel2'"
-
-        generate_relationship "PARENT_OR_RELATIVE" "GRANDPARENT" "`rel2'"
-    }
-
-    *** TODO:  We're missing generation of solid AUNTUNCLE.
-    foreach rel1 in `all_child_types' {
-        generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
+        generate_relationship "NOREL" "`rel1'" "NOREL"
+        generate_relationship "NOREL" "NOREL" "`rel1'" 
     }
 
     foreach rel2 in `all_parent_types' {
@@ -201,45 +196,46 @@ program define compute_transitive_relationships
         generate_relationship "GREATGRANDPARENT" "GRANDPARENT" "`rel2'"
     }
 
-    * Should we call these PARTNERS?  Or something less certain?
-    foreach rel1 in `all_parent_types' {
-        foreach rel2 in `all_child_types' {
-            generate_relationship "PARTNER" "`rel1'" "`rel2'"
-        }
-    }
 
-
-    generate_relationship "SIBLING" "SIBLING" "SIBLING"
-
-
-    generate_relationship "OTHER_REL" "SIBLING" "OTHER_REL"
-    generate_relationship "OTHER_REL" "OTHER_REL" "SIBLING" 
-
-    generate_relationship "OTHER_REL" "SPOUSE" "OTHER_REL"
-    generate_relationship "OTHER_REL" "OTHER_REL" "SPOUSE" 
-
-    foreach rel1 in `all_child_types' {
-        generate_relationship "NOREL" "`rel1'" "NOREL"
-        generate_relationship "NOREL" "NOREL" "`rel1'" 
-        generate_relationship "OTHER_REL" "`rel1'" "OTHER_REL"
-        generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
-    }
-    foreach rel1 in `all_parent_types' {
-        generate_relationship "NOREL" "`rel1'" "NOREL"
-        generate_relationship "NOREL" "NOREL" "`rel1'" 
-        generate_relationship "OTHER_REL" "`rel1'" "OTHER_REL"
-        generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
-    }
-
-    generate_relationship "NOREL" "SPOUSE" "NOREL"
-    generate_relationship "NOREL" "NOREL" "SPOUSE" 
-    generate_relationship "NOREL" "GRANDPARENT" "NOREL"
-    generate_relationship "NOREL" "NOREL" "GRANDPARENT" 
+    *** rel1 == GRANDCHILD
+    generate_relationship "GRANDCHILD" "GRANDCHILD" "SPOUSE"
+    generate_relationship "GRANDCHILD" "GRANDCHILD" "PARTNER"
+    generate_relationship "SIBLING_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
     generate_relationship "NOREL" "GRANDCHILD" "NOREL"
+
+    *** rel2 == GRANDCHILD
     generate_relationship "NOREL" "NOREL" "GRANDCHILD" 
+
+
+    *** rel1 == GRANDPARENT
+    generate_relationship "OTHER_REL" "GRANDPARENT" "SPOUSE"
+    generate_relationship "NOREL" "GRANDPARENT" "NOREL"
+
+    *** rel2 == GRANDPARENT
+    generate_relationship "NOREL" "NOREL" "GRANDPARENT" 
+
+
+    *** rel1 == SIBLING
+    generate_relationship "SIBLING" "SIBLING" "SIBLING"
+    generate_relationship "OTHER_REL" "SIBLING" "OTHER_REL"
     generate_relationship "NOREL" "SIBLING" "NOREL"
+
+    *** rel2 == SIBLING
+    generate_relationship "OTHER_REL" "OTHER_REL" "SIBLING" 
     generate_relationship "NOREL" "NOREL" "SIBLING" 
 
+
+    *** rel1 == SPOUSE
+    generate_relationship "OTHER_REL" "SPOUSE" "OTHER_REL"
+    generate_relationship "NOREL" "SPOUSE" "NOREL"
+
+    *** rel2 == SPOUSE
+    generate_relationship "OTHER_REL" "OTHER_REL" "SPOUSE" 
+    generate_relationship "NOREL" "NOREL" "SPOUSE" 
+
+
+
+    *** Other
     generate_relationship "NOREL" "OTHER_REL" "NOREL"
     generate_relationship "NOREL" "NOREL" "OTHER_REL" 
 
@@ -251,10 +247,6 @@ program define compute_transitive_relationships
     *** TODO:  Validate these relationships with Kelly.  The PARTNER ones in particular.
 
     *** TODO:  Add the easy, but smaller, cases of MOM/DAD type other than BIO.
-
-    *** TODO:  Handle these.  I'm removing them for a moment.
-    * generate_relationship "SIB_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
-    * generate_relationship "NEPHEWNIECE" "GRANDCHILD" "PARENT"
 
 
     display "How are we doing at finding relationships?"
