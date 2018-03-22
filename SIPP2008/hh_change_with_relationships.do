@@ -1,5 +1,53 @@
-
 use "$tempdir/hh_change_for_relationships"
+
+capture program drop unify_relationship
+program define unify_relationship
+    * primary_list is the list of relationships to be considered definitively compatible.
+    * secondary_list is the list of additional relationships that may be compatible with the primary_list,
+    * but if only erlationships from the secondary_list are present we cannot conclude this relationship is of the class.
+    * E.g., OTHER_REL won't prevent us from declaring someone a child, but we cannot declare them a child if OTHER_REL is the only information we have.
+    args primary_list secondary_list
+
+    if (wordcount("`primary_list'") == 0) {
+        display as error "unify_relationship:  argument primary_list must be non-blank"
+        error 111
+    }
+
+    local primary_rels `""`=word("`primary_list'", 1)'":relationship"'
+    forvalues i = 2/`=wordcount("`primary_list'")' {
+        local primary_rels `"`primary_rels', "`=word("`primary_list'", `i')'":relationship"'
+    }
+
+    if (wordcount("`secondary_list'") > 0) {
+        local secondary_rels `""`=word("`secondary_list'", 1)'":relationship"'
+        forvalues i = 2/`=wordcount("`secondary_list'")' {
+            local secondary_rels `"`secondary_rels', "`=word("`secondary_list'", `i')'":relationship"'
+        }
+    }
+
+    foreach r of varlist relationship* {
+        gen isprimary_`r' = inlist(`r', `primary_rels') if (!missing(`r'))
+        if (wordcount(`"`secondary_list'"') > 0) {
+            gen maybeclass_`r' = inlist(`r', `primary_rels', `secondary_rels') if (!missing(`r'))
+        }
+        else {
+            gen maybeclass_`r' = isprimary_`r'
+        }
+    }
+
+    * This tells us if any relationship is in the primary class.
+    egen includesprimary = rowmax(isprimary_relationship*)
+    * This tells us if all non-missing relationships are in the primary class or the secondary class.
+    egen allmaybeclass = rowmin(maybeclass_relationship*)
+    drop isprimary_relationship* maybeclass_relationship*
+
+    * So if all the relationships could be in the class
+    * AND at least one is definitely in the primary set
+    * we choose the smallest (highest precedence) relationship as the one to use.
+    egen urel = rowmin(relationship*) if ((includesprimary == 1) & (allmaybeclass == 1))
+    replace unified_rel = urel if ((includesprimary == 1) & (allmaybeclass == 1))
+    drop urel includesprimary allmaybeclass
+end
 
 keep SSUID EPPPNUM SHHADID* adj_age* arrivers* leavers* stayers* comp_change* comp_change_reason* my_race my_sex 
 
@@ -105,64 +153,36 @@ tab rels, sort
 tab rels if (total_instances == rel_instances1), sort
 
 
-*** TODO:  Add a flag indicating consistent versus computed.
-
-*** TODO:  Handle new relationships:  COUSIN, AUNTUNCLE, SIBLING_OR_COUSIN, DONTKNOW.  May need to reorder.
-/*
-gen unified_rel = real(rels) if (total_instances == rel_instances1)
-label values unified_rel relationship
-replace unified_rel = "SPOUSE":relationship if (rels == `""PARTNER":relationship,"SPOUSE":relationship"')
-replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship,"STEPCHILD":relationship"')
-replace unified_rel = "MOM":relationship if (rels == `""BIOMOM":relationship,"STEPMOM":relationship"')
-replace unified_rel = "DAD":relationship if (rels == `""BIODAD":relationship,"STEPDAD":relationship"')
-replace unified_rel = "STEPCHILD":relationship if (rels == `""CHILDOFPARTNER":relationship,"STEPCHILD":relationship"')
-replace unified_rel = "BIOMOM":relationship if (rels == `""AUNTUNCLE_OR_PARENT":relationship,"BIOMOM":relationship"')
-replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship,"CHILDOFPARTNER":relationship"')
-
-replace unified_rel = "SPOUSE":relationship if (rels == `""OTHER_REL":relationship "SPOUSE":relationship"')
-
-replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
-*/
-
 
 display "Possible relationships before handling children"
 egen group = group(relationship*), label missing
 tab group, m sort
 drop group
 
+*** TODO:  Add a flag indicating consistent versus computed.
 gen unified_rel = .
-foreach r of varlist relationship* {
-    * ischild means the relationship is in the set that either are children or have the explicit possibility to be children (like CHILD_OR_RELATIVE).
-    gen ischild_`r' = inlist(`r', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship) if (!missing(`r'))
-    * maybechild means the relationship is a child, includes the explicit possibilty of being a child (CHILD_OR_RELATIVE), or includes the implicit possibility of being a child (OTHER_REL).
-    gen maybechild_`r' = inlist(`r', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship, "OTHER_REL":relationship) if (!missing(`r'))
-}
+label values unified_rel relationship
+unify_relationship "BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER CHILD CHILD_OR_NEPHEWNIECE" "OTHER_REL OTHER_REL_P"
+unify_relationship "BIOMOM STEPMOM ADOPTMOM BIODAD STEPDAD ADOPTDAD PARENT AUNTUNCLE_OR_PARENT" "OTHER_REL OTHER_REL_P"
+unify_relationship "GRANDCHILD GREATGRANDCHILD GRANDCHILD_P" "OTHER_REL OTHER_REL_P"
+unify_relationship "GRANDPARENT GREATGRANDPARENT GRANDPARENT_P" "OTHER_REL OTHER_REL_P"
+unify_relationship "SIBLING SIBLING_OR_COUSIN" "OTHER_REL OTHER_REL_P"
+unify_relationship "SPOUSE PARTNER" "OTHER_REL OTHER_REL_P"
+unify_relationship "AUNTUNCLE AUNTUNCLE_OR_PARENT" "OTHER_REL OTHER_REL_P"
+unify_relationship "NEPHEWNIECE CHILD_OR_NEPHEWNIECE" "OTHER_REL OTHER_REL_P"
+unify_relationship "F_CHILD"
+unify_relationship "F_PARENT"
+unify_relationship "OTHER_REL OTHER_REL_P"
+unify_relationship "NOREL DONTKNOW"
 
-* This tells us if any relationship is a child relationship.
-egen includeschild = rowmax(ischild_relationship*)
-* This tells us if all non-missing relationships could be child relationships (it includes OTHER_REL and perhaps other non-specific relationships).
-egen allmaybechild = rowmin(maybechild_relationship*)
-
-* So if all the relationships could be children 
-* AND at least one is definitely a child relationship
-* we choose the smallest (highest precedence) relationship as the one to use.
-egen urel = rowmin(relationship*) if ((includeschild == 1) & (allmaybechild == 1))
-replace unified_rel = urel if ((includeschild == 1) & (allmaybechild == 1))
-drop urel
-
-display "Possible relationships after handling children"
+display "Possible relationships after unifying relationships"
 egen group = group(relationship*) if missing(unified_rel), label missing
-tab group, m sort
+tab group, sort
 drop group
 
 
-save "$tempdir/debug_groups", $replace
+replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 
-
-tab rels if (unified_rel == "CONFUSED":relationship), sort
-
-egen group = group(relationship*) if (unified_rel == "CONFUSED":relationship), label missing
-tab group, m
 
 drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
@@ -199,8 +219,4 @@ foreach changer in leaver arriver stayer {
 }
 
 
-*** TODO:
-* Looks like grandchild of x who is grandparent of y is useful (at least one case -- who knows how many).
-* Looks like more transitive NOREL might help, too.
-*
-* I see weirdness in adjusted ages, like a single 1 in the midst of large ages.  Examples:  459925246366/201, 077925358381/102.
+*** TODO: * I see weirdness in adjusted ages, like a single 1 in the midst of large ages.  Examples:  459925246366/201, 077925358381/102.
