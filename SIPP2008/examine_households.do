@@ -36,7 +36,7 @@ tab unified_rel if (from_age < $adult_age), m
 
 gen simplified_rel = .
 label values simplified_rel relationship
-replace simplified_rel = "CHILD":relationship if inlist(unified_rel, "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship. "CHILDOFPARTNER":relationship, "CHILD":relationship)
+replace simplified_rel = "CHILD":relationship if inlist(unified_rel, "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship)
 replace simplified_rel = "PARENT":relationship if inlist(unified_rel, "BIOMOM":relationship, "STEPMOM":relationship, "ADOPTMOM":relationship, "BIODAD":relationship, "STEPDAD":relationship, "ADOPTDAD":relationship)
 replace simplified_rel = "GRANDCHILD":relationship if inlist(unified_rel, "GRANDCHILD":relationship, "GREATGRANDCHILD":relationship)
 replace simplified_rel = "SIBLING":relationship if inlist(unified_rel, "SIBLING":relationship)
