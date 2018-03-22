@@ -108,6 +108,7 @@ tab rels if (total_instances == rel_instances1), sort
 *** TODO:  Add a flag indicating consistent versus computed.
 
 *** TODO:  Handle new relationships:  COUSIN, AUNTUNCLE, SIBLING_OR_COUSIN, DONTKNOW.  May need to reorder.
+/*
 gen unified_rel = real(rels) if (total_instances == rel_instances1)
 label values unified_rel relationship
 replace unified_rel = "SPOUSE":relationship if (rels == `""PARTNER":relationship,"SPOUSE":relationship"')
@@ -121,8 +122,47 @@ replace unified_rel = "CHILD":relationship if (rels == `""BIOCHILD":relationship
 replace unified_rel = "SPOUSE":relationship if (rels == `""OTHER_REL":relationship "SPOUSE":relationship"')
 
 replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
+*/
+
+
+display "Possible relationships before handling children"
+egen group = group(relationship*), label missing
+tab group, m sort
+drop group
+
+gen unified_rel = .
+foreach r of varlist relationship* {
+    * ischild means the relationship is in the set that either are children or have the explicit possibility to be children (like CHILD_OR_RELATIVE).
+    gen ischild_`r' = inlist(`r', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship) if (!missing(`r'))
+    * maybechild means the relationship is a child, includes the explicit possibilty of being a child (CHILD_OR_RELATIVE), or includes the implicit possibility of being a child (OTHER_REL).
+    gen maybechild_`r' = inlist(`r', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship, "OTHER_REL":relationship) if (!missing(`r'))
+}
+
+* This tells us if any relationship is a child relationship.
+egen includeschild = rowmax(ischild_relationship*)
+* This tells us if all non-missing relationships could be child relationships (it includes OTHER_REL and perhaps other non-specific relationships).
+egen allmaybechild = rowmin(maybechild_relationship*)
+
+* So if all the relationships could be children 
+* AND at least one is definitely a child relationship
+* we choose the smallest (highest precedence) relationship as the one to use.
+egen urel = rowmin(relationship*) if ((includeschild == 1) & (allmaybechild == 1))
+replace unified_rel = urel if ((includeschild == 1) & (allmaybechild == 1))
+drop urel
+
+display "Possible relationships after handling children"
+egen group = group(relationship*) if missing(unified_rel), label missing
+tab group, m sort
+drop group
+
+
+save "$tempdir/debug_groups", $replace
+
 
 tab rels if (unified_rel == "CONFUSED":relationship), sort
+
+egen group = group(relationship*) if (unified_rel == "CONFUSED":relationship), label missing
+tab group, m
 
 drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
