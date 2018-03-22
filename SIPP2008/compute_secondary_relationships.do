@@ -146,6 +146,7 @@ program define compute_transitive_relationships
         generate_relationship "COUSIN" "`rel1'" "AUNTUNCLE"
 
         generate_relationship "OTHER_REL" "SPOUSE" "`rel1'" 
+        generate_relationship "OTHER_REL_P" "PARTNER" "`rel1'" 
 
         foreach rel2 in `all_child_types' {
             generate_relationship "GRANDCHILD" "`rel1'" "`rel2'"
@@ -168,6 +169,8 @@ program define compute_transitive_relationships
         generate_relationship "PARENT" "SIBLING" "`rel2'"
 
         generate_relationship "PARENT_OR_RELATIVE" "GRANDPARENT" "`rel2'"
+
+        generate_relationship "NOREL" "F_CHILD" "`rel2'"
     }
 
     foreach rel1 in `all_parent_types' {
@@ -180,6 +183,15 @@ program define compute_transitive_relationships
             generate_relationship "PARTNER" "`rel1'" "`rel2'"
         }
 
+        generate_relationship "GREATGRANDPARENT" "`rel1'" "GRANDPARENT"
+
+        generate_relationship "PARENT" "`rel1'" "SIBLING"
+
+        generate_relationship "CHILD_OR_RELATIVE" "`rel1'" "GRANDCHILD"
+
+        generate_relationship "OTHER_REL" "`rel1'" "SPOUSE"
+        generate_relationship "OTHER_REL_P" "`rel1'" "PARTNER"
+
         generate_relationship "OTHER_REL" "`rel1'" "OTHER_REL"
         generate_relationship "OTHER_REL" "OTHER_REL" "`rel1'" 
 
@@ -189,19 +201,28 @@ program define compute_transitive_relationships
 
     foreach rel2 in `all_parent_types' {
         generate_relationship "PARENT" "SPOUSE" "`rel2'"
+        generate_relationship "PARENT" "PARTNER" "`rel2'"
+
         generate_relationship "AUNTUNCLE" "SIBLING" "`rel2'"
 
         generate_relationship "CHILD_OR_NEPHEWNIECE" "GRANDCHILD" "`rel2'"
 
         generate_relationship "GREATGRANDPARENT" "GRANDPARENT" "`rel2'"
+
+        generate_relationship "NOREL" "F_CHILD" "`rel2'"
     }
 
 
     *** rel1 == GRANDCHILD
     generate_relationship "GRANDCHILD" "GRANDCHILD" "SPOUSE"
-    generate_relationship "GRANDCHILD" "GRANDCHILD" "PARTNER"
+    generate_relationship "GRANDCHILD_P" "GRANDCHILD" "PARTNER"
+
+    generate_relationship "OTHER_REL" "GRANDCHILD" "SIBLING"
+
     generate_relationship "SIBLING_OR_COUSIN" "GRANDCHILD" "GRANDPARENT"
+
     generate_relationship "NOREL" "GRANDCHILD" "NOREL"
+    generate_relationship "OTHER_REL" "GRANDCHILD" "OTHER_REL"
 
     *** rel2 == GRANDCHILD
     generate_relationship "NOREL" "NOREL" "GRANDCHILD" 
@@ -209,14 +230,20 @@ program define compute_transitive_relationships
 
     *** rel1 == GRANDPARENT
     generate_relationship "OTHER_REL" "GRANDPARENT" "SPOUSE"
+    generate_relationship "OTHER_REL_P" "GRANDPARENT" "PARTNER"
     generate_relationship "NOREL" "GRANDPARENT" "NOREL"
 
     *** rel2 == GRANDPARENT
+    generate_relationship "OTHER_REL" "OTHER_REL" "GRANDPARENT" 
     generate_relationship "NOREL" "NOREL" "GRANDPARENT" 
 
 
     *** rel1 == SIBLING
     generate_relationship "SIBLING" "SIBLING" "SIBLING"
+
+    generate_relationship "OTHER_REL" "SIBLING" "SPOUSE"
+    generate_relationship "OTHER_REL_P" "SIBLING" "PARTNER"
+
     generate_relationship "OTHER_REL" "SIBLING" "OTHER_REL"
     generate_relationship "NOREL" "SIBLING" "NOREL"
 
@@ -225,17 +252,36 @@ program define compute_transitive_relationships
     generate_relationship "NOREL" "NOREL" "SIBLING" 
 
 
-    *** rel1 == SPOUSE
-    generate_relationship "OTHER_REL" "SPOUSE" "OTHER_REL"
-    generate_relationship "NOREL" "SPOUSE" "NOREL"
+    *** rel1 == SPOUSE / PARTNER
+    generate_relationship "GRANDPARENT" "SPOUSE" "GRANDPARENT"
+    generate_relationship "GRANDPARENT_P" "PARTNER" "GRANDPARENT"
 
-    *** rel2 == SPOUSE
+    generate_relationship "OTHER_REL" "SPOUSE" "GRANDCHILD"
+    generate_relationship "OTHER_REL_P" "PARTNER" "GRANDCHILD"
+    generate_relationship "OTHER_REL" "SPOUSE" "SIBLING"
+    generate_relationship "OTHER_REL_P" "PARTNER" "SIBLING"
+
+    generate_relationship "OTHER_REL" "SPOUSE" "OTHER_REL"
+    generate_relationship "OTHER_REL_P" "PARTNER" "OTHER_REL"
+    generate_relationship "NOREL" "SPOUSE" "NOREL"
+    generate_relationship "DONTKNOW" "PARTNER" "NOREL"
+
+    *** rel2 == SPOUSE / PARTNER
+    generate_relationship "OTHER_REL_P" "OTHER_REL" "PARTNER" 
     generate_relationship "OTHER_REL" "OTHER_REL" "SPOUSE" 
     generate_relationship "NOREL" "NOREL" "SPOUSE" 
+    generate_relationship "DONTKNOW" "NOREL" "PARTNER" 
+
+
+
+    *** rel1 == F_CHILD
+    generate_relationship "F_CHILD" "F_CHILD" "SPOUSE" 
 
 
 
     *** Other
+    generate_relationship "OTHER_REL" "OTHER_REL" "OTHER_REL" 
+
     generate_relationship "NOREL" "OTHER_REL" "NOREL"
     generate_relationship "NOREL" "NOREL" "OTHER_REL" 
 
@@ -347,6 +393,7 @@ program define compute_transitive_relationships
     foreach v of varlist relationship_tc* {
         replace num_nonmissing = num_nonmissing + 1 if (!missing(`v'))
     }
+    tab num_nonmissing
 
     * Now that we know how many are non-missing, use the ones that have just one non-missing.
     foreach v of varlist relationship_tc* {
