@@ -10,7 +10,7 @@ forvalues i=1/5 {
 	replace numchange=numchange+1 if comp_change`i'==1
 }
 
-*drop cases that don't appear in the data before Wave 6
+*drop cases that don't appear in the data before Wave 7
 drop if nmis_compchange==5
 
 
@@ -20,5 +20,5 @@ tab numchange
 
 tab numchange nmis_compchange
 
-keep EPPPNUM SSUID numchange nmis_compchange
+*keep EPPPNUM SSUID numchange nmis_compchange
 
