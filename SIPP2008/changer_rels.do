@@ -1,10 +1,16 @@
 *** This code is hot off the press and ended up being more of a hack than I expected.
 * Use results with caution (for a few days).
 
-foreach changer in leaver arriver stayer {
+foreach changer in leaver arriver stayer leaver_and_arriver {
     display "Processing `changer's"
 
-    use "$tempdir/`changer'_rels"
+    if ("`changer'" == "leaver_and_arriver") {
+        use "$tempdir/leaver_rels"
+        append using "$tempdir/arriver_rels"
+    }
+    else {
+        use "$tempdir/`changer'_rels"
+    }
 
     rename adj_age from_age
 
