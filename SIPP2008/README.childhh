@@ -1,0 +1,11 @@
+To run all currently maintained SIPP2008 code:
+do do_all.do
+This will take a while, maybe around 1/2 hour.
+
+As you will see in the do_all.do file, you must execute
+project_macros.do in order to define some macros required
+for the SIPP2008 code.  So, if you want to execute some of
+the code in isolation (or test new code), best practice is
+to execute project_macros.do, then use do_and_log as demonstrated
+in do_all.do to execute each do file.
+

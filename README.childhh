@@ -1,0 +1,15 @@
+To get started with any ChildHH code:
+1.  cd to this directory
+2.  do setup_childhh_environment.do
+
+setup_childhh_environment.do defines several macros that locate the project data and otherwise establish project norms.  
+It also executes a personalized setup do file, named setup_<username>.do.
+
+The personalized setup do file defines several macros required by the project code.
+The values of the macros are personalized, but the names of the macros must be the same for all users.
+See an example setup file, e.g. setup_Robert.do, to learn which macros must be defined.
+
+
+The remaining do files in this directory provide a convenient way to ensure that results are logged and
+that random number generator state is preserved so that results are repeatable.
+See SIPP2008/do_all.do for an example of how to use the do_and_log.do file.
