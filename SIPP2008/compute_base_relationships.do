@@ -71,19 +71,8 @@ end
 
 use "$tempdir/allwaves"
 
-* This builds a label for relationships.
-* It numbers the labels starting at 1, incrementing by 1.
-* You can look at the output of the "label list" in the log to see what number means what.
-local lnum = 1
-foreach r in BIOCHILD BIOMOM BIODAD STEPCHILD STEPMOM STEPDAD ADOPTCHILD ADOPTMOM ADOPTDAD MOM DAD SPOUSE GRANDCHILD GRANDCHILD_P GRANDPARENT GRANDPARENT_P SIBLING OTHER_REL OTHER_REL_P PARTNER CHILDOFPARTNER F_CHILD CHILD F_PARENT NOREL PARENT AUNTUNCLE AUNTUNCLE_OR_PARENT PARENT_OR_RELATIVE GREATGRANDCHILD GREATGRANDPARENT NEPHEWNIECE CHILD_OR_NEPHEWNIECE CHILD_OR_RELATIVE COUSIN SIBLING_OR_COUSIN CONFUSED DONTKNOW {
-    local llist = `"`llist' `lnum' "`r'""'
-    local lnum = `lnum' + 1
-}
-label define relationship `llist'
-display "String for relationship label"
-display `"`llist'"'
-display "Label for relationships"
-label list relationship
+do "$sipp2008_code/relationship_label"
+
 
 * Compute parent/child relationships from EPNMOM and EPNDAD.
 compute_relationships EPPPNUM EPNMOM BIOCHILD BIOMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 1))" biochild_of_mom biomom
