@@ -1,3 +1,9 @@
+* This code creates a pairwise dataset with every pair of people living together in a wave represented.
+* The result is integrated with a "dictionary" of relationships so that we can descibe the characteristics of 
+* people living together using either a complete list of relationship types (unified_rel) or a collapsed set of
+* relationship types.
+*
+* [more]
 
 use "$tempdir/allwaves"
 
@@ -16,13 +22,19 @@ save `people'
 rename EPPPNUM relfrom
 rename adj_age from_age
 
+* Merge every person (from) to every other person (to) in that person's hosuehold in a wave.
+* Each observation in the resulting data set represents a pair of people living together.
+
 joinby SSUID SHHADID SWAVE using `people'
 
 rename EPPPNUM relto
 rename adj_age to_age
 
+* drop pairs that are ego and her/himself.
 drop if (relfrom == relto)
 
+
+* every pair of people has a relationship. These pairs are defined in "unified_rel"
 merge m:1 SSUID relfrom relto using "$tempdir/unified_rel"
 replace unified_rel = .a if (_merge == 1) & (missing(unified_rel))
 replace unified_rel = .m if (_merge == 3) & (missing(unified_rel))
@@ -35,7 +47,7 @@ tab unified_rel, m
 
 tab unified_rel if (from_age < $adult_age), m
 
-
+* This calls a program defined in "project_macros". 
 simplify_relationships unified_rel simplified_rel ultra_simple_rel
 
 display "Unhandled relationships"
@@ -59,7 +71,7 @@ tab ultra_simple_rel if (from_age < $adult_age), m sort
 save "$tempdir/examine_hh", $replace
 
 
-
+* Would be great to add a note to say what this next section of the code does.
 
 use "$tempdir/shhadid_members"
 
@@ -81,7 +93,7 @@ drop shhadid_members*
 
 save "$tempdir/hh_same_stats", $replace
 
-
+* Would be great to add a note to say what this next section of the code does.
 
 use "$tempdir/examine_hh"
 
