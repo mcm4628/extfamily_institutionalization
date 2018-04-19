@@ -1,9 +1,17 @@
+
+*************************************************************************
+***Purpose: set up the ChildHH project with macro paths******************
+*************************************************************************
+
 global replace "replace"
 
-global logdir "$homedir/TempChildHH/logs"
-global tempdir "$homedir/TempChildHH/temp"
+global workdir "\\prc-cs-f9dkb42\xg2872$\Work Projects"
+global workhh "$workdir\ChildHH_Project"
 
-global boxdir "$homedir/Box Sync"
+global logdir "$workhh\Working_Temp"
+global tempdir "$workhh\Working_Temp"
 
-global sipp2008_code "$homedir/ChildHH/SIPP2008"
-global sipp2008_logs "$homedir/TempChildHH/logs"
+global boxdir "C:\Users\xg2872\Box Sync"
+
+global sipp2008_code "$workhh\GitData\ChildHH\SIPP2008"
+global sipp2008_logs "$workhh\Working_Temp"
