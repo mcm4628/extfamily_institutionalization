@@ -2,14 +2,14 @@
 * This program also requires the confirmdir package. If you do not have this, type ssc install confirmdir before running.
 * The following code is an attempt to make sure these packages are installed before allowing execution.
 capture findfile mdesc.ado
-if ("`r(fn)" == "") {
+if ("`r(fn)'" == "") {
     display as error "It appears the mdesc package is not installed."
     display as error "Try 'ssc install mdesc' to acquire it."
     exit
 }
 
 capture findfile confirmdir.ado
-if ("`r(fn)" == "") {
+if ("`r(fn)'" == "") {
     display as error "It appears the confirmdir package is not installed."
     display as error "Try 'ssc install confirmdir' to acquire it."
     exit
