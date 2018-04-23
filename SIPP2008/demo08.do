@@ -1,5 +1,25 @@
+********************************************************************************************
+* creates a basic file describing individuals' race-ethnicity and sex at first observation *
+********************************************************************************************
+
+use "$tempdir/allwaves", clear
+
+keep SSUID EPPPNUM SWAVE EORIGIN ERACE ESEX 
+
+gen raceth=ERACE
+replace raceth=5 if inlist(ERACE,1,3,4) & EORIGIN==1
+
+label define racethnic 1 "NHWhite" 2 "Black" 3 "NHAsian" 4 "NHOther" 5 "Hispanic"
+label values raceth racethnic
+
+sort SSUID EPPPNUM SWAVE
+
+collapse (first) raceth ESEX, by (SSUID EPPPNUM)
+
+save "$tempdir/fixedracesex", $replace
+
 ****************************************************************************
-* creates a basic file describing individuals' demographic characteristics *
+* creates a basic file describing individuals' demographic characteristics by WAVE *
 ****************************************************************************
 
 use "$tempdir/allwaves", clear
