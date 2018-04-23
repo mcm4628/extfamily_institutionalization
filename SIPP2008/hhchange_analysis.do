@@ -8,7 +8,7 @@ reshape long adj_age addr_change comp_change WPFINWGT adult_change child_change,
 
 sort SSUID EPPPNUM SWAVE
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demoperson08.dta"
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demoperson08.dta"
 
 tab TAGE _merge
 
