@@ -65,6 +65,7 @@ assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 assert (have_changers == 1) if (comp_change == 1)
 
+*** comp_change needs to be labeled, so does comp_change_reasons (S)
 drop if missing(comp_change)
 drop if (comp_change == 0)
 
@@ -152,8 +153,6 @@ tab rels, sort
 
 tab rels if (total_instances == rel_instances1), sort
 
-
-
 display "Possible relationships before handling children"
 egen group = group(relationship*), label missing
 tab group, m sort
@@ -178,13 +177,24 @@ unify_relationship "NOREL DONTKNOW"
 display "Possible relationships after unifying relationships"
 egen group = group(relationship*) if missing(unified_rel), label missing
 tab group, sort
-drop group
-
+*drop group /*group is not dropped, later use it to create flag*/
 
 replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 
 
-*drop relationship* rel_instances* total_instances rels
+/** generate a flag indicating confused but ever a child **/
+* find child in group
+decode group, gen(group1) 
+gen child_confused = 0
+replace child_confused = 1 if strpos(group1, "CHILD")>0  /*N=1902 */
+
+/** generate a flag indicating confused but ever a sibling **/
+*find sibling in group
+gen sib_confused = 0 
+replace sib_confused = 1 if strpos(group1, "SIBLING")>0 /*N=1896 */
+ 
+	
+**drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
 
 
