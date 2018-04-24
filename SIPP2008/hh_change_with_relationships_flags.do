@@ -202,7 +202,9 @@ replace child_confused = 1 if strpos(group1, "CHILD")>0 & grandchild_confused !=
 gen sib_confused = 0 
 replace sib_confused = 1 if strpos(group1, "SIBLING")>0 /*N=1896 */
  
-	
+drop group /*group can be dropped now */
+ 
+ 
 **drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
 
