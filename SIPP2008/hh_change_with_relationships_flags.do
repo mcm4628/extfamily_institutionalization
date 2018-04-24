@@ -185,8 +185,11 @@ replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 /** generate a flag indicating confused but ever a child **/
 * find child in group
 decode group, gen(group1) 
+gen grandchild_confused = 0
+replace grandchild_confused = 1 if strpos(group1, "GRANDCHILD")>0  /*N=510 */
+
 gen child_confused = 0
-replace child_confused = 1 if strpos(group1, "CHILD")>0  /*N=1902 */
+replace child_confused = 1 if strpos(group1, "CHILD")>0 & grandchild_confused != 1 /* N=1392 */
 
 /** generate a flag indicating confused but ever a sibling **/
 *find sibling in group
