@@ -182,25 +182,16 @@ tab group, sort
 replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 
 
-/** generate a flag indicating confused but ever a child **/
-
-decode group, gen(group1) 
-* find GRANDCHILD and CHILD_OR_NEPHEWNIECE and F_CHILD
-gen grandchild_confused = 0
-replace grandchild_confused = 1 if strpos(group1, "GRANDCHILD")>0  /*N=510 */
-gen nephewniece_confused = 0
-replace nephewniece_confused = 1 if strpos(group1, "CHILD_OR_NEPHEWNIECE")>0  /*N= 319 */
-gen fchild_confused = 0
-replace fchild_confused = 1 if strpos(group1, "F_CHILD")>0 /*N= 112 */
-
-*find child in group
-gen child_confused = 0
-replace child_confused = 1 if strpos(group1, "CHILD")>0 & grandchild_confused != 1 & nephewniece_confused != 1 & fchild_confused !=1 /* N=1003 */
-
-/** generate a flag indicating confused but ever a sibling **/
-*find sibling in group
-gen sib_confused = 0 
-replace sib_confused = 1 if strpos(group1, "SIBLING")>0 /*N=1896 */
+/**** Creating flags indicating child/sibling ****/ 
+gen childflag = 0
+gen sibflag = 0
+  foreach flag of varlist relationship* {
+        replace childflag = 1 if inlist(`flag', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship, ///
+		"CHILD_OR_NEPHEWNIECE":relationship) & (!missing(group))
+        replace sibflag = 1 if inlist(`flag', "SIBLING":relationship, "SIBLING_OR_COUSIN":relationship) & (!missing(group))
+    }
+        
+/*childflag N=1,743; sibflag N=1,896 */
  
 drop group /*group can be dropped now */
  
