@@ -9,7 +9,7 @@ rename relfrom EPPPNUM
 
 sort SSUID EPPPNUM SWAVE
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demoperson08.dta"
+merge m:1 SSUID EPPPNUM using "$tempdir/fixedracesex.dta"
 
 keep if _merge==3
 
