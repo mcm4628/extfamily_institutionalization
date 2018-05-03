@@ -49,6 +49,30 @@ program define unify_relationship
     drop urel includesprimary allmaybeclass
 end
 
+
+capture program drop flag_relationship
+program define flag_relationship
+    * flagvar is the flag variable to create.
+    * rel_list is the list of relationships to be searched for.
+    * We set flagvar = 1 if we ever see any of the relationships in rel_list and to 0 otherwise.
+    args flagvar rel_list
+
+    if (wordcount("`rel_list'") == 0) {
+        display as error "flag_relationship:  argument rel_list must be non-blank"
+        error 111
+    }
+
+    local flag_rels `""`=word("`rel_list'", 1)'":relationship"'
+    forvalues i = 2/`=wordcount("`rel_list'")' {
+        local flag_rels `"`flag_rels', "`=word("`rel_list'", `i')'":relationship"'
+    }
+
+    gen `flagvar' = 0
+    foreach r of varlist relationship* {
+        replace `flagvar' = 1 if ((!missing(`r')) & inlist(`r', `flag_rels'))
+    }
+end
+
 keep SSUID EPPPNUM SHHADID* adj_age* arrivers* leavers* stayers* comp_change* comp_change_reason* my_race my_sex 
 
 
@@ -190,6 +214,18 @@ gen sibflag = 0
 		"CHILD_OR_NEPHEWNIECE":relationship) & (!missing(group))
         replace sibflag = 1 if inlist(`flag', "SIBLING":relationship, "SIBLING_OR_COUSIN":relationship) & (!missing(group))
     }
+
+
+gen rel_is_confused = (unified_rel == "CONFUSED":relationship)
+flag_relationship rel_is_ever_child "BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER CHILD CHILD_OR_NEPHEWNIECE"
+flag_relationship rel_is_ever_sibling "SIBLING SIBLING_OR_COUSIN"
+flag_relationship rel_is_ever_parent "BIOMOM STEPMOM ADOPTMOM BIODAD STEPDAD ADOPTDAD PARENT AUNTUNCLE_OR_PARENT"
+
+tab rel_is_ever_child childflag if (rel_is_confused)
+tab rel_is_ever_child childflag
+
+tab rel_is_ever_sibling sibflag if (rel_is_confused)
+tab rel_is_ever_sibling sibflag
         
 /*childflag N=1,743; sibflag N=1,896 */
  

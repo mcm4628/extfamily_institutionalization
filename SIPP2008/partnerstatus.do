@@ -7,6 +7,11 @@
 local min_age 17
 local max_age 25
 
+/**** 
+* Merging two baseline and transive measures of marital-cohabitation status into one file
+* to create a combined measure                                                  
+*/
+
 use "$tempdir/partner_type_tc1", clear
 
 sort SSUID EPPPNUM SWAVE
@@ -57,7 +62,9 @@ drop partner_type0 partner_type1 _merge
 
 reshape wide SHHADID adj_age WPFINWGT partner_type, i(SSUID EPPPNUM) j(SWAVE)
 
+/*****
 * identifying partner transitions
+*/
 
 forvalues w=1/14{
 local x=`w'+1
@@ -70,6 +77,10 @@ replace partrans`w'=5 if partner_type`w'==2 & partner_type`x'==0
 replace partrans`w'=0 if partner_type`w'==2 & partner_type`x'==1
 }
 
+/******
+* Create a long file where every observation represents an interval between waves
+*/
+
 reshape long SHHADID adj_age WPFINWGT partner_type partrans, i(SSUID EPPPNUM) j(SWAVE)
 
 gen year=2008 if SWAVE==1
@@ -78,6 +89,19 @@ replace year=2010 if SWAVE >= 5 & SWAVE <= 7
 replace year=2011 if SWAVE >= 8 & SWAVE <= 10
 replace year=2012 if SWAVE >= 11 & SWAVE <= 13
 replace year=2013 if SWAVE >= 14 & SWAVE <= 15
+
+label var partrans "marital-cohabitation transition type this wave to next"
+
+label define partrans 0 "No change" ///
+					  1 "Single to cohabitation" ///
+					  2 "Single to marriage" ///
+					  3 "Cohabitation to marriage" ///
+					  4 "Cohabitation to single" ///
+					  5 "Married to single" ///
+					  6 "Married to cohabitation"
+					  
+label values partrans partrans
+
 
 save "$tempdir/partner_type", replace
 
