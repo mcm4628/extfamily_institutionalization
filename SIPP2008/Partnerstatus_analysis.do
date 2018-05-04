@@ -5,7 +5,14 @@ use "$tempdir/partner_type", clear
 
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demoperson08.dta"
 
-tab year adj_age, row nofreq
+tab year adj_age
+
+tab partner_type adj_age
+
+tab partner_type adj_age [aweight=WPFINWGT]
+
+keep if year > 2008
+keep if year < 2013
 
 keep if partner_type==0 & !missing(partrans)
 * limit to those single at the start of period
@@ -14,7 +21,7 @@ keep if adj_age > 19 & adj_age < 25
 * focus on young adults
 
 global results "$projdir/Results and Papers\Union Formation Trends"
-putexcel set "$results/union.xlsx", sheet(unionRAW) replace
+putexcel set "$results/union.xlsx", sheet(unionRAW SIPP) modify
 
 tab year partrans [aweight=WPFINWGT], matcell(yeartrans)
 
