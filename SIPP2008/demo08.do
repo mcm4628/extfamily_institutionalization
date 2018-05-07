@@ -16,6 +16,9 @@ sort SSUID EPPPNUM SWAVE
 
 collapse (first) raceth ESEX, by (SSUID EPPPNUM)
 
+rename raceth first_raceth
+rename ESEX first_sex
+
 save "$tempdir/fixedracesex", $replace
 
 ****************************************************************************
@@ -119,12 +122,21 @@ save "$tempdir/mombywave.dta", $replace
 
 sort SSUID EPPPNUM SWAVE
 
-collapse (firstnm) momced momrace momms momage, by(SSUID EPPPNUM)
+collapse (firstnm) momced momrace momms momage ETYPMOM, by(SSUID EPPPNUM)
 
 rename momced momfirstced
 rename momrace momfirstrace
 rename momms momfirstms
 rename momage momfirstage
+rename ETYPMOM firstmomtyp
+
+label variable momfirstced "Mother's education at first observation of any mother in child's household"
+
+label variable momfirstrace "Mother's race at first observation of any mother in child's household"
+
+label variable momfirstms "Mother's marital status at first observation of any mother in child's housheold"
+
+label variable firstmomtyp "Mother's relationship to child at first observation of any mother in child's household"
 
 label values momfirstced ceduc
 
@@ -151,4 +163,6 @@ drop _merge
 merge m:1 SSUID EPPPNUM using "$tempdir/momfirst.dta"
 
 drop _merge
+
+save "$tempdir/demo08.dta", $replace
 
