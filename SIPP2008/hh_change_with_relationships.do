@@ -49,6 +49,30 @@ program define unify_relationship
     drop urel includesprimary allmaybeclass
 end
 
+
+capture program drop flag_relationship
+program define flag_relationship
+    * flagvar is the flag variable to create.
+    * rel_list is the list of relationships to be searched for.
+    * We set flagvar = 1 if we ever see any of the relationships in rel_list and to 0 otherwise.
+    args flagvar rel_list
+
+    if (wordcount("`rel_list'") == 0) {
+        display as error "flag_relationship:  argument rel_list must be non-blank"
+        error 111
+    }
+
+    local flag_rels `""`=word("`rel_list'", 1)'":relationship"'
+    forvalues i = 2/`=wordcount("`rel_list'")' {
+        local flag_rels `"`flag_rels', "`=word("`rel_list'", `i')'":relationship"'
+    }
+
+    gen `flagvar' = 0
+    foreach r of varlist relationship* {
+        replace `flagvar' = 1 if ((!missing(`r')) & inlist(`r', `flag_rels'))
+    }
+end
+
 keep SSUID EPPPNUM SHHADID* adj_age* arrivers* leavers* stayers* comp_change* comp_change_reason* my_race my_sex 
 
 
@@ -65,6 +89,7 @@ assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 assert (have_changers == 1) if (comp_change == 1)
 
+*** comp_change needs to be labeled, so does comp_change_reasons (S)
 drop if missing(comp_change)
 drop if (comp_change == 0)
 
@@ -152,8 +177,6 @@ tab rels, sort
 
 tab rels if (total_instances == rel_instances1), sort
 
-
-
 display "Possible relationships before handling children"
 egen group = group(relationship*), label missing
 tab group, m sort
@@ -178,13 +201,38 @@ unify_relationship "NOREL DONTKNOW"
 display "Possible relationships after unifying relationships"
 egen group = group(relationship*) if missing(unified_rel), label missing
 tab group, sort
-drop group
-
+*drop group /*group is not dropped, later use it to create flag*/
 
 replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
 
 
-*drop relationship* rel_instances* total_instances rels
+/**** Creating flags indicating child/sibling ****/ 
+gen childflag = 0
+gen sibflag = 0
+  foreach flag of varlist relationship* {
+        replace childflag = 1 if inlist(`flag', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship, ///
+		"CHILD_OR_NEPHEWNIECE":relationship) & (!missing(group))
+        replace sibflag = 1 if inlist(`flag', "SIBLING":relationship, "SIBLING_OR_COUSIN":relationship) & (!missing(group))
+    }
+
+
+gen rel_is_confused = (unified_rel == "CONFUSED":relationship)
+flag_relationship rel_is_ever_child "BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER CHILD CHILD_OR_NEPHEWNIECE"
+flag_relationship rel_is_ever_sibling "SIBLING SIBLING_OR_COUSIN"
+flag_relationship rel_is_ever_parent "BIOMOM STEPMOM ADOPTMOM BIODAD STEPDAD ADOPTDAD PARENT AUNTUNCLE_OR_PARENT"
+
+tab rel_is_ever_child childflag if (rel_is_confused)
+tab rel_is_ever_child childflag
+
+tab rel_is_ever_sibling sibflag if (rel_is_confused)
+tab rel_is_ever_sibling sibflag
+        
+/*childflag N=1,743; sibflag N=1,896 */
+ 
+drop group /*group can be dropped now */
+ 
+ 
+**drop relationship* rel_instances* total_instances rels
 save "$tempdir/unified_rel", $replace
 
 
