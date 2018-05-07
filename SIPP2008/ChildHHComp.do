@@ -10,17 +10,7 @@ rename relfrom EPPPNUM
 
 sort SSUID EPPPNUM SWAVE
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demoperson08.dta"
-
-tab TAGE _merge
-
-keep if _merge==3
-
-drop _merge
-
-sort SSUID SHHADID SWAVE
-
-merge m:1 SSUID SHHADID SWAVE using "$tempdir/demoHH08.dta"
+merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo08.dta"
 
 keep if _merge==3
 
@@ -42,7 +32,7 @@ tab simplified_rel [aweight=WPFINWGT], matcell(rels)
 local rellables "Grandparent Grandparent Grandchild Sibling Other_rel Other_rel_P Parent Non-Relative Child Confused DK"
 
 putexcel A1="Table 1. Relationships of Household members to Children"
-putexcel A2=("Relationship") B2=("Total") C2=("By Race-Ethnicity") H2=("By Householder Education")
+putexcel A2=("Relationship") B2=("Total") C2=("Race-Ethnicity") H2=("Mother's Education")
 putexcel B3="Percent"
 putexcel B4=matrix(100*rels/r(N))
 putexcel A16="Total"
@@ -57,7 +47,7 @@ forvalues r=1/11 {
 
 local racegroups "NHWhite Black NHAsian NHOther Hispanic"
 
-tab simplified_rel raceth [aweight=WPFINWGT], matcell(relrace)
+tab simplified_rel first_raceth [aweight=WPFINWGT], matcell(relrace)
 putexcel C3="`racegroups'"
 
 putexcel C4=matrix(relrace)
@@ -72,7 +62,7 @@ putexcel C16= formula(=SUM(C4:C15)) ///
 
 local ceduc "<HS HS SomeCollege College+"
 
-tab simplified_rel hheduc [aweight=WPFINWGT], matcell(releduc)
+tab simplified_rel momfirstced [aweight=WPFINWGT], matcell(releduc)
 putexcel H3="`ceduc'"
 
 putexcel H4=matrix(releduc)
@@ -89,26 +79,26 @@ replace anyother=0 if missing(anyother)
 
 preserve
 
-collapse (max) anyother (median) hheduc (median) raceth, by(SSUID EPPPNUM SWAVE)
+collapse (max) anyother (median) momfirstced (median) first_raceth, by(SSUID EPPPNUM SWAVE)
 
-tab anyother raceth, col
-tab anyother raceth, col
+tab anyother first_raceth, col
+tab anyother first_raceth, col
 
 duplicates drop SSUID EPPPNUM, force
 
-tab hheduc
-tab raceth
+tab momfirstced
+tab first_raceth
 
 restore
 
-collapse (count) hhmem=ultra_simple_rel (median) hheduc (median) raceth, by(SSUID EPPPNUM SWAVE)
+collapse (count) hhmem=ultra_simple_rel (median) momfirstced (median) first_raceth, by(SSUID EPPPNUM SWAVE)
 
-sort raceth
+sort first_raceth
 
-by raceth: sum hhmem
+by first_raceth: sum hhmem
 
-sort hheduc
-by hheduc: sum hhmem
+sort momfirstced
+by momfirstced: sum hhmem
 
 
 
