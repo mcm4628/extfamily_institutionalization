@@ -13,22 +13,8 @@ reshape long adj_age addr_change comp_change WPFINWGT adult_change child_change 
 
 sort SSUID EPPPNUM SWAVE
 
-merge m:1 SSUID EPPPNUM using "$tempdir/fixedracesex.dta"
+merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo08.dta"
 * allwaves will have race and sex
-
-tab adj_age _merge, m
-
-keep if _merge==3
-
-drop _merge
-
-sort SSUID SHHADID SWAVE
-
-merge m:1 SSUID SHHADID SWAVE using "$tempdir/demoHH08.dta"
-* note that waves without interviews are missing in demoHH08.
-* There are 5,328 cases where comp_change==1 or addr_change==1
-* because hey were not in the current wave, but they appear in an existing household in the next. 
-* For these cases demoHH08 is missing.
 
 keep if _merge==3 | comp_change==1 | addr_change==1
 
@@ -59,8 +45,8 @@ putexcel set "$results/HHChange.xlsx", sheet(childchangeRaw) modify
 
 tab adj_age childchange [aweight=WPFINWGT], matcell(agerels)
 
-putexcel A1="Table A4. Child/Parent Change by Race-Ethnicity and Householder Education"
-putexcel A2=("Age") B2=("Total") C2=("By Race-Ethnicity") H2=("By Householder Education")
+putexcel A1="Table A4. Child/Parent Change by Race-Ethnicity and Maternal Education"
+putexcel A2=("Age") B2=("Total") C2=("By Race-Ethnicity") H2=("By Maternal Education")
 putexcel B3=("No Change") C3=("Change") D3=("Annual Rate")
 putexcel B4=matrix(agerels)
 
@@ -75,11 +61,11 @@ putexcel E3=("No Change") F3=("Change") G3=("Annual Rate")
 
 forvalues r=1/5 {
   local rw=(`r'-1)*18+4
-  tab adj_age childchange [aweight=WPFINWGT] if raceth==`r', matcell(agerace`r')
+  tab adj_age childchange [aweight=WPFINWGT] if first_raceth==`r', matcell(agerace`r')
   putexcel E`rw'=matrix(agerace`r')
   forvalues a=1/17 {
 	local arw=`rw'+`a'-1
-	putexcel G`arw'=formula(+4*F`arw'/(E`arw'+F`arw'))
+	putexcel G`arw'=formula(+3*F`arw'/(E`arw'+F`arw'))
   }
  }
 
@@ -87,14 +73,20 @@ putexcel H3=("No Change") I3=("Change") J3=("Annual Rate")
 
 forvalues e=1/4 {
   local rw=(`e'-1)*18+4
-  tab adj_age childchange [aweight=WPFINWGT] if hheduc==`e', matcell(ageeduc`e')
+  tab adj_age childchange [aweight=WPFINWGT] if momfirstced==`e', matcell(ageeduc`e')
   putexcel H`rw'=matrix(ageeduc`e')
   forvalues a=1/17 {
 	local arw=`rw'+`a'-1
-	putexcel J`arw'=formula(+4*I`arw'/(H`arw'+I`arw'))
+	putexcel J`arw'=formula(+3*I`arw'/(H`arw'+I`arw'))
   }
 }
+
+tab first_raceth
+tab momfirstced
 
 sort SSUID EPPPNUM
 
 duplicates drop SSUID EPPPNUM, force
+
+tab first_raceth
+tab momfirstced
