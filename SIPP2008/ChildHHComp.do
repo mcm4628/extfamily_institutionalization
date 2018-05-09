@@ -82,7 +82,7 @@ preserve
 collapse (max) anyother (median) momfirstced (median) first_raceth, by(SSUID EPPPNUM SWAVE)
 
 tab anyother first_raceth, col
-tab anyother first_raceth, col
+tab anyother momfirstced, col
 
 duplicates drop SSUID EPPPNUM, force
 
