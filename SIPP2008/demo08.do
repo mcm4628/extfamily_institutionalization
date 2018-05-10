@@ -9,15 +9,25 @@ keep SSUID EPPPNUM SWAVE EORIGIN ERACE ESEX
 gen raceth=ERACE
 replace raceth=5 if inlist(ERACE,1,3,4) & EORIGIN==1
 
-label define racethnic 1 "NHWhite" 2 "Black" 3 "NHAsian" 4 "NHOther" 5 "Hispanic"
+label define racethnic 1 "NHWhite" 2 "Black" 3 "NHAsian" 4 "NHOther" 5 "Non-Black Hispanic"
 label values raceth racethnic
+
+gen raceth_d=raceth
+replace raceth_d=6 if ERACE==2 & EORIGIN==1
+
+label variable raceth_d "Race-ethnicity, detailed"
+label define racethnic_d 1 "NHWhite" 2 "NHBlack" 3 "NHAsian" 4 "NHOther" 5 "Non-Black Hispanic" 6 "Black Hispanic"
+label values raceth_d racethnic_d
 
 sort SSUID EPPPNUM SWAVE
 
-collapse (first) raceth ESEX, by (SSUID EPPPNUM)
+collapse (first) raceth raceth_d ESEX, by (SSUID EPPPNUM)
 
 rename raceth first_raceth
 rename ESEX first_sex
+rename raceth_d first_raceth_d
+
+label variable first_raceth "Race-Ethnicity, fixed"
 
 save "$tempdir/fixedracesex", $replace
 
@@ -32,7 +42,7 @@ keep SSUID EPPPNUM SHHADID SWAVE ERRP EORIGIN ERACE ESEX EEDUCATE TAGE EMS WPFIN
 gen raceth=ERACE
 replace raceth=5 if inlist(ERACE,1,3,4) & EORIGIN==1
 
-label define racethnic 1 "NHWhite" 2 "Black" 3 "NHAsian" 4 "NHOther" 5 "Hispanic"
+label variable raceth "Race-ethnicity, Time-varying"
 label values raceth racethnic
 
 save "$tempdir/demoperson08.dta", replace
