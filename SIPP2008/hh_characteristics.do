@@ -1,7 +1,7 @@
 //==========================================================================================//
 //=========== Children's Household Instability Project               =======================//
 //=========== Dataset: SIPP2008                                      =======================//
-//=========== Purpose: This file tabulates household characteristics ======================//
+//=========== Purpose: This file tabulates household characteristics =======================//
 //=========================================================================================//
 
 use "$tempdir/person_wide_adjusted_ages"
