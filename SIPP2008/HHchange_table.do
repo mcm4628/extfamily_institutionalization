@@ -12,7 +12,7 @@ putexcel B4=matrix(agerels)
 
 forvalues a=1/16 {
    local rw=`a'+3
-   putexcel D`rw'=formula(+4*C`rw'/(B`rw'+C`rw'))
+   putexcel D`rw'=formula(+3*C`rw'/(B`rw'+C`rw'))
  }
  
 local racegroups "NHWhite Black NHAsian NHOther Hispanic"
@@ -25,7 +25,7 @@ forvalues r=1/5 {
   putexcel E`rw'=matrix(agerace`r')
   forvalues a=1/16 {
 	local arw=`rw'+`a'-1
-	putexcel G`arw'=formula(+4*F`arw'/(E`arw'+F`arw'))
+	putexcel G`arw'=formula(+3*F`arw'/(E`arw'+F`arw'))
   }
  }
 
@@ -37,6 +37,6 @@ forvalues e=1/4 {
   putexcel H`rw'=matrix(ageeduc`e')
   forvalues a=1/16 {
 	local arw=`rw'+`a'-1
-	putexcel J`arw'=formula(+4*I`arw'/(H`arw'+I`arw'))
+	putexcel J`arw'=formula(+3*I`arw'/(H`arw'+I`arw'))
   }
 }
