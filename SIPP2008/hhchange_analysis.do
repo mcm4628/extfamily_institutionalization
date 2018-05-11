@@ -9,21 +9,9 @@ reshape long adj_age addr_change comp_change WPFINWGT adult_change child_change 
 sort SSUID EPPPNUM SWAVE
 
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo08.dta"
-* allwaves will have race and sex
+* allwaves will have race and sex but not maternal education
 
 tab adj_age _merge, m
-
-keep if _merge==3
-
-drop _merge
-
-sort SSUID SHHADID SWAVE
-
-merge m:1 SSUID SHHADID SWAVE using "$tempdir/demoHH08.dta"
-* note that waves without interviews are missing in demoHH08.
-* There are 5,328 cases where comp_change==1 or addr_change==1
-* because hey were not in the current wave, but they appear in an existing household in the next. 
-* For these cases demoHH08 is missing.
 
 keep if _merge==3 | comp_change==1 | addr_change==1
 
@@ -36,43 +24,12 @@ keep if adj_age < 17
 
 save "$tempdir/hhchange_analysis", replace
 
-global results "$projdir/Results and Papers/Household Instability (PAA17)"
-putexcel set "$results/HHChange.xlsx", sheet(HHchangeRaw) modify
+tab first_raceth
+tab momfirstced
 
-tab adj_age anychange [aweight=WPFINWGT], matcell(agerels)
+duplicates drop SSUID EPPPNUM, force
 
-putexcel A1="Table A1. Household Change by Race-Ethnicity and Mother's Education"
-putexcel A2=("Age") B2=("Total") C2=("Race-Ethnicity") H2=("Mother's Education")
-putexcel B3=("No Change") C3=("Change") D3=("Annual Rate")
-putexcel B4=matrix(agerels)
+tab first_raceth
+tab momfirstced
 
-forvalues a=1/16 {
-   local rw=`a'+3
-   putexcel D`rw'=formula(+3*C`rw'/(B`rw'+C`rw'))
- }
- 
-local racegroups "NHWhite Black NHAsian NHOther Hispanic"
-
-putexcel E3=("No Change") F3=("Change") G3=("Annual Rate")
-
-forvalues r=1/5 {
-  local rw=(`r'-1)*17+4
-  tab adj_age anychange [aweight=WPFINWGT] if first_raceth==`r', matcell(agerace`r')
-  putexcel E`rw'=matrix(agerace`r')
-  forvalues a=1/16 {
-	local arw=`rw'+`a'-1
-	putexcel G`arw'=formula(+3*F`arw'/(E`arw'+F`arw'))
-  }
- }
-
-putexcel H3=("No Change") I3=("Change") J3=("Annual Rate")
-
-forvalues e=1/4 {
-  local rw=(`e'-1)*17+4
-  tab adj_age anychange [aweight=WPFINWGT] if momfirstced==`e', matcell(ageeduc`e')
-  putexcel H`rw'=matrix(ageeduc`e')
-  forvalues a=1/16 {
-	local arw=`rw'+`a'-1
-	putexcel J`arw'=formula(+3*I`arw'/(H`arw'+I`arw'))
-  }
-}
+* Why is this sample smaller than for Table 1? Is it because one needs to be observed in two waves? 
