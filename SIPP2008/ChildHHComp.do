@@ -58,7 +58,7 @@ putexcel C16= formula(=SUM(C4:C15)) ///
 		 F16= formula(=SUM(F4:F15)) ///
 		 G16= formula(=SUM(G4:G15))  
 
-* By Householder Education
+* By Maternal Education
 
 local ceduc "<HS HS SomeCollege College+"
 
