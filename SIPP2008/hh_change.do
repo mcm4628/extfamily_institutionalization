@@ -127,12 +127,18 @@
 * Transition from missing to missing.  We know nothing of substance about ego.  We mark
 * addr_change as missing so that it does not enter the denominator of our calculations.
 
+//========================================================================================//
+//===========Children's Household Instability Project                =====================//
+//===========Dataset: SIPP2008                                       =====================//
+//===========Purpose: This file computes changes in the household    =====================//
+//=======================================================================================//
 
+*  Note: In order to run the following programs successfully, please 'do "$childhh_base_code/SIPP2008/project_macros"' first. 
+
+** Function: Import dataset 
 use "$tempdir/person_wide_adjusted_ages"
 
-
-* In the interest of expediency, try to speed things up by keeping only people who are
-* children at some point in their SIPP existence.
+** Function: This program keeps only people who identified as children at some point in their SIPP existence.
 gen is_ever_child = 0
 forvalues wave = $first_wave/$final_wave {
     replace is_ever_child = 1 if (adj_age`wave' < $adult_age)
@@ -141,7 +147,7 @@ keep if is_ever_child
 drop is_ever_child
 
 
-
+** Function: Label comp_change_reason
 #delimit ;
 label define comp_change_reason   1 "data both waves"
                                   2 "initial non-birth"
@@ -150,7 +156,9 @@ label define comp_change_reason   1 "data both waves"
                                   16 "gap empty A ne D";
 #delimit cr
 
-* Propagate shhadid_members forward into prev_hh_members for missing waves.  Similar for SHHADID.
+** Function: Propagate shhadid_members forward into prev_hh_members for missing waves.  
+*            Similar for SHHADID.
+
 gen prev_hh_members$first_wave = ""
 gen prev_hh_children$first_wave = ""
 gen prev_hh_adults$first_wave = ""
@@ -167,7 +175,7 @@ forvalues wave = $second_wave/$final_wave {
     replace prev_SHHADID`wave' = prev_SHHADID`prev_wave' if (missing(SHHADID`wave') & (!missing(prev_SHHADID`prev_wave')))
 }
 
-* Propagate shhadid_members backward into future_hh_members for missing waves.  Similar for SHHADID.
+** Function: Propagate shhadid_members backward into future_hh_members for missing waves.  Similar for SHHADID.
 gen future_hh_members$final_wave = ""
 gen future_hh_children$final_wave = ""
 gen future_hh_adults$final_wave = ""
@@ -185,14 +193,12 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 }
 
 
-* Walk backward through the waves and for each wave in which ego is missing
-* compare prev_hh_members to ssuid_members to see if we find anyone.
-* Also, once a member is found propagate this fact down to the first missing wave in the gap.
-* This is found_prev_hh_member_in_gap, which is set to 1 if a member is found in the current wave
-* or if a member had already been found by the previous wave.  found_prev_hh_member_in_gap gets
-* set to missing for a wave in which ego has data, so the propagation stops at the beginning of a gap.
+** Function: Walk backward through the waves and for each wave in which ego is missing compare prev_hh_members to ssuid_members to see if we find anyone.
+*  Note: Also, once a member is found propagate this fact down to the first missing wave in the gap.
+*        This is found_prev_hh_member_in_gap, which is set to 1 if a member is found in the current wave or if a member had already been found by the previous wave.  found_prev_hh_member_in_gap gets
+*        set to missing for a wave in which ego has data, so the propagation stops at the beginning of a gap.
 *
-* And do the same for previous SHHADID.
+*        Do the same for previous SHHADID.
 gen found_prev_hh_member$first_wave = 0
 gen found_prev_hh_member_in_gap$first_wave = 0
 gen found_prev_hh_child$first_wave = 0
@@ -251,8 +257,7 @@ forvalues wave = $final_wave (-1) $second_wave {
 }
 
 
-* Similarly, walk forward through the waves doing the same sort of computation for future
-* HH members and SHHADID.
+** Function: Walk forward through the waves doing the same sort of computation for future HH members and SHHADID.
 gen found_future_hh_member$final_wave = 0
 gen found_future_hh_member_in_gap$final_wave = 0
 gen found_future_hh_child$final_wave = 0
@@ -308,11 +313,11 @@ forvalues wave = $first_wave/$penultimate_wave {
 }
 
 
-* Compute composition change.
+* Function: Compute composition change.
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1
 
-    *** Start by assuming this wave is not interesting.
+    * Start by assuming this wave is not interesting.
     gen comp_change`wave' = .
     gen comp_change_reason`wave' = 0
 
@@ -330,7 +335,7 @@ forvalues wave = $first_wave/$penultimate_wave {
     gen num_adult_exit`wave' = 0
 
 
-    *** If we have data in both waves, just compare HH members.
+    * If we have data in both waves, just compare HH members.
     replace comp_change`wave' = (shhadid_members`wave' != shhadid_members`next_wave') if ((!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 1 if ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
     gen comp_change_case = ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
@@ -374,7 +379,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
 
-    *** If next wave is ego's first and it's not a birth (age > 0), it's a change.
+    * If next wave is ego's first and it's not a birth (age > 0), it's a change.
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
     replace comp_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
     replace comp_change_reason`wave' = comp_change_reason`wave' + 2 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
@@ -508,7 +513,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
 
-* Compute address change.
+** Function: Compute address change.
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1
 
@@ -555,12 +560,11 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
 
-* In the old Robert/PAA/hh_analysis.do we have code to compute some
-* normalized education variables.  May want to resurrect that but as
-* far as I know we don't care right now and certainly don't know if
-* what we did then is what we want now.  Deleting it from this version.
+* In the old Robert/PAA/hh_analysis.do we have code to compute some normalized education variables.  May want to resurrect that but as
+* far as I know we don't care right now and certainly don't know if what we did then is what we want now.  Deleting it from this version.
 
 * Similarly we had some code to normalize mom's immigrant status
 * by taking the first reported status (I think).  Deleting that, too.
 
+* Output: hh_change
 save "$tempdir/hh_change", $replace
