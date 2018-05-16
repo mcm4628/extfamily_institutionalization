@@ -12,7 +12,7 @@ putexcel B4=matrix(agerels)
 
 forvalues a=1/17 {
    local rw=`a'+3
-   putexcel D`rw'=formula(+4*C`rw'/(B`rw'+C`rw'))
+   putexcel D`rw'=formula(+3*C`rw'/(B`rw'+C`rw'))
  }
  
 local racegroups "NHWhite Black NHAsian NHOther Hispanic"

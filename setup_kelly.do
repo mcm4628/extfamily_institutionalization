@@ -24,5 +24,3 @@ global refmon 4
 *overall "named" log
 
 
-cd "$boxdir"
-

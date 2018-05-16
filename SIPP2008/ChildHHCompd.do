@@ -25,7 +25,7 @@ replace simplified_rel=23 if rel_is_confused==1 & rel_is_ever_parent==1 & diff_a
 
 global results "$projdir/Results and Papers/Household Instability (PAA17)"
 
-putexcel set "$results/ChildHHComp.xlsx", sheet(2008) modify
+putexcel set "$results/ChildHHCompd.xlsx", sheet(2008) modify
 
 tab simplified_rel [aweight=WPFINWGT], matcell(rels)
 
@@ -45,9 +45,9 @@ forvalues r=1/11 {
 
 * By Race-ethnicity
 
-local racegroups "NHWhite Black NHAsian NHOther Hispanic"
+local racegroups "NHWhite Black NHAsian NHOther NBHispanic BlackHispanic"
 
-tab simplified_rel first_raceth [aweight=WPFINWGT], matcell(relrace)
+tab simplified_rel first_raceth_d [aweight=WPFINWGT], matcell(relrace)
 putexcel C3="`racegroups'"
 
 putexcel C4=matrix(relrace)
@@ -56,21 +56,22 @@ putexcel C16= formula(=SUM(C4:C15)) ///
 		 D16= formula(=SUM(D4:D15)) ///
 		 E16= formula(=SUM(E4:E15)) ///
 		 F16= formula(=SUM(F4:F15)) ///
-		 G16= formula(=SUM(G4:G15))  
+		 G16= formula(=SUM(G4:G15)) ///  
+ 		 H16= formula(=SUM(H4:H15))  
 
-* By Maternal Education
+* By Householder Education
 
 local ceduc "<HS HS SomeCollege College+"
 
 tab simplified_rel momfirstced [aweight=WPFINWGT], matcell(releduc)
-putexcel H3="`ceduc'"
+putexcel I3="`ceduc'"
 
-putexcel H4=matrix(releduc)
+putexcel I4=matrix(releduc)
 
-putexcel H16= formula(=SUM(H4:H15)) ///
-		 I16= formula(=SUM(I4:I15)) ///
-		 J16= formula(=SUM(J4:J15)) ///
-		 K16= formula(=SUM(K4:K15))  
+putexcel I16= formula(=SUM(H4:H15)) ///
+		 J16= formula(=SUM(I4:I15)) ///
+		 K16= formula(=SUM(J4:J15)) ///
+		 L16= formula(=SUM(K4:K15))  
 		 
 sort SSUID EPPPNUM SWAVE
 
@@ -79,23 +80,23 @@ replace anyother=0 if missing(anyother)
 
 preserve
 
-collapse (max) anyother (median) momfirstced (median) first_raceth, by(SSUID EPPPNUM SWAVE)
+collapse (max) anyother (median) momfirstced (median) first_raceth_d, by(SSUID EPPPNUM SWAVE)
 
-tab anyother first_raceth, col
+tab anyother first_raceth_d, col
 tab anyother momfirstced, col
 
 duplicates drop SSUID EPPPNUM, force
 
 tab momfirstced
-tab first_raceth
+tab first_raceth_d
 
 restore
 
-collapse (count) hhmem=ultra_simple_rel (median) momfirstced (median) first_raceth, by(SSUID EPPPNUM SWAVE)
+collapse (count) hhmem=ultra_simple_rel (median) momfirstced (median) first_raceth_d, by(SSUID EPPPNUM SWAVE)
 
-sort first_raceth
+sort first_raceth_d
 
-by first_raceth: sum hhmem
+by first_raceth_d: sum hhmem
 
 sort momfirstced
 by momfirstced: sum hhmem
