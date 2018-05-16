@@ -2,29 +2,39 @@
 
 *** TODO:  Document our decisions.
 
+//========================================================================================================================//
+//=================== Children's Household Instability Project                    ========================================//
+//=================== Dataset: SIPP2008                                           ========================================//
+//=================== Purpose: This file fixes up age so the waves are consistent ========================================//
+//========================================================================================================================//
 use "$tempdir/person_wide"
 
+** Function: Generate variables indicating numbers of ages for each adult and child throughout all waves.
 gen num_child_ages = 0
 gen num_adult_ages = 0
 forvalues wave = $first_wave/$final_wave {
     replace num_child_ages = num_child_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' < $adult_age))
     replace num_adult_ages = num_adult_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' >= $adult_age))
-}
+}   /*!!!! did not work */
 
+** Function: count observayions with 0 
 count if (num_adult_ages == 0)
 count if (num_child_ages == 0)
 
-
+** Function: generate variables indicating whether respondents have 0 or 1 age throughout waves.  
 gen num_zero_ages = 0
 gen num_one_ages = 0
 forvalues wave = $first_wave/$final_wave {
     replace num_zero_ages = num_zero_ages + 1 if (TAGE`wave' == 0)
     replace num_one_ages = num_one_ages + 1 if (TAGE`wave' == 1)
-}
+} /* !!! why didn't work again. My suspection is the dataset is a wide form. it might cause problems*/
+
+* Tabulations
 tab num_zero_ages
 tab num_one_ages
 tab num_zero_ages num_one_ages
 
+** Function: Generate new variables 
 gen max_age = TAGE$first_wave
 gen min_age = TAGE$first_wave
 gen regressing_zero_ages = 0
@@ -32,6 +42,7 @@ gen regressing_one_ages = 0
 gen regressing_17_ages = 0
 gen regressing_age = 0
 gen regressing_adult_to_child = 0
+
 forvalues wave = $second_wave/$final_wave {
     replace max_age = TAGE`wave' if (missing(max_age) | (!missing(TAGE`wave') & (TAGE`wave' > max_age)))
     replace regressing_age = 1 if ((!missing(TAGE`wave') & (TAGE`wave' < min_age)))
@@ -54,6 +65,7 @@ gen regressing_one_ages_v2 = 0
 gen regressing_17_ages_v2 = 0
 gen regressing_one_to_zero = 0
 gen regressing_to_zero = 0
+
 forvalues wave = $second_wave/$final_wave {
     replace regressing_zero_ages_v2 = regressing_zero_ages_v2 + 1 if ((TAGE`wave' == 0) & (!missing(curr_age)) & (curr_age > 0))
     replace regressing_one_ages_v2 = regressing_one_ages_v2 + 1 if ((TAGE`wave' == 1) & (!missing(curr_age)) & (curr_age > 1))

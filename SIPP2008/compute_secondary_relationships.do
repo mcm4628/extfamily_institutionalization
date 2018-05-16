@@ -1,8 +1,17 @@
+//=============================================================================================================//
+//=========== Children's Household Instability Project                                    =====================//
+//=========== Dataset: SIPP2008                                                           =====================//
+//=========== Purpose: This file contains programs to compute secondary relationships     =====================//
+//=============================================================================================================//
+
+** Program I: generate_relationship
+*  Purpose:  This program generates relationship from relationship1 and relatiosnhip2 
 capture program drop generate_relationship
 program define generate_relationship
-    args result_rel rel1 rel2
+    args result_rel rel1 rel2 /* local macros: result_rel rel1 rels */
     display "Generating `result_rel' from `rel1' `rel2'"
     replace relationship = "`result_rel'":relationship if ((relationship1 == "`rel1'":relationship) & (relationship2 == "`rel2'":relationship))
+	*if any relationship is missing:
     if (("`result_rel'":relationship == .) | ("`rel1'":relationship == .) | ("`rel2'":relationship == .)) {
         display as error "relationship not found in one of:  `result_rel' `rel1' `rel2'"
         exit 111
@@ -10,9 +19,10 @@ program define generate_relationship
 end
 
 
-
+** Program II: make_relationship_list
+*  Purpose: Make a relationship list 
 capture program drop make_relationship_list
-program define make_relationship_list, rclass
+program define make_relationship_list, rclass /* results are in r() vector */
     * display `"make_relationship_list args:  `0'"'
     local max_rel = "`1'":relationship
     local my_rel_list "`max_rel'"
@@ -80,6 +90,8 @@ end
 */
 
 
+** Program III: compute_transitive_relationships
+*  Purpose: Creating a data set with all the transitive relationships
 capture program drop compute_transitive_relationships
 program define compute_transitive_relationships
 
@@ -89,10 +101,8 @@ program define compute_transitive_relationships
 
     use "$tempdir/relationships_tc`prev_iter'_resolved"
 
-    * We're going to create a dataset that has all the transitive
-    * relationships we can find.  So, if we have A --> B and B --> C
-    * we generate a dataset that tells us A --> B --> C by merging
-    * (actually joining) on B.
+    * We're going to create a dataset that has all the transitive relationships we can find.  So, if we have A --> B and B --> C
+    * we generate a dataset that tells us A --> B --> C by merging (actually joining) on B.
     rename relfrom intermediate_person
     rename relationship relationship2
     rename reason reason2
@@ -109,8 +119,7 @@ program define compute_transitive_relationships
     label variable relationship1 "rel1"
     label variable reason1 "reason1"
 
-    * Note the use of joinby rather than m:m merge.
-    * Because joinby does what you think m:m merge ought to do.
+    * Note the use of joinby rather than m:m merge. Because joinby does what you think m:m merge ought to do.
     joinby SSUID SHHADID SWAVE intermediate_person using `relmerge'
 
     * We don't care to keep (or validate correctness of) relationship of self to self.
@@ -125,8 +134,7 @@ program define compute_transitive_relationships
     save "$tempdir/relationship_pairs_tc`iteration'_all", $replace
 
 
-    * Now given the A --> B --> C relationships, what can we figure
-    * out for A --> C?
+    * Now given the A --> B --> C relationships, what can we figure out for A --> C?
     gen relationship = .
     label values relationship relationship
 
