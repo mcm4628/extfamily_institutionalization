@@ -4,19 +4,19 @@
 //===== Purpose: Compute base relationships from EPNMOM, EPNDAD, and ERRP 
 //========================================================================================================//
 
-//====================================================================================================================================================//
+//========================================================================================================================================//
 //== Purpose: Programs of bidirectional relationships. 
 //== 
 //== Logic: If A is related to B, we will end up with two records, one A --> B and the other B --> A.
 //==        To avoid problems with observations that can generate more than one relationship (e.g., the reference person is likely to be
 //==        related to multiple people) we compute each relationship into its own temporary dataset and append them all together.
-//=====================================================================================================================================================//  
+//========================================================================================================================================//  
  
- 
-***********************************************************************************************************************************
+
+************************************************************************************************************************************
 ** Program: Compute_relationships 
 **          
-** Function: This program is an attempt to encapsulate computation of relationships because too much code was being repeated.
+** Purpose: This program is an attempt to encapsulate computation of relationships because too much code was being repeated.
 **
 ** Logic: It assumes that there is a single condition defining the relationship, and that the relationship is bidirectional. 
 **       (e.g., if A-->B is MOM then B-->A is always CHILD.)
@@ -56,7 +56,7 @@ end
 ****************************************************************************************************************************
 ** Program: fixup_rel_pair
 **
-** Function: This program fixes up conflicting relationship pairs, taking the first as preferable to the second.
+** Purpose: This program fixes up conflicting relationship pairs, taking the first as preferable to the second.
 ****************************************************************************************************************************
 capture program drop fixup_rel_pair
 program define fixup_rel_pair
@@ -77,12 +77,15 @@ program define fixup_rel_pair
 end
 
 
-//====================================================================================================================================================//
+//=========================================================================================================================//
 //== Purpose: Compute Relationships 
-//=====================================================================================================================================================//  
+//=========================================================================================================================//  
 use "$tempdir/allwaves"
 
 do "$sipp2008_code/relationship_label"
+
+
+
 
 ***********************************************************************************************************************
 ** Function: Compute parent/child relationships from EPNMOM and EPNDAD.
@@ -97,6 +100,8 @@ compute_relationships EPPPNUM EPNDAD STEPCHILD STEPDAD EPNDAD "((!missing(EPNDAD
 compute_relationships EPPPNUM EPNMOM ADOPTCHILD ADOPTMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 3))" adoptchild_of_mom adoptmom
 compute_relationships EPPPNUM EPNDAD ADOPTCHILD ADOPTDAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 3))" adoptchild_of_dad adoptdad
 
+
+
 **********************************************************************************************************************
 ** Function: Merge in a variable indicating the reference person for the household.
 **********************************************************************************************************************
@@ -105,6 +110,8 @@ assert missing(ref_person) if (_merge == 2)
 drop if (_merge == 2)
 assert (_merge == 3)
 drop _merge
+
+
 
 **********************************************************************************************************************
 ** Function: Generate files of spouse, child, grandchild, parent, sibling, others, foster child, partener, no relation based on the compute_relationship program. 
@@ -145,27 +152,33 @@ compute_relationships EPPPNUM ref_person PARTNER PARTNER ERRP_10 "(ERRP == 10)" 
 * No relation.
 compute_relationships EPPPNUM ref_person NOREL NOREL ERRP_GE_11 "((ERRP == 11) | (ERRP == 12) | (ERRP == 13))" errp_norelation1 errp_norelation2
 
-
 * Spouse from EPNSPOUS
 compute_relationships EPPPNUM EPNSPOUS SPOUSE SPOUSE EPNSPOUS "(EPNSPOUS != 9999)" epnspous1 epnspous2
 
+
+
+
+
+//======================================== Attention ==========================================================================================================
 * TODO -- Report on anomalies that cause trouble (now or later?) -- Compute parent/child relationships from EPNMOM and EPNDAD but ignore people who claim they are their own children.
 *  compute_relationships EPPPNUM EPNMOM CHILD MOM "((!missing(EPNMOM)) & (EPNMOM != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_mom mom
 * compute_relationships EPPPNUM EPNDAD CHILD PARENT "((!missing(EPNDAD)) & (EPNDAD != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_dad dad
 * TODO -- Report on problem people -- Spouse of reference person.  Ignore people who also claim to be a child of the reference person.
 * compute_relationships EPPPNUM ref_person SPOUSE SPOUSE "(ERRP == 3)" "((EPNMOM == ref_person) | (EPNDAD == ref_person))" errp_spouse1 errp_spouse2
 * TODO - Check for conflict of parent type with ERRP_4.
+//=======================================================================================================================================================================
+
 
 clear
 
 
 
 //====================================================================================================================================================//
-//== Purpose: Create a dataset with all relationships 
+//== Purpose: Create a dataset with all relationships. 
 //=====================================================================================================================================================//  
 
 *******************************************************************************
-** Function: Append all realtionship data sets together.
+** Function: Append all relationship data sets together.
 *******************************************************************************
 use "$tempdir/biochild_of_mom"
 append using "$tempdir/biomom"
@@ -204,12 +217,18 @@ append using "$tempdir/errp_norelation2"
 append using "$tempdir/epnspous1"
 append using "$tempdir/epnspous2"
 
+
+
+
 *************************************************************************************************************************
 ** Function: Force drop when we have more than one reason for the same relationship. 
 *************************************************************************************************************************
 duplicates drop SSUID SHHADID SWAVE relfrom relto relationship_tc0, force
 
 save "$tempdir/relationships_tc0_all", $replace
+
+
+
 
 *************************************************************************************************************************
 ** Function: Grab cases in which we derive more than one relationship between the same pair of people.
@@ -220,6 +239,9 @@ by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc0 = _n
 
 assert (numrels_tc0 <= 2)
 
+
+
+
 *************************************************************************************************************************
 ** Function: reshape data set from long to wide. 
 *************************************************************************************************************************
@@ -227,6 +249,9 @@ reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j
 
 display "Number of relationships before any fix-ups"
 tab numrels_tc0
+
+
+
 
 *************************************************************************************************************************
 ** Function: use the previous fixup_rel_pair program. 
@@ -258,11 +283,17 @@ tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
 
 save "$tempdir/relationships_tc0_wide", $replace
 
+
+
+
 ****************************************************************************************************************************
 ** Function: We also build a version with conflicts resolved. Since there are so few conflicts, for now we just drop them.  
 ****************************************************************************************************************************  
 preserve
 keep if (numrels_tc0 > 1)
+
+
+
 
 ****************************************************************************************************************************
 ** Function: To know what we have thrown away that we might care about, we keep a list of what we lost.
@@ -273,10 +304,16 @@ restore
 drop if (numrels_tc0 > 1)
 drop numrels_tc0
 
+
+
+
 ****************************************************************************************************************************
 ** Function: Drop the empty second relationship and reason.
 ****************************************************************************************************************************
 drop relationship_tc02 reason_tc02
+
+
+
 
 ****************************************************************************************************************************
 ** Function: Rename the first to have no suffix.
@@ -288,7 +325,8 @@ save "$tempdir/relationships_tc0_resolved", $replace
 
 
 
-//* !!! do we keep the following commands? **/
+
+//=========================== Attention ======================================================
 
 *** TODO:  We ideally want a single relationship.
 * For starters, compute some stats on conflicts.
@@ -406,4 +444,4 @@ summ numrels, detail
 assert (`r(max)' == 1)
 drop numrels
 */
-
+//===========================================================================================
