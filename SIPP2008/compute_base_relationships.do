@@ -1,19 +1,27 @@
-//=======================================================================================================================//
-//=========== Children's Household Instability Project                                     ==============================//
-//=========== Dataset: SIPP2008                                                            ===============================//
-//=========== Purpose: This file computes base relationships from EPNMOM, EPNDAD, and ERRP ==============================//
-//========================================================================================================================//
+//========================================================================================================//
+//===== Children's Household Instability Project                                     
+//===== Dataset: SIPP2008                                                            
+//===== Purpose: Compute base relationships from EPNMOM, EPNDAD, and ERRP 
+//========================================================================================================//
 
-/******************************** Programs of bidirectional relationships ************************************/  
-* Note: If A is related to B, we will end up with two records, one A --> B and the other B --> A.
-*        To avoid problems with observations that can generate more than one relationship (e.g., the reference person is likely to be
-*        related to multiple people) we compute each relationship into its own temporary dataset and append them all together.
-
+//====================================================================================================================================================//
+//== Purpose: Programs of bidirectional relationships. 
+//== 
+//== Logic: If A is related to B, we will end up with two records, one A --> B and the other B --> A.
+//==        To avoid problems with observations that can generate more than one relationship (e.g., the reference person is likely to be
+//==        related to multiple people) we compute each relationship into its own temporary dataset and append them all together.
+//=====================================================================================================================================================//  
+ 
+ 
+***********************************************************************************************************************************
+** Program: Compute_relationships 
+**          
 ** Function: This program is an attempt to encapsulate computation of relationships because too much code was being repeated.
-*  Note: It assumes that there is a single condition defining the relationship, and that the relationship is bidirectional (e.g., if A-->B is MOM then B-->A is always CHILD.
-*        It refuses to compute self-relationships.
-
-*  Program: Compute_relationships /*create relationship datasets */
+**
+** Logic: It assumes that there is a single condition defining the relationship, and that the relationship is bidirectional. 
+**       (e.g., if A-->B is MOM then B-->A is always CHILD.)
+**        It refuses to compute self-relationships.
+************************************************************************************************************************************
 capture program drop compute_relationships
 program define compute_relationships
     args person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1 /* local macro */
@@ -45,11 +53,11 @@ program define compute_relationships
     restore
 end
 
-
-
+****************************************************************************************************************************
+** Program: fixup_rel_pair
+**
 ** Function: This program fixes up conflicting relationship pairs, taking the first as preferable to the second.
-
-*  Program: fixup_rel_pair
+****************************************************************************************************************************
 capture program drop fixup_rel_pair
 program define fixup_rel_pair
     args preferred_rel second_rel /*local macro, the first relationship is preferred */
@@ -69,14 +77,19 @@ program define fixup_rel_pair
 end
 
 
-/*************************************** Compute Relationships **********************************************/
-
+//====================================================================================================================================================//
+//== Purpose: Compute Relationships 
+//=====================================================================================================================================================//  
 use "$tempdir/allwaves"
 
 do "$sipp2008_code/relationship_label"
 
+***********************************************************************************************************************
 ** Function: Compute parent/child relationships from EPNMOM and EPNDAD.
-*  Note: args person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
+**
+** Use Program: compute_relationships
+**        args: person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
+***********************************************************************************************************************
 compute_relationships EPPPNUM EPNMOM BIOCHILD BIOMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 1))" biochild_of_mom biomom
 compute_relationships EPPPNUM EPNDAD BIOCHILD BIODAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 1))" biochild_of_dad biodad
 compute_relationships EPPPNUM EPNMOM STEPCHILD STEPMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 2))" stepchild_of_mom stepmom
@@ -84,17 +97,24 @@ compute_relationships EPPPNUM EPNDAD STEPCHILD STEPDAD EPNDAD "((!missing(EPNDAD
 compute_relationships EPPPNUM EPNMOM ADOPTCHILD ADOPTMOM EPNMOM "((!missing(EPNMOM)) & (EPNMOM != 9999) & (ETYPMOM == 3))" adoptchild_of_mom adoptmom
 compute_relationships EPPPNUM EPNDAD ADOPTCHILD ADOPTDAD EPNDAD "((!missing(EPNDAD)) & (EPNDAD != 9999) & (ETYPDAD == 3))" adoptchild_of_dad adoptdad
 
+**********************************************************************************************************************
 ** Function: Merge in a variable indicating the reference person for the household.
+**********************************************************************************************************************
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
 assert missing(ref_person) if (_merge == 2)
 drop if (_merge == 2)
 assert (_merge == 3)
 drop _merge
 
+**********************************************************************************************************************
 ** Function: Generate files of spouse, child, grandchild, parent, sibling, others, foster child, partener, no relation based on the compute_relationship program. 
-*  Note: The 1 and 2 suffixes below are convenient but not very descriptive.
-*        1 means the relationship as stated; 2 means the reverse.  E.g., errp_child_of_mom2 are moms of children identified by ERRP == 4.
-*        Sequence: args person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
+
+** Logic: The 1 and 2 suffixes below are convenient but not very descriptive.
+**        1 means the relationship as stated; 2 means the reverse.  E.g., errp_child_of_mom2 are moms of children identified by ERRP == 4.
+**
+** Use Program: compute_relationships
+**        args: person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
+***********************************************************************************************************************
 
 * Spouse of reference person.
 compute_relationships EPPPNUM ref_person SPOUSE SPOUSE ERRP_3 "(ERRP == 3)" errp_spouse1 errp_spouse2
@@ -139,8 +159,14 @@ compute_relationships EPPPNUM EPNSPOUS SPOUSE SPOUSE EPNSPOUS "(EPNSPOUS != 9999
 clear
 
 
-/*********************************** Create a dataset with all the relationships ****************************/
-** Function: Append all realtionship data sets together
+
+//====================================================================================================================================================//
+//== Purpose: Create a dataset with all relationships 
+//=====================================================================================================================================================//  
+
+*******************************************************************************
+** Function: Append all realtionship data sets together.
+*******************************************************************************
 use "$tempdir/biochild_of_mom"
 append using "$tempdir/biomom"
 append using "$tempdir/biochild_of_dad"
@@ -178,28 +204,36 @@ append using "$tempdir/errp_norelation2"
 append using "$tempdir/epnspous1"
 append using "$tempdir/epnspous2"
 
+*************************************************************************************************************************
 ** Function: Force drop when we have more than one reason for the same relationship. 
+*************************************************************************************************************************
 duplicates drop SSUID SHHADID SWAVE relfrom relto relationship_tc0, force
 
-** Output: relationships_tc0_all
 save "$tempdir/relationships_tc0_all", $replace
 
-
+*************************************************************************************************************************
 ** Function: Grab cases in which we derive more than one relationship between the same pair of people.
+*************************************************************************************************************************
 sort SSUID SHHADID SWAVE relfrom relto
 by SSUID SHHADID SWAVE relfrom relto:  gen numrels_tc0 = _N /* total number of relationships */
 by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc0 = _n
 
 assert (numrels_tc0 <= 2)
 
+*************************************************************************************************************************
 ** Function: reshape data set from long to wide. 
+*************************************************************************************************************************
 reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc0)
 
 display "Number of relationships before any fix-ups"
 tab numrels_tc0
 
+*************************************************************************************************************************
 ** Function: use the previous fixup_rel_pair program. 
-*  Note: args preferred_rel second_rel
+**
+** Use program: fixup_rel_pair
+**        args: args preferred_rel second_rel
+*************************************************************************************************************************
 
 * Fix bio.
 fixup_rel_pair BIOMOM MOM
@@ -209,7 +243,7 @@ fixup_rel_pair BIOCHILD CHILD
 display "Number of relationships after BIO fixes"
 tab numrels_tc0
 
-* Fix adop and setp. 
+* Fix adopt and step. 
 fixup_rel_pair STEPMOM MOM
 fixup_rel_pair STEPDAD DAD
 fixup_rel_pair STEPCHILD CHILD
@@ -222,29 +256,34 @@ tab numrels_tc0
 
 tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
 
-** Output: relationships_tc0_wide
 save "$tempdir/relationships_tc0_wide", $replace
 
-
-*  Note: We also build a version with conflicts resolved. Since there are so few conflicts, for now we just drop them.    
+****************************************************************************************************************************
+** Function: We also build a version with conflicts resolved. Since there are so few conflicts, for now we just drop them.  
+****************************************************************************************************************************  
 preserve
 keep if (numrels_tc0 > 1)
-** Output: relationships_tc0_lost
-*  Note: To know what we have thrown away that we might care about, we keep a list of what we lost.
+
+****************************************************************************************************************************
+** Function: To know what we have thrown away that we might care about, we keep a list of what we lost.
+****************************************************************************************************************************
 save "$tempdir/relationships_tc0_lost", $replace
 
 restore
 drop if (numrels_tc0 > 1)
 drop numrels_tc0
 
+****************************************************************************************************************************
 ** Function: Drop the empty second relationship and reason.
+****************************************************************************************************************************
 drop relationship_tc02 reason_tc02
 
+****************************************************************************************************************************
 ** Function: Rename the first to have no suffix.
+****************************************************************************************************************************
 rename relationship_tc01 relationship
 rename reason_tc01 reason
 
-** Output: relationships_tc0_resolved
 save "$tempdir/relationships_tc0_resolved", $replace
 
 
