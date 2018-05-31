@@ -1,12 +1,14 @@
-//=======================================================================================================================//
-//===========Children's Household Instability Project                                                 ====================//
-//===========Dataset: SIPP2008                                                                        ====================//
-//===========Purpose: This file contains programs to create macros of waves, age, month, relationships ====================//
-//========================================================================================================================//
+//================================================================================================//
+//===== Children's Household Instability Project                                               
+//===== Dataset: SIPP2008                                                                    
+//===== Purpose: Create macros of waves, age, month, relationships 
+//================================================================================================//
 
 
-/********************************** Macros Creation ************************************/
-** Function: to create global macros for waves 1 to waves 15, adult age, reference month
+//======================================================//
+//== Purpose: Macros Creation 
+//======================================================//
+
 global first_wave 1
 global final_wave 15
 global second_wave = ${first_wave} + 1
@@ -16,19 +18,20 @@ global adult_age 18
 
 global refmon 4
 
-** Function: to create a global macro for the number of transitive closure passes we want to do.
+** A global macro for the number of transitive closure passes we want to do.
 global max_tc 1
 
 
-/********************* Forms of Relationships *****************************/
-** Function: this program computes simplified relationships from the more complex ones
-** Arguments Created: 
-*     input_rel - The name of the existing relationship variable.
-*     simplified_rel - The name of the variable to be created containing the intermediate simplification of relationships.
-*     ultra_simple_rel - The name of the variable to be created containing the most compact form of relationships.
-
-* Note: The program assumes that input_rel is uses the value label "realtionships".
-
+//==============================================================================//
+//== Function: Computes simplified relationships from the more complex ones
+//==
+//== Arguments Created: 
+//     input_rel - The name of the existing relationship variable.
+//     simplified_rel - The name of the variable to be created containing the intermediate simplification of relationships.
+//     ultra_simple_rel - The name of the variable to be created containing the most compact form of relationships.
+//
+//== Note: The program assumes that input_rel is uses the value label "realtionships".
+//==============================================================================//
 capture program drop simplify_relationships
 program define simplify_relationships
     args input_rel simplified_rel ultra_simple_rel
