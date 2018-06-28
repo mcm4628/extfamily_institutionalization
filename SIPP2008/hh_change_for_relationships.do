@@ -1,10 +1,10 @@
 //=======================================================================================================================//
-//=========== Children's Household Instability Project
-//=========== Dataset: SIPP2008
-//=========== Purpose:  Compute household changes for children.  We compute not just the fact of a chance, but who
-//===========           changed so that we can examine relationships for those responsible for the changes.
-//===========           We segregate leavers from arrivers in case this distinction is relevant.
-//===========           We also compute who stays in the household so we can look at the attributes of stayers.
+//===== Children's Household Instability Project
+//===== Dataset: SIPP2008
+//===== Purpose:  Compute household changes for children.  We compute not just the fact of a chance, but who
+//=====           changed so that we can examine relationships for those responsible for the changes.
+//=====           We segregate leavers from arrivers in case this distinction is relevant.
+//=====           We also compute who stays in the household so we can look at the attributes of stayers.
 //=======================================================================================================================//
 
 /*
