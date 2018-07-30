@@ -8,7 +8,6 @@
 //=======================================================================================//
 
 
-
 //=================================================================//
 //== Purpose: Preparation for dataset. 
 //=================================================================//
@@ -23,9 +22,6 @@ drop if (_merge == 2)
 assert (_merge == 3)
 drop _merge
 
-
-
-
 *********************************************************************
 ** Function: Create a temporary dataset for every person (from) in that person's household in a wave.
 *********************************************************************
@@ -35,9 +31,6 @@ save `people'
 
 rename EPPPNUM relfrom
 rename adj_age from_age
-
-
-
 
 
 *********************************************************************
@@ -50,17 +43,10 @@ joinby SSUID SHHADID SWAVE using `people'
 rename EPPPNUM relto
 rename adj_age to_age
 
-
-
-
 *********************************************************************
 ** Function: drop pairs that are ego and her/himself.
 *********************************************************************
 drop if (relfrom == relto)
-
-
-
-
 
 *********************************************************************
 ** Function: Merge with "unified_rel" to determine the relationship of each pair. 
@@ -74,20 +60,9 @@ replace unified_rel = .m if (_merge == 3) & (missing(unified_rel))
 assert (unified_rel != .)
 drop _merge
 
-
 tab unified_rel, m
 
 tab unified_rel if (from_age < $adult_age), m
-
-
-
-
-
-
-//==========================================================================//
-//== Purpose: Tabulate relationships. 
-//==========================================================================//
-
 
 
 ******************************************************************
@@ -99,9 +74,6 @@ display "Unhandled relationships"
 tab unified_rel if missing(simplified_rel), m sort
 display "Unhandled child relationships"
 tab unified_rel if (missing(simplified_rel) & (from_age < $adult_age)), m sort
-
-
-
 
 ******************************************************************
 ** Function: Tabulate relationships and child relationships. 
@@ -120,8 +92,6 @@ tab ultra_simple_rel if (from_age < $adult_age), m sort
 save "$tempdir/examine_hh", $replace
 
 
-
-
 ******************************************************************
 ** Function: Reshape the household members data from long (by wave) to wide. 
 ******************************************************************
@@ -131,9 +101,6 @@ use "$tempdir/shhadid_members"
 keep SSUID SHHADID SWAVE shhadid_members
 
 reshape wide shhadid_members, i(SSUID SHHADID) j(SWAVE)
-
-
-
 
 ******************************************************************
 ** Function: Loop through waves to flag same members. 
@@ -154,9 +121,6 @@ drop members
 drop shhadid_members*
 
 save "$tempdir/hh_same_stats", $replace
-
-
-
 
 
 ******************************************************************

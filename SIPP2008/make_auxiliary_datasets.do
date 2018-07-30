@@ -19,7 +19,7 @@
 //== Purpose: Make the shhadid member database.
 //================================================================================//
 use "$tempdir/allwaves"
-/*
+
 ***************************************************************
 ** Function: Create 2 local macros. 
 ** 
@@ -128,8 +128,6 @@ save "$tempdir/shhadid_members", $replace
 
 use "$tempdir/allwaves"
 
-*/
-
 ********************************************************************
 ** Function: Create two local macros: one is for sample unit ID, one is for wave.
 ******************************************************************** 
@@ -185,7 +183,7 @@ drop pnum
 
 
 *******************************************************************
-** Function: Collase the data.
+** Function: Collapse the data.
 **
 ** Note: We take the first non-missing of the variables we built above.  
 **      There is in fact exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
