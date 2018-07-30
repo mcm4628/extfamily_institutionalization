@@ -1,5 +1,5 @@
 * For Table 1 of HHstability paper
-* Run do_all (or at last project_macros) before executing.
+* Run do_all (or at least project_macros) before executing.
 
 use "$tempdir/examine_hh", clear
 
