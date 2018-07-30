@@ -283,37 +283,25 @@ tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
 
 save "$tempdir/relationships_tc0_wide", $replace
 
-
-
-
 ****************************************************************************************************************************
-** Function: We also build a version with conflicts resolved. Since there are so few conflicts, for now we just drop them.  
+** Function: We also build a version with conflicts resolved. Since there are so few conflicts (0.02%), for now we just drop them.  
 ****************************************************************************************************************************  
 preserve
 keep if (numrels_tc0 > 1)
 
-
-
-
 ****************************************************************************************************************************
 ** Function: To know what we have thrown away that we might care about, we keep a list of what we lost.
 ****************************************************************************************************************************
-save "$tempdir/relationships_tc0_lost", $replace
+save "$tempdir/relationships_tc0_lost", $replace 
 
 restore
 drop if (numrels_tc0 > 1)
 drop numrels_tc0
 
-
-
-
 ****************************************************************************************************************************
 ** Function: Drop the empty second relationship and reason.
 ****************************************************************************************************************************
 drop relationship_tc02 reason_tc02
-
-
-
 
 ****************************************************************************************************************************
 ** Function: Rename the first to have no suffix.
@@ -324,124 +312,3 @@ rename reason_tc01 reason
 save "$tempdir/relationships_tc0_resolved", $replace
 
 
-
-
-//=========================== Attention ======================================================
-
-*** TODO:  We ideally want a single relationship.
-* For starters, compute some stats on conflicts.
-
-
-
-/*
-* List those with more than one relationship.
-keep if numrels > 1
-list
-preserve
-
-* To get a better idea what's going on, merge in 
-* EPNMOM, EPNDAD, and ERRP so we can list those for
-* the problem cases.
-keep SSUID SHHADID SWAVE
-duplicates drop
-merge 1:m SSUID SHHADID SWAVE using "$tempdir/allwaves"
-assert _merge != 1
-keep if _merge == 3
-drop _merge
-sort SSUID SHHADID SWAVE EPPPNUM EPNMOM EPNDAD ERRP
-list SSUID SHHADID SWAVE EPPPNUM EPNMOM EPNDAD ERRP
-
-
-* Now collapse the two observations with
-* different relationships into a single observation that has both
-* so we can produce a table (and list them).
-restore
-by SSUID SHHADID SWAVE relfrom relto:  gen n = _n
-assert n <= 2
-gen rel1 = relationship if n == 1
-gen rel2 = relationship if n == 2
-collapse (firstnm) rel1 rel2, by(SSUID SHHADID SWAVE relfrom relto)
-tab rel1 rel2
-list
-
-
-* We'll just drop "other relative" when we have two different relationships,
-* believing that the other report is more likely accurate.
-clear
-use "$tempdir/relationships_tc0"
-sort SSUID SHHADID SWAVE relfrom relto
-by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
-tab numrels
-drop if ((numrels > 1) & (relationship == "OTHER_REL"))
-drop numrels
-
-* Replacing because we're doing successive refinement, with tabs 
-* and lists above to review the dropped data.
-save, replace
-
-
-* After that bit of cleanup let's see what's left,
-* pretty much as we did before.
-sort SSUID SHHADID SWAVE relfrom relto
-by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
-tab numrels
-
-keep if numrels > 1
-list
-preserve
-
-keep SSUID SHHADID SWAVE
-duplicates drop
-merge 1:m SSUID SHHADID SWAVE using "$tempdir/allwaves"
-assert _merge != 1
-keep if _merge == 3
-drop _merge
-sort SSUID SHHADID SWAVE EPPPNUM EPNMOM EPNDAD ERRP
-list SSUID SHHADID SWAVE EPPPNUM EPNMOM EPNDAD ERRP
-
-restore
-by SSUID SHHADID SWAVE relfrom relto:  gen n = _n
-gen rel1 = relationship if n == 1
-gen rel2 = relationship if n == 2
-collapse (firstnm) rel1 rel2, by(SSUID SHHADID SWAVE relfrom relto)
-tab rel1 rel2
-list
-
-
-* This is nasty.  It looks like the remaining crap is spouses
-* who claim one of their parents is someone who is actually one of
-* their children.
-* We keep the spouse relationship and drop the other.
-clear
-use "$tempdir/relationships_tc0"
-
-sort SSUID SHHADID SWAVE relfrom relto
-by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
-tab numrels
-
-gen EPPPNUM = relfrom
-merge m:1 SSUID SWAVE EPPPNUM using "$tempdir/allwaves", keepusing(ERRP)
-assert _merge != 1
-drop if _merge == 2
-drop _merge
-drop EPPPNUM
-drop if ((numrels > 1) & (ERRP == 3) & (relationship == "CHILD"))
-drop if ((numrels > 1) & (ERRP != 3) & (relationship == "PARENT"))
-drop numrels
-drop ERRP
-
-* Again, we're hard-coding replace because we are doing
-* successive refinement.
-gen relationship_source = 0
-save, replace
-
-
-* Confirm we have no conflicting relationships remaining.
-sort SSUID SHHADID SWAVE relfrom relto
-by SSUID SHHADID SWAVE relfrom relto:  gen numrels = _N
-tab numrels
-summ numrels, detail
-assert (`r(max)' == 1)
-drop numrels
-*/
-//===========================================================================================

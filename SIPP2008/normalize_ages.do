@@ -15,7 +15,7 @@ gen num_adult_ages = 0
 forvalues wave = $first_wave/$final_wave {
     replace num_child_ages = num_child_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' < $adult_age))
     replace num_adult_ages = num_adult_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' >= $adult_age))
-}   /*!!!! did not work */
+}   /* if this does not work, be sure to check that you have run project_macros.do */
 
 ** Function: count observayions with 0 
 count if (num_adult_ages == 0)
@@ -27,7 +27,7 @@ gen num_one_ages = 0
 forvalues wave = $first_wave/$final_wave {
     replace num_zero_ages = num_zero_ages + 1 if (TAGE`wave' == 0)
     replace num_one_ages = num_one_ages + 1 if (TAGE`wave' == 1)
-} /* !!! why didn't work again. My suspection is the dataset is a wide form. it might cause problems*/
+} /* if this does not work, be sure to check that you have run project_macros.do */
 
 * Tabulations
 tab num_zero_ages

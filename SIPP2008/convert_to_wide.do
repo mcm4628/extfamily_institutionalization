@@ -85,19 +85,14 @@ label define race   1 "white"
                     5 "other";
 #delimit cr
 
-
-
-
 **********************************************************************
-** Function: Generate RACE based on waves. 
+** Function: Generate RACE in each wave 
 **********************************************************************
 forvalues wave = $first_wave/$final_wave {
     recode ERACE`wave' (1=1) (2=2) (3=4) (4=5), generate (race`wave')
-    replace race`wave' = 3 if ((EORIGIN`wave' == 1) & (ERACE`wave' != 2)) /*!!! I am confused with the purpose of this code */
+    replace race`wave' = 3 if ((EORIGIN`wave' == 1) & (ERACE`wave' != 2)) /* Non-Black Hispanic */
     label values race`wave' race
 }
-
-
 
 **********************************************************************
 ** Function: Clean up race by taking the first reported race.
@@ -107,9 +102,6 @@ forvalues wave = $second_wave/$final_wave {
     replace my_race = race`wave' if (missing(my_race))
 }
 label values my_race race 
-
-
-
 
 ************************************************************************
 ** Function: Flag for difference between reported race and my_race.
@@ -126,9 +118,6 @@ egen any_race_diff = rowmax(race_diff*)
 tab any_race_diff
 
 
-
-
-
 //==========================================================================================================//
 //== Purpose: Recode Sex. 
 //==========================================================================================================//
@@ -140,9 +129,6 @@ gen my_sex = ESEX$first_wave
 forvalues wave = $second_wave/$final_wave {
     replace my_sex = ESEX`wave' if (missing(my_sex))
 }
-
-
-
 
 *************************************************************************
 ** Function: Flag for difference between reported sex and my_sex.
@@ -157,9 +143,6 @@ forvalues wave = $second_wave/$final_wave {
 }
 egen any_sex_diff = rowmax(sex_diff*)
 tab any_sex_diff
-
-
-
 
 //==========================================================================================================//
 //== Purpose: Create a wide database by person (SSUID EPPPNUM) including race and sex.
@@ -178,11 +161,8 @@ merge m:1 SSUID using "$tempdir/ssuid_shhadid_wide"
 assert _merge == 3
 drop _merge
 
-
-
-
 *******************************************************************************************************
-** Function: Figure out first and last wave of appearance for each person(which is probably the same as the whole household).
+** Function: Figure out first and last wave of appearance for each person(which is often the same as the whole household).
 **
 ** Note: SHHADID is never missing in the base data, so we can assume here that a missing SHHADID means the person was absent from that wave.
 ********************************************************************************************************
@@ -208,9 +188,6 @@ save "$tempdir/person_wide_debug", $replace
 
 drop ERACE* race* ESEX*
 drop any_race_diff any_sex_diff sex*
-
-
-** Drop some other variables we don't need any more.
 drop EBORNUS* EORIGIN*
 
 

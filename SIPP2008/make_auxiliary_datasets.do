@@ -29,48 +29,20 @@ local i_vars "SSUID SHHADID"
 local j_vars "SWAVE"
 
 
-
-
-****************************************************************
-** Function: Sort by EPPPNUM (Person Number) to get a sorted list in the concatenation.
-****************************************************************
 keep `i_vars' `j_vars' EPPPNUM TAGE
 sort `i_vars' `j_vars' EPPPNUM TAGE
 
 
+by `i_vars' `j_vars':  gen pnum = _n  /* Number the people in the household in each wave. */
 
-
-****************************************************************
-** Function: Number the people in the household for each wave.
-****************************************************************
-by `i_vars' `j_vars':  gen pnum = _n  
-
-
-
-
-****************************************************************
-** Function: Generate the maximum number of people in any household in any wave.
-****************************************************************
-egen maxpnum = max(pnum)
-
-
-
-
-****************************************************************
-** Function: Generate a macro to get the value of maxpnum for some arbitrary observation 
-**
-** Note: it is fine becaue it's constant across all observations.
-****************************************************************
-local maxpn = `=maxpnum'
+egen maxpnum = max(pnum) /* max n of people in any household in any wave. */
+local maxpn = `=maxpnum' /* to use later in forvalues loop */
 
 
 //======================= Attention! =======================//
 /* I'm not sure if I'll use the age-person thing or the child/adult concatenations.
  Probably don't need both. */
 //==========================================================//
-
-
-
 
 *******************************************************************
 ** Function: Build variables numbered 1 to maxpn. 
@@ -88,8 +60,6 @@ forvalues pn = 1/`maxpn' {
 drop pnum
 
 
-
-
 ********************************************************************
 ** Function: Collapse the data.
 **
@@ -99,8 +69,6 @@ drop pnum
 keep `i_vars' `j_vars' for_concat_person* for_concat_child* for_concat_adult* for_concat_age_person*
 
 collapse (firstnm) for_concat_child* (firstnm) for_concat_adult* (firstnm) for_concat_person* (firstnm) for_concat_age*, by (`i_vars' `j_vars')
-
-
 
 
 ********************************************************************
@@ -126,9 +94,6 @@ replace shhadid_members = " " + shhadid_members + " "
 replace shhadid_children = " " + shhadid_children + " "
 replace shhadid_adults = " " + shhadid_adults + " "
 replace shhadid_member_ages = " " + shhadid_member_ages + " "
-
-
-
 
 ********************************************************************
 ** Function: Compute max number of members by wave and overall.
@@ -157,17 +122,11 @@ macro drop i_vars j_vars
 save "$tempdir/shhadid_members", $replace
 
 
-
-
-
-
 //================================================================================//
 //== Purpose: Make the ssuid member database
 //================================================================================//
 
 use "$tempdir/allwaves"
-
-
 
 ********************************************************************
 ** Function: Create two local macros: one is for sample unit ID, one is for wave.
@@ -224,7 +183,7 @@ drop pnum
 
 
 *******************************************************************
-** Function: Collase the data.
+** Function: Collapse the data.
 **
 ** Note: We take the first non-missing of the variables we built above.  
 **      There is in fact exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.

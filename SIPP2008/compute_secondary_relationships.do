@@ -1,8 +1,8 @@
-//=============================================================================================================//
-//=========== Children's Household Instability Project                                    =====================//
-//=========== Dataset: SIPP2008                                                           =====================//
-//=========== Purpose: This file contains programs to compute secondary relationships     =====================//
-//=============================================================================================================//
+//=====================================================================================================//
+//=========== Children's Household Instability Project                                    =============//
+//=========== Dataset: SIPP2008                                                           =============//
+//=========== Purpose: This file contains programs to compute secondary relationships     =============//
+//=====================================================================================================//
 
 ** Program I: generate_relationship
 *  Purpose:  This program generates relationship from relationship1 and relatiosnhip2 
@@ -51,44 +51,6 @@ program define make_relationship_list, rclass /* results are in r() vector */
     }
     return local rel_list `"`my_rel_list'"'
 end
-
-
-
-/*
- * I don't think in our more careful paradigm this will be exactly what we want.
-
-capture program drop drop_conflicts
-program define drop_conflicts
-    * There are some "conflicts" that aren't really conflicting.
-    * We need more complicated code if we get more than two relationships to consider.
-    * assert n <= 2
-    * For now we'll just drop offenders and come back to this later.
-    *** TODO!!!  Deal with more than two conflicts.
-    drop if n > 2
-    
-    
-    * Copy the second relationship into the first record and the first into the second 
-    * so we can figure out what we want.
-    by SSUID SHHADID SWAVE relfrom relto:  gen relationship_2 = relationship[_n + 1] if ((n == 2) & (_n == 1))
-    by SSUID SHHADID SWAVE relfrom relto:  replace relationship_2 = relationship[_n - 1] if ((n == 2) & (_n == 2))
-
-    * We drop the record that has the less desirable relationship.
-    drop if ((n == 2) & (relationship == "CHILDOFPARTNER") & (relationship_2 == "CHILD"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "NEPHEWNIECE"))
-    drop if ((n == 2) & (relationship == "SIB_OR_COUSIN") & (relationship_2 == "SIBLING"))
-
-    * Surprising these were coded as OTHER_REL in the first place.
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "SIBLING"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GRANDCHILD"))
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "GREATGRANDCHILD"))
-
-    * OK?  We're elevating other relative and no relationship to child of partner.
-    drop if ((n == 2) & (relationship == "OTHER_REL") & (relationship_2 == "CHILDOFPARTNER"))
-    drop if ((n == 2) & (relationship == "NOREL") & (relationship_2 == "CHILDOFPARTNER"))
-    drop n relationship_2
-end
-*/
-
 
 ** Program III: compute_transitive_relationships
 *  Purpose: Creating a data set with all the transitive relationships
