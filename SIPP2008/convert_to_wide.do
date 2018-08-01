@@ -1,10 +1,11 @@
 //============================================================================================================================//
 //===== Children's Household Instability Project                                                    
 //===== Dataset: SIPP2008                                                                               
-//===== Purpose: Create a wide database by person (SSUID EPPPNUM) including race and sex. 
+//===== Purpose: Create a wide database by person (SSUID EPPPNUM) including charactersitics such as parental characteristics, race and sex. 
 //===== Logic: This file generates variables indicating the first and last wave numbers in which this person is encountered.
 //=====        Also, generates a normalized variable for race and sex, in other words, generate a single value we'll use for
-//=====        the individual even though for some people reports vary across waves.
+//=====        the individual even though for some people reports vary across waves. It also created flags to indicate whether race/sex are consistent cross waves (i.e.dfferent from 
+//=====        the first wave. 
 //============================================================================================================================//
  
  
