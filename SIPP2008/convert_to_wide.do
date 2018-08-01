@@ -13,19 +13,27 @@
 //== Purpose: Generate variables indicating parental education and immigration status 
 //=========================================================================================================//
 
+
+
 ***************************************************************************************
-** Function: Get mom and dad education.  
+** Function: Use household ID and wave to merge in household member information in shhadid_members dataset.  
 **
-** Logic: Merge in all waves and sort out our definition of parents' education later.
+** Logic: Merge in all waves first and generate parents' education later.
 ***************************************************************************************
-use "$tempdir/allwaves" 
+use "$tempdir/allwaves", clear  
 
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/shhadid_members" 
 assert _merge == 3
 drop _merge
 
 
-* Find mother'e education based on person number.
+
+
+************************************************************************************
+** Function: Merge with the dataset that contains person's education and find mother'e education based on mother's person number.
+**
+** Logic: EPNMOM - Person number of mother.  9999 - "no mother in household", replace 9999 to missing. 
+************************************************************************************
 recode EPNMOM (9999 = .), gen(educ_epppnum)
 merge m:1 SSUID educ_epppnum SWAVE using "$tempdir/person_educ"
 assert missing(educ_epppnum) if (_merge == 1)
@@ -35,7 +43,16 @@ drop _merge
 drop educ_epppnum
 rename educ mom_educ
 
-* Find father' education based on person number.
+label var mom_educ "Mother's educational level"
+
+
+
+
+************************************************************************************
+** Function: Merge with the dataset that contains person's education and find father'e education based on father's person number.
+**
+** Logic: EPNDAD - Person number of father.  9999 - "no father in household", replace 9999 to missing. 
+************************************************************************************* 
 recode EPNDAD (9999 = .), gen(educ_epppnum)
 merge m:1 SSUID educ_epppnum SWAVE using "$tempdir/person_educ"
 assert missing(educ_epppnum) if (_merge == 1)
@@ -45,7 +62,16 @@ drop _merge
 drop educ_epppnum
 rename educ dad_educ
 
-* Get mom's immigrant status.
+label var dad_educ "Father's educational level"
+
+
+
+
+************************************************************************************
+** Function: Merge with the dataset that contains person's immigration status and find mother'e immigration status based on mother's person number.
+**
+** Logic: EPNMOM - Person number of mother.  9999 - "no mother in household", replace 9999 to missing. 
+************************************************************************************
 recode EPNMOM (9999 = .), gen(immigrant_epppnum)
 merge m:1 SSUID immigrant_epppnum SWAVE using "$tempdir/person_immigrant"
 assert missing(immigrant_epppnum) if (_merge == 1)
@@ -55,9 +81,16 @@ drop _merge
 drop immigrant_epppnum
 rename immigrant mom_immigrant
 
+label var mom_immigrant "Mother's immigration status"
+
+
+
 
 ********************************************************
-** Function: Make the dataset wide.
+** Function: The dataset currently is in long-form. Make the dataset wide by wave (15 waves).
+**
+** Logic: There are so many variables, making local macros is convenient.   
+**        We categorize variables change each wave (wide_vars) and variables do not change (extra_vars).  
 ********************************************************
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
@@ -67,12 +100,13 @@ keep `i_vars' `j_vars' `wide_vars' `extra_vars'
 reshape wide `wide_vars', i(`i_vars') j(`j_vars')
 
 
-//==========================================================================================================//
-//== Purpose: Recode Race. 
+
+
+//===============================================================================================
+//== Purpose: Recode Race/Ethnicity. 
 //==
-//== Logic: Separate out Hispanic.  
-//           Leave those reporting black as black.
-//==========================================================================================================//
+//== Logic: Recode non-black Hispanic.  Find out if reported race/ethnicity are constant in waves.  
+//================================================================================================
 
 ***********************************************************************
 ** Function: Label race.
@@ -85,8 +119,11 @@ label define race   1 "white"
                     5 "other";
 #delimit cr
 
+
 **********************************************************************
-** Function: Generate RACE in each wave 
+** Function: Generate RACE in each wave.
+**
+** Logic: Loop through waves 1-15 and recode non-black Hispanic in each wave.  
 **********************************************************************
 forvalues wave = $first_wave/$final_wave {
     recode ERACE`wave' (1=1) (2=2) (3=4) (4=5), generate (race`wave')
@@ -94,8 +131,11 @@ forvalues wave = $first_wave/$final_wave {
     label values race`wave' race
 }
 
+
 **********************************************************************
-** Function: Clean up race by taking the first reported race.
+** Function: Create a variable (myrace) and use the race value in the first wave.  If race information is missing in the first wave, we use later waves information instead.
+**
+** Logic: Clean up race by taking the first reported race.
 **********************************************************************
 gen my_race = race$first_wave
 forvalues wave = $second_wave/$final_wave {
@@ -103,8 +143,11 @@ forvalues wave = $second_wave/$final_wave {
 }
 label values my_race race 
 
+
+
 ************************************************************************
-** Function: Flag for difference between reported race and my_race.
+** Function: Create flag variables (race_diff*) for difference between reported race and my_race throughout the 15 waves.
+**           Use the 15 flag variables to create an indicator variable (any_race_diff) to indicate if there's any different reported race and my_race in any wave. 
 ************************************************************************
 gen race_diff$first_wave = .
 forvalues wave = $second_wave/$final_wave {
@@ -118,20 +161,27 @@ egen any_race_diff = rowmax(race_diff*)
 tab any_race_diff
 
 
-//==========================================================================================================//
+
+//==================================================================================================
 //== Purpose: Recode Sex. 
-//==========================================================================================================//
+//==
+//== Logic: Find out if sex is reported the same throughout waves and create a flag for the different reported sex. 
+//===================================================================================================
 
 *************************************************************************
-** Function: Clean up sex by taking the first reported sex.
+** Function: Generate a varaible my_sex and use the sex value in the first wave. 
+** 
+** Logic: Clean up sex by taking the first reported sex. If sex information is missing in the first wave, we use later waves information on sex. 
 *************************************************************************
 gen my_sex = ESEX$first_wave
 forvalues wave = $second_wave/$final_wave {
     replace my_sex = ESEX`wave' if (missing(my_sex))
 }
 
+
 *************************************************************************
-** Function: Flag for difference between reported sex and my_sex.
+** Function: Create flag variables (sex_diff*) to indicate whether sex information is the same as reported in the first wave.
+**           Use these flag variables to generate an indicator (any_sex_diff) for any different sex value through out waves. 
 *************************************************************************
 gen sex_diff$first_wave = .
 forvalues wave = $second_wave/$final_wave {
@@ -144,14 +194,17 @@ forvalues wave = $second_wave/$final_wave {
 egen any_sex_diff = rowmax(sex_diff*)
 tab any_sex_diff
 
-//==========================================================================================================//
+
+//========================================================================================================
 //== Purpose: Create a wide database by person (SSUID EPPPNUM) including race and sex.
 //==
 //== Logic: We need to do this after going wide because if we merge earlier we end up with missing data for the waves the individual was not present.
-//==========================================================================================================//
+//=========================================================================================================
 
 ******************************************************************************************** 
-** Function: Merge the SSUID Datasets. 
+** Function: Merge the SSUID Dataset that each unit is a household. 
+** 
+** Logic: uusid-members_wide and ssuid_shhadid_wide contains houseold member information. 
 ********************************************************************************************
 merge m:1 SSUID using "$tempdir/ssuid_members_wide"
 assert _merge == 3
@@ -179,7 +232,7 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 
 
 *********************************************************************************************************
-** Function: Keep a temp version with all the original data so we can confirm correctness of our normalizing computations.
+** Note: Keep a temp version with all the original data so we can confirm correctness of our normalizing computations.
 *********************************************************************************************************
 save "$tempdir/person_wide_debug", $replace
 
