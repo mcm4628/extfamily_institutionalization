@@ -179,6 +179,14 @@ forvalues wave = $second_wave/$final_wave {
     replace my_sex = ESEX`wave' if (missing(my_sex))
 }
 
+#delimit ;
+label define sex    1 "male"
+                    2 "female"
+					;
+
+#delimit cr
+
+label values my_sex sex
 
 *************************************************************************
 ** Function: Create flag variables (sex_diff*) to indicate whether sex information is the same as reported in the first wave.

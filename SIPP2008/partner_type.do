@@ -18,9 +18,6 @@ local max_age 25
 ** Function: Program to compute partner type. 
 *******************************************
 
-******* This prgram gives me an invalid syntax error a the end of the program *****************
-
-
 forvalues tc = 0/1 {
     use "$tempdir/person_wide_adjusted_ages"
 
@@ -36,10 +33,7 @@ forvalues tc = 0/1 {
 
 
     * Keep young women.
-    keep if ((my_sex == 2) & (adj_age >= `min_age') & (adj_age <= `max_age'))
-    
-	************* Attention: TODO:  my_sex is unlabled.  Sigh.  Go fix that where we generate it.
-    
+    keep if ((my_sex == 2) & (adj_age >= `min_age') & (adj_age <= `max_age'))  
 
     * Grab the relationship variable.
     gen relfrom = EPPPNUM
