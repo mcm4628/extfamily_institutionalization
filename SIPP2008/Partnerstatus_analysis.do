@@ -17,9 +17,6 @@ keep if year < 2013
 keep if partner_type==0 & !missing(partrans)
 * limit to those single at the start of period
 
-keep if adj_age > 19 & adj_age < 25
-* focus on young adults
-
 global results "$projdir/Results and Papers\Union Formation Trends"
 putexcel set "$results/union.xlsx", sheet(unionRAW SIPP) modify
 

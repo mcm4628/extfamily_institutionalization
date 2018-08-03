@@ -9,8 +9,8 @@
 *******************************************
 ** Function: Define the age range for "young" women.
 *******************************************
-local min_age 17
-local max_age 25
+local min_age 18
+local max_age 29
 
 
 

@@ -1,11 +1,11 @@
-* This program determines the marital-cohabitation status of individuals age 17-25.
+* This program determines the marital-cohabitation status of individuals age 18-29.
 *
 * It starts with data files created by do_all that have partner status based on household roster, each individual's relationship to head and
 * parent and spouse pointers. This is the partner_type_tc0 file (based on base relationships). partner_type_tc1 adds infomation gleaned from 
 * transitive closure. That is, I can guess that A and C are partners if both A and C are parents of B (and not married). 
 
-local min_age 17
-local max_age 25
+local min_age 18
+local max_age 29
 
 /**** 
 * Merging two baseline and transive measures of marital-cohabitation status into one file
