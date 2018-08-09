@@ -1,12 +1,3 @@
-//===================== Attention ========================================
-*** TODO:  Maybe some/all of these should go to shared data?
-
-*** TODO:  Can these three very similar sets of code be unified into a single repeated block?
-//===========================================================================
-
-
-
-
 //=================================================================================//
 //====== Children's Household Instability Project                          
 //====== Dataset: SIPP2008                                               
@@ -14,17 +5,12 @@
 //=================================================================================//
 
 
-
 //================================================================================//
-//== Purpose: Make the shhadid member database.
+//== Purpose: Make the shhadid member database with a single string variable containing a list of all EPPPNUMs in a household in a wave
+//== This file will be used for normalize ages and so it includes a string variable with list of all ages of household members with EPPPNUM
 //================================================================================//
 use "$tempdir/allwaves"
 
-***************************************************************
-** Function: Create 2 local macros. 
-** 
-** Logic: One is for Sample Unit Id and Household Addr ID. One is for Wave. 
-**************************************************************** 
 local i_vars "SSUID SHHADID" 
 local j_vars "SWAVE"
 
@@ -36,7 +22,7 @@ sort `i_vars' `j_vars' EPPPNUM TAGE
 by `i_vars' `j_vars':  gen pnum = _n  /* Number the people in the household in each wave. */
 
 egen maxpnum = max(pnum) /* max n of people in any household in any wave. */
-local maxpn = `=maxpnum' /* to use later in forvalues loop */
+local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 
 //======================= Attention! =======================//
@@ -45,11 +31,11 @@ local maxpn = `=maxpnum' /* to use later in forvalues loop */
 //==========================================================//
 
 *******************************************************************
-** Function: Build variables numbered 1 to maxpn. 
-**           Generate a horizontal list of people in the household at each wave.
-**
-** Logic: After this loop we've set variable #n for the nth person in the household in this wave.
+** Function: Generate a horizontal list of people in the household at each wave.
 ********************************************************************
+
+* Create for_concat* variables equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
+* and for_concat_age_* variables equal to string value of TAGE-EPPPNUM
 forvalues pn = 1/`maxpn' {
     gen for_concat_person`pn' = string(EPPPNUM) if (pnum == `pn')
     gen for_concat_child`pn' = string(EPPPNUM) if ((pnum == `pn') & (TAGE < $adult_age))
@@ -59,23 +45,13 @@ forvalues pn = 1/`maxpn' {
 
 drop pnum
 
-
-********************************************************************
-** Function: Collapse the data.
-**
-** Logic: We take the first non-missing of the variables we built above.  
-**       There is in fact exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
-********************************************************************
+* Collapse to take the first non-missing of the variables we built above.  
+* There is exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
 keep `i_vars' `j_vars' for_concat_person* for_concat_child* for_concat_adult* for_concat_age_person*
 
 collapse (firstnm) for_concat_child* (firstnm) for_concat_adult* (firstnm) for_concat_person* (firstnm) for_concat_age*, by (`i_vars' `j_vars')
 
-
-********************************************************************
-** Function: Concatenate all those variables created.
-**
-** Logic: This makes a list of people in the household, separated by blanks, and a similar list of "age-epppnum" of those people.
-********************************************************************
+* Concatenate all for_concat* variables into a single string where each person number is separated by a blank.
 egen shhadid_members = concat(for_concat_person*), punct(" ")
 egen shhadid_children = concat(for_concat_child*), punct(" ")
 egen shhadid_adults = concat(for_concat_adult*), punct(" ")
@@ -96,7 +72,7 @@ replace shhadid_adults = " " + shhadid_adults + " "
 replace shhadid_member_ages = " " + shhadid_member_ages + " "
 
 ********************************************************************
-** Function: Compute max number of members by wave and overall.
+** Function: Compute number of household members by wave and overall.
 ********************************************************************
 sort SWAVE
 gen n_shhadid_members = wordcount(shhadid_members)
@@ -124,93 +100,51 @@ save "$tempdir/shhadid_members", $replace
 
 //================================================================================//
 //== Purpose: Make the ssuid member database
+//== The logic is similar for the shhadid database, but here we are going to collapse
+//== by sample unit (SSUID) instead of address (SSUID SHHADID) to create variables
+//== describing number of sample unit members across all waves
 //================================================================================//
 
 use "$tempdir/allwaves"
 
-********************************************************************
-** Function: Create two local macros: one is for sample unit ID, one is for wave.
-******************************************************************** 
 local i_vars "SSUID"
 local j_vars "SWAVE"
 
-
-
-********************************************************************
-** Function: by EPPPNUM to get a sorted list in the concatenation.
-********************************************************************
 keep `i_vars' `j_vars' EPPPNUM
 sort `i_vars' `j_vars' EPPPNUM
 
+by `i_vars' `j_vars':  gen pnum = _n  /* Number the people in the sampling unit in each wave. */
 
+egen maxpnum = max(pnum) /* max n of people in sampling unit in any wave. */
+local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
+*******************************************************************
+** Function: Generate a horizontal list of people in the SSUID (original sampling unit).
 ********************************************************************
-** Function: Number the people in the household for each wave.
-********************************************************************
-by `i_vars' `j_vars':  gen pnum = _n
 
-
-
-********************************************************************
-** Function: Create the maximum number of people in any household in any wave.
-********************************************************************
-egen maxpnum = max(pnum)
-
-
-
-********************************************************************
-** Function: Create a macro to get the value of maxpnum for some arbitrary observation.
-**
-** Note: it is fine becaue it's constant across all observations.
-********************************************************************
-local maxpn = `=maxpnum'
-
-
-
-********************************************************************
-** Function: Build variables numbered 1 to maxpn, 
-**
-** Logic: We're preparing to generate a horizontal list of people in the household at each wave.
-*         After this loop we've set variable #n for the nth person in the household in this wave.
-********************************************************************
+* Create for_concat* variable equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 forvalues pn = 1/`maxpn' {
     gen for_concat_person`pn' = string(EPPPNUM) if (pnum == `pn')
 }
 
 drop pnum
 
-
-
-
-*******************************************************************
-** Function: Collapse the data.
-**
-** Note: We take the first non-missing of the variables we built above.  
-**      There is in fact exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
-*******************************************************************
 keep `i_vars' `j_vars' for_concat_person*
 
+* Collapse to take the first non-missing of the variables we built above.  
+* There is exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
 collapse (firstnm) for_concat_person*, by (`i_vars' `j_vars')
 
-
-
-
-*******************************************************************
-** Function: Concatenate all those variables created.
-**
-** Logic: This makes a list of people in the household, separated by blanks.
-*******************************************************************
+*Concatenate all person-numbers into a single string.
 egen ssuid_members = concat(for_concat_person*), punct(" ")
 
 drop for_concat_person*
-
 
 * Strip out extra space to save space.
 replace ssuid_members = strtrim(ssuid_members)
 
 * Add a space at the beginning and end of the string so we are sure every person appears surrounded by spaces.
 replace ssuid_members = " " + ssuid_members + " "
-
 
 * Compute max number of members by wave and overall.
 sort SWAVE
@@ -225,97 +159,48 @@ reshape wide ssuid_members max_ssuid_members, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
-
 save "$tempdir/ssuid_members_wide", $replace
 
-
-
-
-
-
 //================================================================================//
-//== Purpose: Make the ssuid SHHADID database
+//== Purpose: Make the ssuid SHHADID database with information on the number of addresses (SHHADID)
+//== in the sampling unit (SSUID) in each wave and overall.
 //================================================================================//
 
 use "$tempdir/allwaves"
 
-*******************************************************************
-** Function: Create two local macros: one is for sample unit ID, one is for wave. 
-*******************************************************************
 local i_vars "SSUID"
 local j_vars "SWAVE"
 
-
-
-
-*******************************************************************
-** Function: Sort by SHHADID to get a sorted list in the concatenation.
-*******************************************************************
 keep `i_vars' `j_vars' SHHADID
 sort `i_vars' `j_vars' SHHADID
 duplicates drop
 
 
+by `i_vars' `j_vars':  gen anum = _n /* Number the addresses in the household for each wave. */
 
-
-*******************************************************************
-** Function: Number the addresses in the household for each wave.
-*******************************************************************
-by `i_vars' `j_vars':  gen anum = _n
-
-
-
-
-*******************************************************************
-** Function: Generate the maximum number of addresses in any household in any wave.
-*******************************************************************
+* maximum number of addresses in any household in any wave.
 egen maxanum = max(anum)
-
-
-
-
-*******************************************************************
-** Function:  Create a macro to get the value of maxpnum for some arbitrary observation.
-*******************************************************************
 local maxan = `=maxanum'
 
-
-
-
 *******************************************************************
-** Function: Build variables numbered 1 to maxan, 
-**
-** Logic: We're preparing to generate a horizontal list of addresses in the household at each wave.
-**        After this loop we've set variable #n for the nth addresses in the household in this wave.
-*******************************************************************
+** Function: Generate a horizontal list of addresses in the SSUID (original sampling unit).
+********************************************************************
 
+* Create for_concat* variable equal to string value of address's SHHADID for for_contact_*[an] and missing otherwise
 forvalues an = 1/`maxan' {
     gen for_concat_address`an' = string(SHHADID) if (anum == `an')
 }
 
 drop anum
 
-
-
-
-*******************************************************************
-** Function: Prepare to collapse the data 
-**
-** Logic: We take the first non-missing of the variables built above.  
-*       There is in fact exactly one non-missing -- only the nth address in the household in this wave got a value set for variable #n.
-*******************************************************************
 keep `i_vars' `j_vars' for_concat_address* 
 
+* Collapse to take the first non-missing of the variables we built above.  
+* There is exactly one non-missing -- only the nth address in the household in this wave got a value set for variable #n.
 collapse (firstnm) for_concat_address*, by (`i_vars' `j_vars')
 
 
-
-
-*******************************************************************
-** Function: Concatenate all those variables we created.
-**
-** This makes a list of addresses in the household, separated by blanks.
-*******************************************************************
+*Concatenate all "addresses" into a single string.
 egen ssuid_shhadid = concat(for_concat_address*), punct(" ")
 
 drop for_concat_address*
@@ -326,12 +211,8 @@ replace ssuid_shhadid = strtrim(ssuid_shhadid)
 * Add a space at the beginning and end of the string so we are sure every person appears surrounded by spaces.
 replace ssuid_shhadid = " " + ssuid_shhadid + " "
 
+* Compute max number of addresses by wave and overall.
 
-
-
-*******************************************************************
-** Function: Compute max number of members by wave and overall.
-*******************************************************************
 sort SWAVE
 gen n_ssuid_shhadid = wordcount(ssuid_shhadid)
 by SWAVE:  egen max_ssuid_shhadid = max(n_ssuid_shhadid)
@@ -344,20 +225,14 @@ reshape wide ssuid_shhadid max_ssuid_shhadid, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
-
 save "$tempdir/ssuid_shhadid_wide", $replace
 
 
-
-
-
-
 //================================================================================//
-//== Purpose: Create a merging dataset that has education (EEDUCATE) under a different name
-//==
-//== Logic: merge without worrying about whether EEDUCATE for ego is in the dataset.
-//==       EPPPNUM needs to be named something different so I can merge on a different person number (EPNMOM, e.g.)
-//==       The known use for this merge is to get parents' educ in the analysis dataset.
+//== Purpose: Create a dataset with education and immigration status for merging 
+//== 
+//== Logic: Rename EPPPNUM to later merge onto person number of mother (EPNMOM) 
+//==        and father (EPNDAD) to get parents' educ and immigration status in the analysis dataset.
 //================================================================================//
 
 use "$tempdir/allwaves"
@@ -366,18 +241,11 @@ local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
 
 
-*******************************************************************
-** Function: Sort by EPPPNUM to get a sorted list in the concatenation.
-*******************************************************************
-keep `i_vars' `j_vars' EEDUCATE
-sort `i_vars' `j_vars' EEDUCATE
+keep `i_vars' `j_vars' EEDUCATE EBORNUS
+sort `i_vars' `j_vars' EEDUCATE EBORNUS
 
 
-
-
-*******************************************************************
 ** Label recoded education.
-*******************************************************************
 #delimit ;
 label define educ   1 "lths"
                     2 "hs"
@@ -385,84 +253,23 @@ label define educ   1 "lths"
                     4 "coll";
 #delimit cr
 
-
-
-*******************************************************************
-** Function: Recode education into fewer categories.
-*******************************************************************
 recode EEDUCATE (31/38 = 1)  (39 = 2)  (40/43 = 3)  (44/47 = 4), gen (educ)
 label values educ educ
 
-drop EEDUCATE
-
-rename EPPPNUM educ_epppnum
-
-save "$tempdir/person_educ", $replace
-
-
-
-
-//================================================================================//
-//== Purpose: Create a merging dataset that has education (EBORNUS) under a different name
-//==
-//== Logic: Can merge without worrying about whether EEDUCATE for ego is in the dataset.
-//==        EPPPNUM needs to be named something different so I can merge on a different person number (EPNMOM, e.g.)
-//==        The known use for this merge is to get mom's immigrant status in the analysis dataset.
-//================================================================================//
-
-use "$tempdir/allwaves"
-
-
-
-
-*******************************************************************
-** Function: Create 2 local macros.  
-**
-** Logic: One is for Sample Unit Id and Household Addr ID. One is for Wave.
-*******************************************************************  
-local i_vars "SSUID EPPPNUM"
-local j_vars "SWAVE"
-
-
-
-
-*******************************************************************
-** Function: Sort by EPPPNUM to get a sorted list in the concatenation.
-*******************************************************************
-keep `i_vars' `j_vars' EBORNUS
-sort `i_vars' `j_vars' EBORNUS
-
-
-
-
-*******************************************************************
-**Function: Recode EBORNUS into a flag.
-*******************************************************************
-
 recode EBORNUS (1 = 0)  (2 = 1) , gen (immigrant)
 
-drop EBORNUS
+drop EEDUCATE EBORNUS
 
-rename EPPPNUM immigrant_epppnum
+* demo_epppnum will be key to merge with epnmom and epndad to get parent education onto
+* ego's record
+rename EPPPNUM pdemo_epppnum
 
-save "$tempdir/person_immigrant", $replace
+save "$tempdir/person_pdemo", $replace
 
-
-
-
-*******************************************************************
-** Function: the following do-file creates a dataset of reference persons.
-*******************************************************************
+* create a dataset of household reference persons.
 do "$childhh_base_code/SIPP2008/make_aux_refperson"
 
-
-
-
-
-//================================================================================//
-//== Purpose: Create a dataset of partners of reference persons
-//================================================================================//
-
+* Create a dataset of partners of reference persons
 use "$tempdir/allwaves"
 keep SSUID EPPPNUM SHHADID ERRP SWAVE
 gen partner_is_married = 1 if (ERRP == 3) /* generate a variable indicating married */
