@@ -170,6 +170,17 @@ tab monotonic stillbad
 
 tab num_ages if stillbad==1
 
+preserve
+
+drop if stillbad==0 
+drop if monotonic==0
+
+keep TAGE* adj_age* expected_age_fwd* expected_age_bkwd*
+
+save "$tempdir\salvage", $replace
+
+restore
+
 drop curr_age
 drop expected_age_bkwd* expected_age_fwd*
 drop adjbkwd* adjfwd*
