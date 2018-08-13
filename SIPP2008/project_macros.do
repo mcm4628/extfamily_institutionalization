@@ -1,13 +1,9 @@
 //================================================================================================//
 //===== Children's Household Instability Project                                               
 //===== Dataset: SIPP2008                                                                    
-//===== Purpose: Create macros of waves, age, month, relationships 
+//===== Purpose: Create macros of waves, age, month, relationships. 
+//===== Also, create program executed by multiple do files to reduce number of relationship categories.
 //================================================================================================//
-
-
-//======================================================//
-//== Purpose: Macros Creation 
-//======================================================//
 
 global first_wave 1
 global final_wave 15
@@ -21,7 +17,6 @@ global refmon 4
 ** A global macro for the number of transitive closure passes we want to do.
 global max_tc 1
 
-
 //==============================================================================//
 //== Function: Computes simplified relationships from the more complex ones
 //==
@@ -30,7 +25,7 @@ global max_tc 1
 //     simplified_rel - The name of the variable to be created containing the intermediate simplification of relationships.
 //     ultra_simple_rel - The name of the variable to be created containing the most compact form of relationships.
 //
-//== Note: The program assumes that input_rel is uses the value label "realtionships".
+//== Note: The program assumes that input_rel uses the value label "realtionships".
 //==============================================================================//
 capture program drop simplify_relationships
 program define simplify_relationships

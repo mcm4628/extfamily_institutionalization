@@ -2,8 +2,7 @@
 //===== Children's Household Instability Project
 //===== Dataset: SIPP2008
 //===== Purpose: Executes do files to create base datafiles:
-//===== allwaves, shhadid_members (necessary?), adjusted_ages_long, and unified_rel
-
+//===== allwaves, shhadid_members, adjusted_ages_long, and unified_rel
 
 
 //=========================================================================//
@@ -36,10 +35,7 @@ do "$childhh_base_code/SIPP2008/project_macros" /* this do-file contains macros 
 
 ***************************************************************************
 ** Function: Check to make sure the required directories exist.
-**
-** Note: We require that the user define macros telling us where to find the project code and where to put the logs.
 ***************************************************************************
-
 
 if ("$sipp2008_code" == "") {
     display as error "sipp2008_code macro not set."
@@ -65,17 +61,15 @@ if `r(confirmdir)' {
     exit
 }
 
-//=========================================================================//
-//== Purpose: Run the Programs.
-//=========================================================================//
-
+********************************************************************************
+* Execute scripts to process data.
+********************************************************************************
 ** This do-file combines all the waves. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves  
 
 ** This do-file makes sub-datasets for analyses.
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets 
 
-/*
 ** This do-file generates a wide dataset by person (includes demographic information). 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide 
 
