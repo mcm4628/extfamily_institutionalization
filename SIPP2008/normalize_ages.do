@@ -10,20 +10,6 @@ forvalues wave = $first_wave/$final_wave {
     replace num_ages = num_ages + 1 if (!missing(TAGE`wave'))
 }
 
-*** We sometimes need to know if this person ever reports a zero age.
-gen has_zero_age = 0
-forvalues wave = $first_wave/$final_wave {
-    replace has_zero_age = 1 if (TAGE`wave' == 0)
-}
-
-* Generate variables indicating numbers of waves observed at adult/child ages
-gen num_child_ages = 0
-gen num_adult_ages = 0
-forvalues wave = $first_wave/$final_wave {
-    replace num_child_ages = num_child_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' < $adult_age))
-    replace num_adult_ages = num_adult_ages + 1 if (!missing(TAGE`wave') & (TAGE`wave' >= $adult_age))
-} 
-
 ******************************************************************************
 *Function: create expected age variables based on age at first observation and 
 *          aging the person one year every 3 observations or based on last observation
@@ -50,7 +36,6 @@ forvalues wave = $second_wave/$final_wave {
     gen expected_age_fwd`wave' = expected_age_fwd
 }
 drop num_curr_age expected_age_fwd
-
 
 * backward projection.
 gen expected_age_bkwd = TAGE$final_wave
@@ -86,33 +71,14 @@ forvalues wave = $first_wave/$final_wave {
     replace num_bkwd_matches = num_bkwd_matches + 1 if (bkwd_match`wave' == 1)
 }
 
-*** TODO:  Probably here but not sure.
-* TODO:  For #adult == 1 & #child == 1 & not matching the projected age, set child-age to 999.
-* TODO:  Be sure we're not taking first age replacement with too little evidence (too few ages).
-* TODO:  If all child on left, all adult on right and 17-18 transition and no 0 age, just take it as is.
+*check against number of observed waves to create problem flag 
+gen num_fwd_problem=num_ages-num_fwd_matches
+gen num_bkwd_problem=num_ages-num_bkwd_matches
 
-*******************************************************************************
-*  Function: Check whether projections match recorded values +/- 1
-*           In 124,138 cases of 130,851 they do
-*******************************************************************************
-gen fwd_match_all_good = 1
-gen bkwd_match_all_good = 1
-gen both_match_all_good = 1
-gen bkwd_match_good_leading_zero = 0
-gen bkwd_match_good_leading_nz = 0
-forvalues wave = $first_wave/$final_wave {
-    replace fwd_match_all_good = 0 if ((!missing(TAGE`wave')) & (fwd_match`wave' != 1))
+gen anyproblem=0
+replace anyproblem=1 if num_fwd_problem > 0 | num_bkwd_problem > 0
 
-}
-forvalues wave = $final_wave (-1) $first_wave {
-    replace bkwd_match_good_leading_zero = 1 if ((bkwd_match_all_good == 1) & (my_first_wave == `wave') & (TAGE`wave' == 0))
-    replace bkwd_match_good_leading_nz = 1 if ((bkwd_match_all_good == 1) & (my_first_wave == `wave') & (TAGE`wave' != 0))
-
-    replace bkwd_match_all_good = 0 if ((!missing(TAGE`wave')) & (bkwd_match`wave' != 1))
-    replace both_match_all_good = 0 if ((!missing(TAGE`wave')) & ((bkwd_match`wave' != 1) | (fwd_match`wave' != 1)))
-
-}
-tab fwd_match_all_good bkwd_match_all_good
+tab anyproblem
 
 ********************************************************************************
 * Function: adjust age to projection if backwards and forwards projection are within 1
@@ -124,7 +90,9 @@ forvalues wave = $second_wave/$final_wave {
     replace adj_age`wave' = expected_age_fwd`wave' if ((!missing(TAGE`wave')) & (fwd_match`wave' == 0) & (bkwd_match`wave' == 0) & (abs(expected_age_fwd`wave' - expected_age_bkwd`wave') <= 1))
 }
 
-*** Count the number of times adjusted age matches each projection (within one, in the correct direction).
+********************************************************************************
+* Function: Check backwards and forwards projections against adjusted age
+********************************************************************************
 gen num_adjfwd_matches = 0
 gen num_adjbkwd_matches = 0
 forvalues wave = $first_wave/$final_wave {
@@ -134,50 +102,39 @@ forvalues wave = $first_wave/$final_wave {
     replace num_adjbkwd_matches = num_adjbkwd_matches + 1 if (adjbkwd_match`wave' == 1)
 }
 
+gen num_adjfwd_problem=num_ages-num_adjfwd_matches
+gen num_adjbkwd_problem=num_ages-num_adjbkwd_matches
+
+gen any_adj_problem=0
+replace any_adj_problem=1 if num_adjfwd_problem > 0 | num_adjbkwd_problem > 0
+
 *******************************************************************************
-*  Function: Check whether after adjustment projections match recorded values +/- 1
-*           In 124,581 cases of 130,851 they do (6270 still off)
+* Function: create flags for data that remain problematic. 
 *******************************************************************************
-gen adjfwd_match_all_good = 1
-gen adjbkwd_match_all_good = 1
-gen adjboth_match_all_good = 1
-gen adjbkwd_match_good_leading_zero = 0
-gen adjbkwd_match_good_leading_nz = 0
-forvalues wave = $first_wave/$final_wave {
-    replace adjfwd_match_all_good = 0 if ((!missing(adj_age`wave')) & (adjfwd_match`wave' != 1))
-}
-forvalues wave = $final_wave (-1) $first_wave {
-    replace adjbkwd_match_good_leading_zero = 1 if ((adjbkwd_match_all_good == 1) & (my_first_wave == `wave') & (adj_age`wave' == 0))
-    replace adjbkwd_match_good_leading_nz = 1 if ((adjbkwd_match_all_good == 1) & (my_first_wave == `wave') & (adj_age`wave' != 0))
 
-    replace adjbkwd_match_all_good = 0 if ((!missing(adj_age`wave')) & (adjbkwd_match`wave' != 1))
-    replace adjboth_match_all_good = 0 if ((!missing(adj_age`wave')) & ((adjbkwd_match`wave' != 1) | (adjfwd_match`wave' != 1)))
-}
-
-tab adjfwd_match_all_good adjbkwd_match_all_good
-
-gen stillbad=0
-replace stillbad=1 if adjfwd_match_all_good !=1 | adjbkwd_match_all_good !=1
-
-gen monotonic = 1
+gen monotonic = 1 /* dpes age always increase? */
+gen ageproblem=0 /* are there deviations in age from one observation to the next greater than 5 */
+gen childageproblem=0
 gen curr_age = adj_age$first_wave
 forvalues wave = $second_wave/$final_wave {
     replace monotonic = 0 if ((!missing(adj_age`wave')) & (!missing(curr_age)) & (adj_age`wave' < curr_age))
+	replace ageproblem=1 if ((!missing(adj_age`wave')) & (!missing(curr_age)) & (abs(adj_age`wave'-curr_age) > 5))
+	replace childageproblem=1 if ((!missing(adj_age`wave')) & (!missing(curr_age)) & (abs(adj_age`wave'-curr_age) > 5)) & (curr_age < 18)
     replace curr_age = adj_age`wave' if (!missing(adj_age`wave'))
 }
 
-tab monotonic stillbad
+tab ageproblem anyproblem
+tab childageproblem
 
-tab num_ages if stillbad==1
+tab ageproblem any_adj_problem
 
 preserve
 
-drop if stillbad==0 
-drop if monotonic==0
+drop if ageproblem==0
 
-keep TAGE* adj_age* expected_age_fwd* expected_age_bkwd*
+keep TAGE* adj_age* expected_age_fwd* expected_age_bkwd* monotonic childageproblem
 
-save "$tempdir\salvage", $replace
+save "$tempdir\ageproblem", $replace
 
 restore
 
@@ -185,11 +142,10 @@ drop curr_age
 drop expected_age_bkwd* expected_age_fwd*
 drop adjbkwd* adjfwd*
 drop bkwd* fwd*
-drop both_match_all_good
-drop adjboth_match_all_good
-drop has_zero_age
 drop monotonic
 drop num_adjbkwd_matches num_adjfwd_matches 
+drop anyproblem
+drop any_adj_problem
 drop TAGE*
 
 
