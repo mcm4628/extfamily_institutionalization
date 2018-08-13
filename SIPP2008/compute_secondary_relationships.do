@@ -1,11 +1,15 @@
-//=====================================================================================================//
-//=========== Children's Household Instability Project                                    =============//
-//=========== Dataset: SIPP2008                                                           =============//
-//=========== Purpose: This file contains programs to compute secondary relationships     =============//
+//==============================================================================
+//=========== Children's Household Instability Project                                  
+//=========== Dataset: SIPP2008                                                 
+//=========== Purpose: Uses programs to compute relationships not 
+//=========== directly identifiable with parent pointers, spouse pointer, or ERRP   =============//
 //=====================================================================================================//
 
-** Program I: generate_relationship
-*  Purpose:  This program generates relationship from relationship1 and relatiosnhip2 
+* Program generates relationship from relationship1 and relatiosnhip2 
+* where relationship1 is the relationship of ego (from) to another person.
+* ego is [relationship1] of person B.
+* person b is [relationship 2] of person C.
+* therefore ego is [relationship] or [result_rel] of person C.
 capture program drop generate_relationship
 program define generate_relationship
     args result_rel rel1 rel2 /* local macros: result_rel rel1 rels */
@@ -18,9 +22,7 @@ program define generate_relationship
     }
 end
 
-
-** Program II: make_relationship_list
-*  Purpose: Make a relationship list 
+*  Make a relationship list 
 capture program drop make_relationship_list
 program define make_relationship_list, rclass /* results are in r() vector */
     * display `"make_relationship_list args:  `0'"'
@@ -52,7 +54,7 @@ program define make_relationship_list, rclass /* results are in r() vector */
     return local rel_list `"`my_rel_list'"'
 end
 
-** Program III: compute_transitive_relationships
+** Program: compute_transitive_relationships
 *  Purpose: Creating a data set with all the transitive relationships
 capture program drop compute_transitive_relationships
 program define compute_transitive_relationships
