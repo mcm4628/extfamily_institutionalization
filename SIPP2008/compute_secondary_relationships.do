@@ -5,11 +5,10 @@
 //=========== directly identifiable with parent pointers, spouse pointer, or ERRP   =============//
 //=====================================================================================================//
 
-* Program generates relationship from relationship1 and relatiosnhip2 
-* where relationship1 is the relationship of ego (from) to another person.
-* ego is [relationship1] of person B.
-* person b is [relationship 2] of person C.
-* therefore ego is [relationship] or [result_rel] of person C.
+* Program generates relationship from relationship1 and relatiosnhip2, 
+* where A is [relationship1] of person B.
+* Person B is [relationship2] of person C.
+* Therefore ego is [relationship] or [result_rel] of person C.
 capture program drop generate_relationship
 program define generate_relationship
     args result_rel rel1 rel2 /* local macros: result_rel rel1 rels */
@@ -54,16 +53,7 @@ program define make_relationship_list, rclass /* results are in r() vector */
     return local rel_list `"`my_rel_list'"'
 end
 
-** Program: compute_transitive_relationships
-*  Purpose: Creating a data set with all the transitive relationships
-capture program drop compute_transitive_relationships
-program define compute_transitive_relationships
-
-    args iteration
-    
-    local prev_iter = `iteration' - 1
-
-    use "$tempdir/relationships_tc`prev_iter'_resolved"
+    use "$tempdir/relationships_tc0_wide"
 
     * We're going to create a dataset that has all the transitive relationships we can find.  So, if we have A --> B and B --> C
     * we generate a dataset that tells us A --> B --> C by merging (actually joining) on B.
@@ -76,27 +66,45 @@ program define compute_transitive_relationships
     save `relmerge'
 
 
-    use "$tempdir/relationships_tc`prev_iter'_resolved"
+    use "$tempdir/relationships_tc0_wide"
     rename relto intermediate_person
     rename relationship relationship1
     rename reason reason1
     label variable relationship1 "rel1"
     label variable reason1 "reason1"
+	
+	tab relationship1, m
 
-    * Note the use of joinby rather than m:m merge. Because joinby does what you think m:m merge ought to do.
+    * Joinby creates a record for every combination of records matching 
+	* SSUID SHHADID SWAVE and intermediate_person in the two files.
     joinby SSUID SHHADID SWAVE intermediate_person using `relmerge'
 
-    * We don't care to keep (or validate correctness of) relationship of self to self.
+	tab relationship1, m
+	
+    * We don't keep (or validate correctness of) relationship of self to self.
+	* Note that this effectively restricts the joinby data to households with 3 or more people.
     display "Dropping self-relationships"
     drop if (relfrom == relto)
 
+	* Flag records where we already know relationship of A to C.
+	* Using data is pairs for which we already know the relationship
+	merge m:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc0_wide"
+	
+	gen already_known=0 
+	replace already_known=1 if _merge==3
+	drop _merge
+	
+	display "Is the relationship already known?"
+	tab already_known
+	
+	*drop if we already have a relationship type for the pair
+	keep if already_known==0
+	drop relationship reason numrels_tc0
+	
     display "Tab of A -- > B and B --> C relationships, where we are trying to find A --> C, rowsort"
     tab relationship1 relationship2, rowsort
     display "Tab of A -- > B and B --> C relationships, where we are trying to find A --> C, colsort"
     tab relationship1 relationship2, colsort
-
-    save "$tempdir/relationship_pairs_tc`iteration'_all", $replace
-
 
     * Now given the A --> B --> C relationships, what can we figure out for A --> C?
     gen relationship = .
@@ -106,6 +114,7 @@ program define compute_transitive_relationships
     local all_parent_types MOM BIOMOM STEPMOM ADOPTMOM DAD BIODAD STEPDAD ADOPTDAD PARENT
 
     foreach rel1 in `all_child_types' {
+	    *read as set generate_relationship equal to CHILD if rel1 is any of the child types and rel2 is SPOUSE
         generate_relationship "CHILD" "`rel1'" "SPOUSE"
         generate_relationship "CHILD" "`rel1'" "PARTNER"
 
@@ -133,6 +142,9 @@ program define compute_transitive_relationships
 
         generate_relationship "NOREL" "`rel1'" "NOREL"
         generate_relationship "NOREL" "NOREL" "`rel1'" 
+		generate_relationship "F_SIB" "`rel1'" "F_CHILD"
+		generate_relationship "F_SIB" "F_CHILD" "`rel1'"
+		generate_relationship "F_SIB" "`rel1'" "F_PARENT"
     }
 
     foreach rel2 in `all_child_types' {
@@ -142,7 +154,7 @@ program define compute_transitive_relationships
 
         generate_relationship "PARENT_OR_RELATIVE" "GRANDPARENT" "`rel2'"
 
-        generate_relationship "NOREL" "F_CHILD" "`rel2'"
+        generate_relationship "F_SIB" "F_CHILD" "`rel2'"
     }
 
     foreach rel1 in `all_parent_types' {
@@ -215,6 +227,7 @@ program define compute_transitive_relationships
 
     generate_relationship "OTHER_REL" "SIBLING" "SPOUSE"
     generate_relationship "OTHER_REL_P" "SIBLING" "PARTNER"
+	generate_relationship "OTHER_REL" "SIBLING" "GRANDPARENT"
 
     generate_relationship "OTHER_REL" "SIBLING" "OTHER_REL"
     generate_relationship "NOREL" "SIBLING" "NOREL"
@@ -244,13 +257,17 @@ program define compute_transitive_relationships
     generate_relationship "NOREL" "NOREL" "SPOUSE" 
     generate_relationship "DONTKNOW" "NOREL" "PARTNER" 
 
-
-
     *** rel1 == F_CHILD
     generate_relationship "F_CHILD" "F_CHILD" "SPOUSE" 
+    generate_relationship "F_PARENT" "SPOUSE" "F_CHILD"
+	generate_relationship "F_PARENT" "F_CHILD" "PARTNER"
 
-
-
+	
+	*** rel2 == F_PARENT
+    generate_relationship "F_SIB" "F_CHILD" "F_PARENT"
+	generate_relationship "F_PARENT" "SPOUSE" "F_PARENT"
+	generate_relationship "F_PARENT" "PARTNER" "F_PARENT"
+	
     *** Other
     generate_relationship "OTHER_REL" "OTHER_REL" "OTHER_REL" 
 
@@ -258,14 +275,6 @@ program define compute_transitive_relationships
     generate_relationship "NOREL" "NOREL" "OTHER_REL" 
 
     generate_relationship "DONTKNOW" "NOREL" "NOREL"
-
-
-    * generate_relationship "OTHER_REL"		"GRANDCHILD"		"OTHER_REL"
-
-    *** TODO:  Validate these relationships with Kelly.  The PARTNER ones in particular.
-
-    *** TODO:  Add the easy, but smaller, cases of MOM/DAD type other than BIO.
-
 
     display "How are we doing at finding relationships?"
     mdesc relationship 
@@ -287,24 +296,24 @@ program define compute_transitive_relationships
     * We force the drop because we don't care about the details if the end result is the same.
     duplicates drop SSUID SHHADID SWAVE relfrom relto relationship, force
 
-
-    rename relationship relationship_tc`iteration'
-    gen reason_tc`iteration' = string(relationship1) + " " + string(relationship2) + " via " + string(intermediate_person)
+    rename relationship relationship_tc1
+    gen reason_tc1 = string(relationship1) + " " + string(relationship2) + " via " + string(intermediate_person)
     drop intermediate_person relationship1 relationship2 reason1 reason2
-    save "$tempdir/relationships_tc`iteration'_all", $replace
+    save "$tempdir/relationships_tc1_all", $replace
 
 
     sort SSUID SHHADID SWAVE relfrom relto
-    by SSUID SHHADID SWAVE relfrom relto:  gen numrels_tc`iteration' = _N
-    by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc`iteration' = _n
+    by SSUID SHHADID SWAVE relfrom relto:  gen numrels_tc1 = _N
+    by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc1 = _n
 
     display "How many relationships have we generated per person-wave?"
-    tab numrels_tc`iteration'
+    tab numrels_tc1
 
-    reshape wide relationship_tc`iteration' reason_tc`iteration', i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc`iteration')
+	drop relationship_tc02 reason_tc02
+	
+    reshape wide relationship_tc1 reason_tc1, i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc1)
 
-    save "$tempdir/relationships_tc`iteration'_wide", $replace
-
+    save "$tempdir/relationships_tc1_wide", $replace
 
     * Merge the previous iteration at the "wide" stage, meaning we have done some fixup of 
     * conflicting relationships, but it's judged to be safe and clear.  So now we're looking
@@ -312,19 +321,15 @@ program define compute_transitive_relationships
     * Note that we've not yet done fixup for iteration > 0, so it will probably be cluttered.
 
     display "Merge the previous iteration"
-    *** TODO:  Careful here.  At iteration > 1 we need to get everything from 0 through prev_iter.
-    * So check that that's what we've decided to store in this dataset,
-    * and I fear on current course that is *not* what we'll have at tc2.
-    merge 1:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc`prev_iter'_wide", nogenerate
+    merge 1:1 SSUID SHHADID SWAVE relfrom relto using "$tempdir/relationships_tc0_wide", nogenerate
 
     * Fix up the counts
-    replace numrels_tc`iteration' = 0 if missing(numrels_tc`iteration')
-    replace numrels_tc`prev_iter' = 0 if missing(numrels_tc`prev_iter')
+    replace numrels_tc1 = 0 if missing(numrels_tc1)
+    replace numrels_tc0 = 0 if missing(numrels_tc0)
 
     display "Total number of relationships at this point"
     * TODO:  May want to generate this differently and compare to the sum of TC to make sure it's all correct.
-    * TODO:  This is probably wrong after TC1.  It needs to sum from TC0, probably.
-    gen numrels_total = numrels_tc`iteration' + numrels_tc`prev_iter'
+      gen numrels_total = numrels_tc1 + numrels_tc0
     tab numrels_total
 
     * Temporary save so we can see where we stand.
@@ -356,8 +361,6 @@ program define compute_transitive_relationships
     *** TODO:  Need to be sure to carry along NOREL where possible.  May be ok already -- need to check.
     * And consider what can be done with OTHER_REL.
 
-    gen relationship = .
-    label values relationship relationship
 
     *** Make the easy decision that if there is only one piece of information we will take it.
     * First compute the number of non-missing.
@@ -395,21 +398,7 @@ program define compute_transitive_relationships
     tab relationship, m
 
     drop relationship_tc* reason_tc* numrels*
-    *** TODO:  Get a real reason if I still want it.
-    gen reason = ""
 
     save "$tempdir/relationships_tc`iteration'_resolved", $replace
-end
 
-/*
-  3. |           OTHER_REL |
- 10. |               NOREL |
-*/
 
-* We need an extra pass to be able to report on the pairs
-* we might be able to use if we went one more pass.
-local num_tc = $max_tc + 1
-forvalues tc = 1/`num_tc' {
-    compute_transitive_relationships `tc'
-    error _rc
-}
