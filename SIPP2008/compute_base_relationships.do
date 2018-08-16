@@ -72,6 +72,11 @@ use "$tempdir/allwaves"
 do "$sipp2008_code/relationship_label"
 ********************************************************************************
 
+* A small numer of cases identified themselves as their own mother, father, or spouse
+replace EPNMOM=. if EPPPNUM==EPNMOM
+replace EPNDAD=. if EPPPNUM==EPNDAD
+replace EPNSPOUS=. if EPPPNUM==EPNSPOUS
+
 ********************************************************************************
 ** Function: Process parent/child relationships from EPNMOM, EPNDAD, and EPNSPOUS.
 **
@@ -135,20 +140,7 @@ compute_relationships EPPPNUM ref_person PARTNER PARTNER ERRP_10 "(ERRP == 10)" 
 * No relation.
 compute_relationships EPPPNUM ref_person NOREL NOREL ERRP_GE_11 "((ERRP == 11) | (ERRP == 12) | (ERRP == 13))" errp_norelation1 errp_norelation2
 
-//======================================== Attention ==========================================================================================================
-* TODO -- Report on anomalies that cause trouble (now or later?) -- Compute parent/child relationships from EPNMOM and EPNDAD but ignore people who claim they are their own children.
-*  compute_relationships EPPPNUM EPNMOM CHILD MOM "((!missing(EPNMOM)) & (EPNMOM != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_mom mom
-* compute_relationships EPPPNUM EPNDAD CHILD PARENT "((!missing(EPNDAD)) & (EPNDAD != 9999))" "((EPNMOM == EPPPNUM) | (EPNDAD == EPPPNUM))" child_of_dad dad
-* TODO -- Report on problem people -- Spouse of reference person.  Ignore people who also claim to be a child of the reference person.
-* compute_relationships EPPPNUM ref_person SPOUSE SPOUSE "(ERRP == 3)" "((EPNMOM == ref_person) | (EPNDAD == ref_person))" errp_spouse1 errp_spouse2
-* TODO - Check for conflict of parent type with ERRP_4.
-//=======================================================================================================================================================================
-
 clear
-
-//====================================================================================================================================================//
-//== Purpose: Create a dataset with all relationships. 
-//=====================================================================================================================================================//  
 
 *******************************************************************************
 ** Function: Append all relationship data sets together.
@@ -190,15 +182,14 @@ append using "$tempdir/errp_norelation2"
 append using "$tempdir/epnspous1"
 append using "$tempdir/epnspous2"
 
-********************************************************************************
-** Function: Force drop when we have more than one reason for the SAME relationship. 
-********************************************************************************
+
+* Force drop when we have more than one reason for the SAME relationship 
 duplicates drop SSUID SHHADID SWAVE relfrom relto relationship_tc0, force
 
 save "$tempdir/relationships_tc0_all", $replace
 
 ********************************************************************************
-** Function: Find pairs for which we have more than one relationship type.
+** Function: Find pairs for which we have more than one relationship type in a single wave.
 **           Select the more specific one
 ********************************************************************************
 sort SSUID SHHADID SWAVE relfrom relto
@@ -207,10 +198,10 @@ by SSUID SHHADID SWAVE relfrom relto:  gen relnum_tc0 = _n
 
 assert (numrels_tc0 <= 2)
 
-** Function: reshape data set from long to wide. 
+*reshape so that we can compare relationships for pairs (within wave) with more than one relationship type
 reshape wide relationship_tc0 reason_tc0, i(SSUID SHHADID SWAVE relfrom relto) j(relnum_tc0)
 
-display "Number of relationships before any fix-ups"
+display "Number of relationships in a wave before any fix-ups"
 tab numrels_tc0
 
 ** Use program: fixup_rel_pair args: args preferred_rel second_rel
@@ -219,7 +210,7 @@ fixup_rel_pair BIOMOM MOM
 fixup_rel_pair BIODAD DAD
 fixup_rel_pair BIOCHILD CHILD
 
-display "Number of relationships after BIO fixes"
+display "Number of relationships in a wave after BIO fixes"
 tab numrels_tc0
 
 * Fix adopt and step. 
@@ -230,7 +221,7 @@ fixup_rel_pair ADOPTMOM MOM
 fixup_rel_pair ADOPTDAD DAD
 fixup_rel_pair ADOPTCHILD CHILD
 
-display "Number of relationships after STEP and ADOPT fixes"
+display "Number of relationships in a wave after STEP and ADOPT fixes"
 tab numrels_tc0
 
 tab relationship_tc01 relationship_tc02 if (numrels_tc0 > 1)
@@ -244,6 +235,11 @@ restore
 rename relationship_tc01 relationship
 rename reason_tc01 reason
 
+drop relationship_tc02 reason_tc02
+
+replace relationship=. if numrels_tc0 > 1
+
+*Despite the name, this file is still ong. One record per pair per wave.
 save "$tempdir/relationships_tc0_wide", $replace
 
 ****************************************************************************************************************************
