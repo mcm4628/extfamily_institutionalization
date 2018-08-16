@@ -32,26 +32,21 @@ save "$tempdir/pairwise", $replace
 
 use "$tempdir/pairwise_bywave", clear
 
-merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationships_tc0_wide"
-
-drop _merge
-
-merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationships_tc1_wide"
+merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave"
 
 gen anyrels=0
-replace anyrels=1 if !missing(numrels_tc0) 
-replace anyrels=1 if !missing(numrels_tc1)
+replace anyrels=1 if !missing(relationship) 
 
 tab anyrels, m
 
 tab HHmembers if anyrels==0
 
-tab ERRPfrom ERRPto if anyrels==0
 
-/*
 use "$tempdir/pairwise", clear
 
-merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationships_tc0_wide"
+merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave"
 
-tab numrels_tc0, m
-tab numrels_tc0 if HHmembers < 3, m
+gen anyrels=0
+replace anyrels=1 if !missing(relationship) 
+
+tab anyrels, m
