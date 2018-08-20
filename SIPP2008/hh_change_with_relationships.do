@@ -1,80 +1,11 @@
+//==============================================================================
+//===== Children's Household Instability Project
+//===== Dataset: SIPP2008
+//===== Purpose:  Link individuals identified as entering, leaving, or staying in
+//===== a person's (ego's) household to their relationship to ego.
+//==============================================================================
+
 use "$tempdir/hh_change_for_relationships"
-
-capture program drop unify_relationship
-program define unify_relationship
-    * primary_list is the list of relationships to be considered definitively compatible.
-    * secondary_list is the list of additional relationships that may be compatible with the primary_list,
-    * but if only erlationships from the secondary_list are present we cannot conclude this relationship is of the class.
-    * E.g., OTHER_REL won't prevent us from declaring someone a child, but we cannot declare them a child if OTHER_REL is the only information we have.
-    args primary_list secondary_list
-
-    if (wordcount("`primary_list'") == 0) {
-        display as error "unify_relationship:  argument primary_list must be non-blank"
-        error 111
-    }
-
-    local primary_rels `""`=word("`primary_list'", 1)'":relationship"'
-    forvalues i = 2/`=wordcount("`primary_list'")' {
-        local primary_rels `"`primary_rels', "`=word("`primary_list'", `i')'":relationship"'
-    }
-
-    if (wordcount("`secondary_list'") > 0) {
-        local secondary_rels `""`=word("`secondary_list'", 1)'":relationship"'
-        forvalues i = 2/`=wordcount("`secondary_list'")' {
-            local secondary_rels `"`secondary_rels', "`=word("`secondary_list'", `i')'":relationship"'
-        }
-    }
-
-    foreach r of varlist relationship* {
-        gen isprimary_`r' = inlist(`r', `primary_rels') if (!missing(`r'))
-        if (wordcount(`"`secondary_list'"') > 0) {
-            gen maybeclass_`r' = inlist(`r', `primary_rels', `secondary_rels') if (!missing(`r'))
-        }
-        else {
-            gen maybeclass_`r' = isprimary_`r'
-        }
-    }
-
-    * This tells us if any relationship is in the primary class.
-    egen includesprimary = rowmax(isprimary_relationship*)
-    * This tells us if all non-missing relationships are in the primary class or the secondary class.
-    egen allmaybeclass = rowmin(maybeclass_relationship*)
-    drop isprimary_relationship* maybeclass_relationship*
-
-    * So if all the relationships could be in the class
-    * AND at least one is definitely in the primary set
-    * we choose the smallest (highest precedence) relationship as the one to use.
-    egen urel = rowmin(relationship*) if ((includesprimary == 1) & (allmaybeclass == 1))
-    replace unified_rel = urel if ((includesprimary == 1) & (allmaybeclass == 1))
-    drop urel includesprimary allmaybeclass
-end
-
-
-capture program drop flag_relationship
-program define flag_relationship
-    * flagvar is the flag variable to create.
-    * rel_list is the list of relationships to be searched for.
-    * We set flagvar = 1 if we ever see any of the relationships in rel_list and to 0 otherwise.
-    args flagvar rel_list
-
-    if (wordcount("`rel_list'") == 0) {
-        display as error "flag_relationship:  argument rel_list must be non-blank"
-        error 111
-    }
-
-    local flag_rels `""`=word("`rel_list'", 1)'":relationship"'
-    forvalues i = 2/`=wordcount("`rel_list'")' {
-        local flag_rels `"`flag_rels', "`=word("`rel_list'", `i')'":relationship"'
-    }
-
-    gen `flagvar' = 0
-    foreach r of varlist relationship* {
-        replace `flagvar' = 1 if ((!missing(`r')) & inlist(`r', `flag_rels'))
-    }
-end
-
-keep SSUID EPPPNUM SHHADID* adj_age* arrivers* leavers* stayers* comp_change* comp_change_reason* my_race my_sex 
-
 
 reshape long SHHADID adj_age arrivers leavers stayers comp_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
@@ -91,11 +22,10 @@ assert (have_changers == 1) if (comp_change == 1)
 
 *** comp_change needs to be labeled, so does comp_change_reasons (S)
 drop if missing(comp_change)
+
 drop if (comp_change == 0)
 
 save "$tempdir/hh_change_with_relationships", $replace
-
-
 
 foreach changer in leaver arriver stayer {
     clear
@@ -112,7 +42,7 @@ foreach changer in leaver arriver stayer {
     }
     drop `changer's max_`changer's
 
-    keep SSUID EPPPNUM SHHADID SWAVE my_race my_sex adj_age comp_change_reason `changer'* 
+    keep SSUID EPPPNUM SHHADID SWAVE adj_age comp_change_reason `changer'* 
 
     reshape long `changer', i(SSUID EPPPNUM SWAVE) j(`changer'_num)
 
@@ -121,120 +51,9 @@ foreach changer in leaver arriver stayer {
     save "$tempdir/hh_`changer's", $replace
 }
 
-
-
-*** NEED to confirm correctness of hh_chnage.
-*** AND comment the code as part of that.
-
-*** NEED to unify relationships (pretty much necessary to deal with arrivers).
-
-*** THEN understand how many we don't know relationships for and what we can do about it.
-
-
-use "$tempdir/hh_leavers"
-drop if missing(leaver)
-gen relfrom = EPPPNUM
-destring leaver, gen(relto)
-merge 1:1 SSUID SWAVE relfrom relto using "$tempdir/relationships_tc1_resolved", keepusing(relationship)
-
-list if _merge == 1
-
-keep if _merge == 3
-drop _merge
-
-tab relationship, m sort
-
-
-
-* Quick stats on amount of unification needed.
-
-clear
-
-use "$tempdir/relationships_tc1_resolved"
-
-keep SSUID relfrom relto relationship
-
-drop if missing(relationship)
-
-
-sort SSUID relfrom relto relationship
-by SSUID relfrom relto:  gen total_instances = _N
-by SSUID relfrom relto relationship:  gen rel_instances = _N
-by SSUID relfrom relto relationship:  gen first_rel_instance = (_n == 1)
-keep if (first_rel_instance == 1)
-drop first_rel_instance
-
-by SSUID relfrom relto:  gen relnum = _n
-reshape wide relationship rel_instances, i(SSUID relfrom relto) j(relnum)
-
-count if (total_instances == rel_instances1)
-
-egen rels = concat(relationship*), punct(",")
-replace rels = subinstr(rels, ".,", "", .)
-replace rels = subinstr(rels, ",.", "", .)
-
-tab rels, sort
-
-tab rels if (total_instances == rel_instances1), sort
-
-display "Possible relationships before handling children"
-egen group = group(relationship*), label missing
-tab group, m sort
-drop group
-
-*** TODO:  Add a flag indicating consistent versus computed.
-gen unified_rel = .
-label values unified_rel relationship
-unify_relationship "BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER CHILD CHILD_OR_NEPHEWNIECE" "OTHER_REL OTHER_REL_P"
-unify_relationship "BIOMOM STEPMOM ADOPTMOM BIODAD STEPDAD ADOPTDAD PARENT AUNTUNCLE_OR_PARENT" "OTHER_REL OTHER_REL_P"
-unify_relationship "GRANDCHILD GREATGRANDCHILD GRANDCHILD_P" "OTHER_REL OTHER_REL_P"
-unify_relationship "GRANDPARENT GREATGRANDPARENT GRANDPARENT_P" "OTHER_REL OTHER_REL_P"
-unify_relationship "SIBLING SIBLING_OR_COUSIN" "OTHER_REL OTHER_REL_P"
-unify_relationship "SPOUSE PARTNER" "OTHER_REL OTHER_REL_P"
-unify_relationship "AUNTUNCLE AUNTUNCLE_OR_PARENT" "OTHER_REL OTHER_REL_P"
-unify_relationship "NEPHEWNIECE CHILD_OR_NEPHEWNIECE" "OTHER_REL OTHER_REL_P"
-unify_relationship "F_CHILD"
-unify_relationship "F_PARENT"
-unify_relationship "OTHER_REL OTHER_REL_P"
-unify_relationship "NOREL DONTKNOW"
-
-display "Possible relationships after unifying relationships"
-egen group = group(relationship*) if missing(unified_rel), label missing
-tab group, sort
-*drop group /*group is not dropped, later use it to create flag*/
-
-replace unified_rel = "CONFUSED":relationship if missing(unified_rel)
-
-
-/**** Creating flags indicating child/sibling ****/ 
-gen childflag = 0
-gen sibflag = 0
-  foreach flag of varlist relationship* {
-        replace childflag = 1 if inlist(`flag', "BIOCHILD":relationship, "STEPCHILD":relationship, "ADOPTCHILD":relationship, "CHILDOFPARTNER":relationship, "CHILD":relationship, ///
-		"CHILD_OR_NEPHEWNIECE":relationship) & (!missing(group))
-        replace sibflag = 1 if inlist(`flag', "SIBLING":relationship, "SIBLING_OR_COUSIN":relationship) & (!missing(group))
-    }
-
-
-gen rel_is_confused = (unified_rel == "CONFUSED":relationship)
-flag_relationship rel_is_ever_child "BIOCHILD STEPCHILD ADOPTCHILD CHILDOFPARTNER CHILD CHILD_OR_NEPHEWNIECE"
-flag_relationship rel_is_ever_sibling "SIBLING SIBLING_OR_COUSIN"
-flag_relationship rel_is_ever_parent "BIOMOM STEPMOM ADOPTMOM BIODAD STEPDAD ADOPTDAD PARENT AUNTUNCLE_OR_PARENT"
-
-tab rel_is_ever_child childflag if (rel_is_confused)
-tab rel_is_ever_child childflag
-
-tab rel_is_ever_sibling sibflag if (rel_is_confused)
-tab rel_is_ever_sibling sibflag
-        
-/*childflag N=1,743; sibflag N=1,896 */
- 
-drop group /*group can be dropped now */
- 
- 
-**drop relationship* rel_instances* total_instances rels
-save "$tempdir/unified_rel", $replace
-
+********************************************************************************
+* Linking those who experience a composition change to unified relationships 
+********************************************************************************
 
 foreach changer in leaver arriver stayer {
     clear
@@ -244,27 +63,16 @@ foreach changer in leaver arriver stayer {
     gen relfrom = EPPPNUM
     destring `changer', gen(relto)
     merge m:1 SSUID relfrom relto using "$tempdir/unified_rel", keepusing(unified_rel)
+	
+	display "deleting relationships to self"
+	drop if relfrom==relto
 
-    preserve
-    keep if _merge == 1
-    keep SSUID EPPPNUM relto
-    duplicates drop
-    sort SSUID EPPPNUM relto
-    by SSUID EPPPNUM:  gen relto_num = _n
-    reshape wide relto, i(SSUID EPPPNUM) j(relto_num)
-    merge 1:m SSUID EPPPNUM using "$tempdir/allwaves", keepusing(ERRP EPNMOM EPNDAD EPNSPOUS SWAVE)
-    keep if (_merge == 3)
-    drop _merge
-    save "$tempdir/norel_`changer's", $replace
-    restore
+	replace unified_rel=40 if _merge==1
 
-    keep if _merge == 3
+    drop if _merge == 2
     drop _merge
 
     display "Unified relationships for `changer's"
     tab unified_rel, m sort
     save "$tempdir/`changer'_rels", $replace
 }
-
-
-*** TODO: * I see weirdness in adjusted ages, like a single 1 in the midst of large ages.  Examples:  459925246366/201, 077925358381/102.
