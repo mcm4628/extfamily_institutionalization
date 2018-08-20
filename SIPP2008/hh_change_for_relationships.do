@@ -1,66 +1,29 @@
-//=======================================================================================================================//
+//==============================================================================
 //===== Children's Household Instability Project
 //===== Dataset: SIPP2008
 //===== Purpose:  Compute household changes for children.  We compute not just the fact of a chance, but who
 //=====           changed so that we can examine relationships for those responsible for the changes.
 //=====           We segregate leavers from arrivers in case this distinction is relevant.
 //=====           We also compute who stays in the household so we can look at the attributes of stayers.
-//=======================================================================================================================//
-
-/*
-So, maybe start with the full list of candidates who might show up,
-mark the ones that actually do, then remove the unmarked ones and
-then remove the marks?  This preserves order.
-
-So once I have those things, what?
-
-How about characterizing each current member as leaver, or stayer?  They can't be an arriver.
-Anyone who appears in the gap is a leaver.
-Anyone who does not appear in the return wave is a leaver.  It does not matter if they are also a leaver by the above rule.
-
-And the characteristics of future members?
-Anyone who appears in the gap is an arriver.
-Anyone who does not appear in the current HH is an arriver.  It doesn't matter if they also fit the above rule.
-
-Maybe it would be better not to bother with computing sets of people in the gap and instead use the simple rules above?
-
-TODO:  I'm not sure the "set in a string" paradigm is best any more, but I don't know of anything Stata supports that works better.
-Mata?
-Wide format using inlist (but I don't think inlist works this way.  MAybe it does, or maybe there's an alternative.
-*/
-
-
-
+//==============================================================================
 
 use "$tempdir/person_wide_adjusted_ages"
 
+drop my_race* my_sex*
 
-//=======================================================================================================================//
-//=========== Purpose:  Keep only respondents who are children during some wave.
-//=======================================================================================================================//
-* In the interest of expediency, try to speed things up by keeping only people who are
-* children at some point in their SIPP existence.
-gen is_ever_child = 0
-forvalues wave = $first_wave/$final_wave {
-    replace is_ever_child = 1 if (adj_age`wave' < $adult_age)
-}
-keep if is_ever_child
-drop is_ever_child
+********************************************************************************
+** Function:  Propagate shhadid_members forward into prev_hh_members for missing waves.  This allows us to
+**            know who was in the household with the respondent in the most recent wave during which the
+**            respondent was present.
 
+** Logic:   Walk forward through the waves, starting with the second (there's nothing we could propagate
+**			forward into the first wave).  When the respondent is missing, SHHADID will be missing.
+**          For the first wave of a gap, prev_hh_members for the previous wave will be missing, and we.
+**          copy shhadid_members for the previous wave into prev_hh_members for this wave.
+**	       	For subsequent waves of a continuous gap prev_hh_members for the previous wave will exist
+**        	so we just copy this into prev_hh_members for this wave.
+********************************************************************************
 
-
-//=======================================================================================================================//
-//=========== Purpose:  Propagate shhadid_members forward into prev_hh_members for missing waves.  This allows us to
-//===========           know who was in the household with the respondent in the most recent wave during which the
-//===========           respondent was present.
-//===========
-//=========== Logic:  Walk forward through the waves, starting with the second (there's nothing we could propagate
-//===========         forward into the first wave).  When the respondent is missing, SHHADID will be missing.
-//===========         For the first wave of a gap, prev_hh_members for the previous wave will be missing, and we.
-//===========         copy shhadid_members for the previous wave into prev_hh_members for this wave.
-//===========         For subsequent waves of a continuous gap prev_hh_members for the previous wave will exist
-//===========         so we just copy this into prev_hh_members for this wave.
-//=======================================================================================================================//
 gen prev_hh_members$first_wave = ""
 forvalues wave = $second_wave/$final_wave {
     local prev_wave = `wave' - 1
@@ -68,12 +31,12 @@ forvalues wave = $second_wave/$final_wave {
     replace prev_hh_members`wave' = prev_hh_members`prev_wave' if (missing(SHHADID`wave') & (!missing(prev_hh_members`prev_wave')))
 }
 
-//=======================================================================================================================//
-//=========== Purpose:  Propagate shhadid_members backward into future_hh_members for missing waves.  This allows us to
-//===========           know who will be in the household with the respondent in wave in which the respondent reappears.
-//===========
-//=========== Logic:  Very similar to the logic for prev_hh_members except that we walk backward from the penultimate wave.
-//=======================================================================================================================//
+********************************************************************************
+** Purpose:  Propagate shhadid_members backward into future_hh_members for missing waves.  This allows us to
+**          know who will be in the household with the respondent in wave in which the respondent reappears.
+**
+** Logic:  Very similar to the logic for prev_hh_members except that we walk backward from the penultimate wave.
+********************************************************************************
 
 gen future_hh_members$final_wave = ""
 forvalues wave = $penultimate_wave (-1) $first_wave {
@@ -82,46 +45,45 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
     replace future_hh_members`wave' = future_hh_members`next_wave' if (missing(SHHADID`wave') & (!missing(future_hh_members`next_wave')))
 }
 
+********************************************************************************
+** Function:  Compute flags indicating if each previous household member is found anywhere during a contiguous
+**          gap in which the respondent is missing.  The flags are encoded in found_prev_hh_member_in_gap:
+**           if we find a previous household member is found we place a 1 in found_prev_hh_member_in_gap at
+**          the same position as the previous household member is found in prev_hh_members.
+**           For example, if prev_hh_members5 is " 102 104 303 " and we have found 102 and 303 in the gap
+**          found_prev_hh_member_in_gap5 will be "1       1    ".  Note the off-by-one positioning
+**           due to the fact that we search for " 102 " when we are looking for 102.  See notes on
+**           implementation below.
+**
+**          Note that found_prev_hh_member_in_gap may not be fully populated for waves other than
+**          the first wave of a gap (and the last wave before the gap, just because we copy it there).
+**          For example, if 102 is found in wave 7 and 303 is found in wave 4, the flags for waves
+**           5-7 will show only 102 because that's all we've seen so far.  Wave 4 will show both.
+**
+** Logic:  Walk backward through the waves (we stop at the second because the first wave can't have any
+**         previous members).  Copy the flags discovered so far if this is not the last wave of a gap
+**        (since we're walking backward, the last wave of the gap is the first wave we encounter).
+**         If this wave is part of a gap (the respondent is missing), for each previous household member
+**         look to see if that person appears in this wave.  If so, put a 1 at the appropriate position
+**         in found_prev_hh_member_in_gap for this wave.  Note that it doesn't hurt to put a 1 there
+**         even if one is already present -- the resulting string is identical to what it already was.
 
-//=======================================================================================================================//
-//=========== Purpose:  Compute flags indicating if each previous household member is found anywhere during a contiguous
-//===========           gap in which the respondent is missing.  The flags are encoded in found_prev_hh_member_in_gap:
-//===========           if we find a previous household member is found we place a 1 in found_prev_hh_member_in_gap at
-//===========           the same position as the previous household member is found in prev_hh_members.
-//===========           For example, if prev_hh_members5 is " 102 104 303 " and we have found 102 and 303 in the gap
-//===========           found_prev_hh_member_in_gap5 will be "1       1    ".  Note the off-by-one positioning
-//===========           due to the fact that we search for " 102 " when we are looking for 102.  See notes on
-//===========           implementation below.
-//===========
-//===========           Note that found_prev_hh_member_in_gap may not be fully populated for waves other than
-//===========           the first wave of a gap (and the last wave before the gap, just because we copy it there).
-//===========           For example, if 102 is found in wave 7 and 303 is found in wave 4, the flags for waves
-//===========           5-7 will show only 102 because that's all we've seen so far.  Wave 4 will show both.
-//===========
-//=========== Logic:  Walk backward through the waves (we stop at the second because the first wave can't have any
-//===========         previous members).  Copy the flags discovered so far if this is not the last wave of a gap
-//===========         (since we're walking backward, the last wave of the gap is the first wave we encounter).
-//===========         If this wave is part of a gap (the respondent is missing), for each previous household member
-//===========         look to see if that person appears in this wave.  If so, put a 1 at the appropriate position
-//===========         in found_prev_hh_member_in_gap for this wave.  Note that it doesn't hurt to put a 1 there
-//===========         even if one is already present -- the resulting string is identical to what it already was.
-//===========
-//===========         Some notes on implementation:
-//===========             The notation " " * strlen(x) creates a string of blanks whose length is the same as
-//===========                 the length of x.
-//===========             We loop through overall_max_shhadid_members possible previous household members.  Since the
-//===========                 has to work for all observations, we have to loop through the most members any household
-//===========                 may have.  That's fine because for households with fewer members word(prev_hh_members, n)
-//===========                 is null for n > the number of prev_hh_members who actually exist for this household.
-//===========             Setting my_hh_member = "X" isn't really necessary but it's safer for the future and maybe a
-//===========                 little easier to read.  If we left my_hh_member empty ("") it currently works fine because
-//===========                 we end up searching for "  ", which never occurs in prev_hh_members.  But it's safer not
-//===========                 to depend on the fact that we don't have redundant spaces.
-//===========             We copy found_prev_hh_member_in_gap into the wave before the gap begins.  I don't think we
-//===========                 actually make use of this, but it doesn't hurt.
-//===========             The idiom of searching for " " + my_hh_member + " ", for example that would be " 102 " for 
-//===========                 member 102, prevents incorrectly finding 1102 when you're looking for 102.
-//=======================================================================================================================//
+**         Some notes on implementation:
+**             The notation " " * strlen(x) creates a string of blanks whose length is the same as
+**                 the length of x.
+**             We loop through overall_max_shhadid_members possible previous household members.  Since the
+**                 has to work for all observations, we have to loop through the most members any household
+**                 may have.  That's fine because for households with fewer members word(prev_hh_members, n)
+**                 is null for n > the number of prev_hh_members who actually exist for this household.
+**             Setting my_hh_member = "X" isn't really necessary but it's safer for the future and maybe a
+**                 little easier to read.  If we left my_hh_member empty ("") it currently works fine because
+**                 we end up searching for "  ", which never occurs in prev_hh_members.  But it's safer not
+**                 to depend on the fact that we don't have redundant spaces.
+**             We copy found_prev_hh_member_in_gap into the wave before the gap begins.  I don't think we
+**                 actually make use of this, but it doesn't hurt.
+**             The idiom of searching for " " + my_hh_member + " ", for example that would be " 102 " for 
+**                 member 102, prevents incorrectly finding 1102 when you're looking for 102.
+********************************************************************************
 
 gen found_prev_hh_member_in_gap$first_wave = ""
 forvalues wave = $final_wave (-1) $second_wave {
@@ -153,26 +115,12 @@ forvalues wave = $final_wave (-1) $second_wave {
     }
 }
 
+********************************************************************************
+** Function:  Compute flags indicating if each future household member is found anywhere during a contiguous
+**           gap in which the respondent is missing.  The flags are encoded in found_future_hh_member_in_gap
+**           in the same way as found_prev_hh_member in gap.  See above.
+********************************************************************************
 
-//=======================================================================================================================//
-//=========== Purpose:  Convenience of debugging / validation.  We should probably delete this at some point.
-//=======================================================================================================================//
-* For now I'm going to leave this in to dump data we can use for confirmation of correctness.
-set linesize 200
-forvalues i = 1/$penultimate_wave {
-    local j = `i' + 1
-    count if ((found_prev_hh_member_in_gap`i' != found_prev_hh_member_in_gap`j') & (indexnot(found_prev_hh_member_in_gap`i', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`j', " ") != 0))
-}
-forvalues i = 1/$penultimate_wave {
-    local j = `i' + 1
-    list SSUID EPPPNUM SHHADID* prev_hh_members* found_prev_hh_member_in_gap* ssuid_members* if ((found_prev_hh_member_in_gap`i' != found_prev_hh_member_in_gap`j') & (indexnot(found_prev_hh_member_in_gap`i', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`j', " ") != 0))
-}
-
-//=======================================================================================================================//
-//=========== Purpose:  Compute flags indicating if each future household member is found anywhere during a contiguous
-//===========           gap in which the respondent is missing.  The flags are encoded in found_future_hh_member_in_gap
-//===========           in the same way as found_prev_hh_member in gap.  See above.
-//=======================================================================================================================//
 gen found_future_hh_member_in_gap$final_wave = ""
 forvalues wave = $first_wave/$penultimate_wave {
     display "Wave `wave'"
@@ -194,29 +142,29 @@ forvalues wave = $first_wave/$penultimate_wave {
     }
 }
 
+********************************************************************************
+** Purpose:  Compute composition change.  Outputs for each wave are:
+**           comp_change, a flag indicating whether or not there is any composition change;
+**           comp_change_reason, an indicator of why we believe there is a change;
+**           leavers, a string containing the person numbers of those who leave from the child's perspective;
+**          arrivers, a string containing the person numbers of those who arrive from the child's perspective;
+**           stayers, a string containing the person numbers of those who stay from the child's perspective;
 
-//=======================================================================================================================//
-//=========== Purpose:  Compute composition change.  Outputs for each wave are:
-//===========           comp_change, a flag indicating whether or not there is any composition change;
-//===========           comp_change_reason, an indicator of why we believe there is a change;
-//===========           leavers, a string containing the person numbers of those who leave from the child's perspective;
-//===========           arrivers, a string containing the person numbers of those who arrive from the child's perspective;
-//===========           stayers, a string containing the person numbers of those who stay from the child's perspective;
-//===========
-//===========           In general, changes are marked on the first of the two waves that differ.  Thus, when respondent
-//===========           appears at age greater than 0, the change in marked in the wave before respondent appears.
-//===========
-//=========== Logic:  The major cases are:
-//===========         1) Respondent is present in adjacent waves.
-//===========         2) Respondent's first appearance is after wave 1, but age is non-zero (non-birth).
-//===========
-//===========         For each possible case we compute a flag, comp_change_case, indicating whether or not this
-//===========         observation satisfies the conditions to be such a case.  This is for convenience so we don't
-//===========         have to replicate the complicated if condition throughout the code for this case.
-//===========
-//===========         For details about string manipulations and other fancy Stata use, see 
-//===========         "Some notes in implementation" in earlier comments in this file.
-//=======================================================================================================================//
+**           In general, changes are marked on the first of the two waves that differ.  Thus, when respondent
+**           appears at age greater than 0, the change in marked in the wave before respondent appears.
+**
+** Logic:  The major cases are:
+**         1) Respondent is present in adjacent waves.
+**         2) Respondent's first appearance is after wave 1, but age is non-zero (non-birth).
+
+**         For each possible case we compute a flag, comp_change_case, indicating whether or not this
+**         observation satisfies the conditions to be such a case.  This is for convenience so we don't
+**         have to replicate the complicated if condition throughout the code for this case.
+**
+**         For details about string manipulations and other fancy Stata use, see 
+**=         "Some notes in implementation" in earlier comments in this file.
+********************************************************************************
+
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1
 
@@ -225,14 +173,15 @@ forvalues wave = $first_wave/$penultimate_wave {
     *** Start by assuming this wave is not interesting.
     gen comp_change`wave' = .
     gen comp_change_reason`wave' = 0
-    gen leavers`wave' = " "
+
+	gen leavers`wave' = " "
     gen arrivers`wave' = " "
     gen stayers`wave' = " "
 
 
-    //=======================================================================================================================//
-    //=========== Purpose:  Compute composition change when respondent is present in adjacent waves.
-    //=======================================================================================================================//
+    ********************************************************************************
+    ** Function:  Compute composition change when respondent is present in adjacent waves.
+    ********************************************************************************
 
     *** If we have data in both waves, just compare HH members.
     replace comp_change`wave' = (shhadid_members`wave' != shhadid_members`next_wave') if ((!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
@@ -264,17 +213,15 @@ forvalues wave = $first_wave/$penultimate_wave {
 
     drop comp_change_case
 
-
-
-    //=======================================================================================================================//
-    //=========== Purpose:  Compute composition change for respondent's first appearance when not a birth.
-    //===========           The change is marked in this wave if the appearance is in the following wave,
-    //===========           consistent with our choice of marking a change of state in the first wave of the two that differ.
-    //===========
-    //===========           Note that we propagate age and weight back from the wave in which respondent appears to the
-    //===========           wave at which we mark the change.  This is necessary because there is no age and weight data
-    //===========           in the wave where respondent is missing.  It's not ideal, but it's adequate.
-    //=======================================================================================================================//
+    *******************************************************************************
+    ** Purpose:  Compute composition change for respondent's first appearance when not a birth.
+    **           The change is marked in this wave if the appearance is in the following wave,
+    **           consistent with our choice of marking a change of state in the first wave of the two that differ.
+    **
+    **           Note that we propagate age and weight back from the wave in which respondent appears to the
+    **           wave at which we mark the change.  This is necessary because there is no age and weight data
+    **           in the wave where respondent is missing.  It's not ideal, but it's adequate.
+    *******************************************************************************
 
     *** If next wave is ego's first and it's not a birth (age > 0), it's a change.
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
@@ -381,62 +328,17 @@ forvalues wave = $first_wave/$penultimate_wave {
         drop my_hh_member
     }
 
-    drop comp_change_case
+
 
     * Add zeros for comp_change if needed.  We need to confirm this is what we want.  We set to zero if comp_change and ego was present this wave and this is not ego's last wave.
     replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(SHHADID`wave') & (`wave' != my_last_wave)))
 
     label values comp_change_reason`wave' comp_change_reason
+	
+	drop comp_change_case
 }
 
-
-
-/*** For now, don't.
-* Compute address change.
-forvalues wave = $first_wave/$penultimate_wave {
-    local next_wave = `wave' + 1
-
-    * Start by assuming this wave is not interesting.
-    gen addr_change`wave' = .
-
-    * If we have data in both waves, just compare HH members.
-    replace addr_change`wave' = (SHHADID`wave' != SHHADID`next_wave') if ((!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
-
-    * If we are moving from a wave in which ego is missing to one in which ego is present
-    * there is an address change if we have seen the future SHHADID in the gap during which ego was missing
-    * UNLESS this is ego's birth.
-    * We also need to populate age and weight from the next wave since ego has no data in this wave.
-    replace addr_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
-    replace adj_age`wave' = adj_age`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
-    replace WPFINWGT`wave' = WPFINWGT`next_wave' if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (found_future_SHHADID_in_gap`wave' == 1))
-    * Undo those changes if this is birth.
-    replace addr_change`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
-    replace adj_age`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
-    replace WPFINWGT`wave' = . if ((`next_wave' == my_first_wave) & (adj_age`next_wave' == 0))
-
-    * If we are moving from a wave in which ego is present to one in which ego is missing
-    * there is an address change if we have seen the current SHHADID in the gap 
-    * during which ego is missing as we look forward.
-    replace addr_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (found_prev_SHHADID_in_gap`next_wave' == 1))
-
-    * If we are moving from a wave in which ego is present to one in which ego is missing
-    * and we do not see the current SHHADID in the gap looking forward,
-    * we compare the current SHHADID to the future SHHADID as if we move into the
-    * future household in the first missing wave, unless there is no future SHHADID
-    * (ego's last appearance).
-    replace addr_change`wave' = (SHHADID`wave' != future_SHHADID`next_wave') if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (!missing(future_SHHADID`next_wave')) & (found_prev_SHHADID_in_gap`next_wave' != 1))
-
-
-    * Tab "original" addr_change and comp_change variables.
-    tab addr_change`wave' comp_change`wave', m
-
-    * Now fix them up to have the same denominator.  Set to zero if missing and the other variable is not missing.
-    replace addr_change`wave' = 0 if (missing(addr_change`wave') & (!missing(comp_change`wave')))
-    replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(addr_change`wave')))
-
-    tab addr_change`wave' comp_change`wave', m
-}
-***/
+keep SSUID EPPPNUM SHHADID* arrivers* leavers* stayers* comp_change* comp_change_reason* adj_age* 
 
 save "$tempdir/hh_change_for_relationships", $replace
 
