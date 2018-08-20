@@ -7,6 +7,8 @@
 
 use "$tempdir/hh_change_for_relationships"
 
+keep SSUID EPPPNUM SHHADID* arrivers* leavers* stayers* comp_change* comp_change_reason* adj_age* 
+
 reshape long SHHADID adj_age arrivers leavers stayers comp_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
 gen have_arrivers = (indexnot(arrivers, " ") != 0)

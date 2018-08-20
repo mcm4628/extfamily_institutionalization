@@ -338,10 +338,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 	drop comp_change_case
 }
 
-keep SSUID EPPPNUM SHHADID* arrivers* leavers* stayers* comp_change* comp_change_reason* adj_age* 
-
 save "$tempdir/hh_change_for_relationships", $replace
-
 
 *** TODO:  Fix bugs:
 * Omit self from lists of stayers, arrivers, leavers.
