@@ -68,23 +68,27 @@ if `r(confirmdir)' {
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves  
 
 ** This do-file makes sub-datasets for analyses.
+** Includes demographic variables like race-ethnicity and maternal education
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets 
 
 ** This do-file generates a wide dataset by person (includes demographic information). 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide 
 
-** This do-file makes sure ages are consistent in all the waves. 
+** This do-file makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages 
 
-** This do-file computes biderectional base relationships (mom, dad, child) 
+** This do-file computes biderectional base relationships (mom, dad, child, spouse) 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships 
 
-** This do file computes secondary relationships. 
+** This do file identifies additional relationships transitively
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships 
+
+** This do file identies one consistent relationship between every pair
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relationships_across_waves 
 
 /** to be completed **/
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_for_relationships 
 
-** This program computes unified relationships. 
+** This program links household changers and stayers to relationships data. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_with_relationships 
 
