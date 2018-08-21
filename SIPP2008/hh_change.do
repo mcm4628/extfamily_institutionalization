@@ -1,4 +1,11 @@
-use "$tempdir/hh_change_for_relationships", clear
+//==============================================================================
+//===== Children's Household Instability Project                                                    
+//===== Dataset: SIPP2008                                                                               
+//===== Purpose: Create a database with comp_change, addr_change, and sociodemographic characteristics
+//=====   Note: this code depends on macros set in project_macros and create_comp_change
+//==============================================================================
+
+use "$tempdir/comp_change.dta", clear
 
 ********************************************************************************
 * Function Propagate shhadid_members forard into prev_SHHADID for missing waves.
@@ -22,8 +29,6 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
     gen future_SHHADID`wave' = SHHADID`next_wave' if (missing(SHHADID`wave') & missing(future_SHHADID`next_wave'))
     replace future_SHHADID`wave' = future_SHHADID`next_wave' if (missing(SHHADID`wave') & (!missing(future_SHHADID`next_wave')))
 }
-
-
 
 ********************************************************************************
 ** Function: walk backward through the waves and for each wave in which ego is missing  compare prev_SHHAIDD to see if we find anyone
@@ -108,23 +113,13 @@ forvalues wave = $first_wave/$penultimate_wave {
 keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* 
 
 *add in own demographics
-merge 1:1 SSUID EPPPNUM using "$tempdir\person_wide.dta", keepusing(my_race, my_sex)
+merge 1:1 SSUID EPPPNUM using "$tempdir\person_wide.dta"
 
-drop _merge
+drop _merge EPN* ERRP* ETYP* TAGE* shhadid_* max_shhadid_* ssuid_members* max_ssuid_* ssuid_shhadid* max_ssuid_sh*
 
-reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
+reshape long SHHADID adj_age comp_change addr_change comp_change_reason EMS mom_educ dad_educ mom_immigrant WPFINWGT, i(SSUID EPPPNUM) j(SWAVE)
 
-rename EPPPNUM pdemo_epppnum
-
-* add in parental characteristics
-merge 1:1 SSUID pdemo_epppnum SWAVE using "$tempdir\person_pdemo.dta"
-
-rename pdemo_epppnum EPPPNUM
-
-drop _merge
-
- 
-merge 1:1 SSUID EPPPNUM using "$tempdir\person_wide.dta", keepusing(my_race*, my_sex)
-
+gen hh_change=comp_change
+replace hh_change=1 if addr_change==1
 
 save "$tempdir\hh_change.dta", $replace
