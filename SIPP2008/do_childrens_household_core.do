@@ -74,6 +74,7 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxili
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide 
 
 ** Makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
+* Also produces demo_wide and demo_long data files
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages 
 
 ** Computes biderectional base relationships (mom, dad, child, spouse) 

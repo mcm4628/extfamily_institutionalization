@@ -174,4 +174,7 @@ tab rel_is_ever_sibling sibflag
 drop group /*group can be dropped now */
  
 **drop relationship* rel_instances* total_instances rels
+
+do "$sipp2008_code/simple_rel_label" 
+
 save "$tempdir/unified_rel", $replace

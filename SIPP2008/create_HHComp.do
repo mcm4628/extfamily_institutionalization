@@ -56,7 +56,7 @@ tab unified_rel, m
 * in many cases you'll collapse by hh (SSUID SHHADID SWAVE) to identify HH composition
 * for example, collapse to see if ego is grandchild to anyone in the household
 
-save "$tempdir\HHComp.dta"
+save "$tempdir\HHComp.dta", $replace
 
 
 

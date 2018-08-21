@@ -128,16 +128,6 @@ tab childageproblem
 
 tab ageproblem any_adj_problem
 
-preserve
-
-drop if ageproblem==0
-
-keep TAGE* adj_age* expected_age_fwd* expected_age_bkwd* monotonic childageproblem
-
-save "$tempdir\ageproblem", $replace
-
-restore
-
 drop curr_age
 drop expected_age_bkwd* expected_age_fwd*
 drop adjbkwd* adjfwd*
@@ -148,12 +138,13 @@ drop anyproblem
 drop any_adj_problem
 drop TAGE*
 
-
-
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM adj_age*
-reshape long adj_age, i(SSUID EPPPNUM) j(SWAVE)
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age*
+
+save "$tempdir/demo_wide.dta", $replace
+
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant, i(SSUID EPPPNUM) j(SWAVE)
 
 label variable adj_age "Adjusted Age"
-save "$tempdir/adjusted_ages_long", $replace
+save "$tempdir/demo_long", $replace
