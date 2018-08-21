@@ -1,8 +1,7 @@
 * For Table 1 of HHstability paper
 * Run do_all (or at least project_macros) before executing.
 
-use "$tempdir/examine_hh", clear
-
+use "$tempdir/HH_Comp", clear
 
 keep if from_age < $adult_age
 
@@ -29,7 +28,7 @@ putexcel set "$results/ChildHHComp.xlsx", sheet(2008) modify
 
 tab simplified_rel [aweight=WPFINWGT], matcell(rels)
 
-local rellables "Grandparent Grandparent Grandchild Sibling Other_rel Other_rel_P Parent Non-Relative Child Confused DK"
+local rellables "GRANDCHILD GRANDCHILD_P GRANDPARENT SIBLING CHILD F_PARENT PARENT OTHER_REL OTHER_REL_P NOREL CONFUSED DONTKNOW"
 
 putexcel A1="Table 1. Relationships of Household members to Children"
 putexcel A2=("Relationship") B2=("Total") C2=("Race-Ethnicity") H2=("Mother's Education")
