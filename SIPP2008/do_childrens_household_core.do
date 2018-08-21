@@ -1,9 +1,8 @@
 //==============================================================================//
 //===== Children's Household Instability Project
 //===== Dataset: SIPP2008
-//===== Purpose: Executes do files to create base datafiles:
-//===== allwaves, shhadid_members, adjusted_ages_long, and unified_rel
-
+//===== Purpose: Executes do files to create core datafiles:
+//===== 
 
 //=========================================================================//
 //== Purpose: Preparation for running the program.
@@ -64,31 +63,36 @@ if `r(confirmdir)' {
 ********************************************************************************
 * Execute scripts to process data.
 ********************************************************************************
-** This do-file combines all the waves. 
+** Combines all the waves. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves  
 
-** This do-file makes sub-datasets for analyses.
-** Includes demographic variables like race-ethnicity and maternal education
+** Makes sub-datasets for analyses.
+** Includes file for maternal and parental characteristics like education and immigration status
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets 
 
-** This do-file generates a wide dataset by person (includes demographic information). 
+** Generates a wide dataset by person (includes static demographic variables). 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide 
 
-** This do-file makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
+** Makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages 
 
-** This do-file computes biderectional base relationships (mom, dad, child, spouse) 
+** Computes biderectional base relationships (mom, dad, child, spouse) 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships 
 
-** This do file identifies additional relationships transitively
+** Identifies additional relationships transitively
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships 
 
-** This do file identies one consistent relationship between every pair
+** Identifies one consistent relationship between every pair of coresident individuals
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relationships_across_waves 
 
-/** to be completed **/
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_for_relationships 
+** Creates a variable to measuer change in household composition.
+** Also creates lists of people who arrive/leave or stay in ego's household
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_comp_change 
 
-** This program links household changers and stayers to relationships data. 
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change_with_relationships 
+** Creates addr_change and hh_change. Converts data file to long. Core file: hh_change.dta
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change 
+
+** Links ego's household arrivers and stayers (in comp_change) 
+** to relationships data created by unify_relationships_across_waves. 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" comp_change_with_relationships 
 
