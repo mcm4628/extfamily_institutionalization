@@ -1,10 +1,10 @@
-//============================================================================================================================//
+//==============================================================================
 //===== Children's Household Instability Project                                                    
 //===== Dataset: SIPP2008                                                                               
 //===== Purpose: Create a wide database by person (SSUID EPPPNUM) including variables describing parental characteristics, race and sex. 
 //===== Logic: This file generates variables indicating the first and last wave numbers in which this person is encountered.
 //=====        Also, generates a single value for race and sex even though for some people reports vary across waves.
-//============================================================================================================================//
+//==============================================================================
  
 use "$tempdir/allwaves", clear  
 
@@ -42,7 +42,7 @@ rename educ dad_educ
 rename immigrant dad_immigrant
 
 label var dad_educ "Father's educational level"
-label var mom_immigrant "Father's immigration status"
+label var dad_immigrant "Father's immigration status"
 
 *Make the dataset wide by wave (15 waves).
 
@@ -158,12 +158,8 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
     replace my_first_wave = `wave' if (!missing(SHHADID`wave'))
 }
 
-* Note: Keep a temp version with all the original data so we can confirm correctness of our normalizing computations.
-save "$tempdir/person_wide_debug", $replace
-
 drop ERACE* race* ESEX*
 drop any_race_diff any_sex_diff sex*
-drop EBORNUS* EORIGIN*
 
 save "$tempdir/person_wide", $replace
 
