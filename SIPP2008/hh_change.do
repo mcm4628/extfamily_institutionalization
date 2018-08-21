@@ -1,8 +1,66 @@
 use "$tempdir/hh_change_for_relationships", clear
 
+********************************************************************************
+* Function Propagate shhadid_members forard into prev_SHHADID for missing waves.
+********************************************************************************
+
+gen prev_SHHADID$first_wave = .
+forvalues wave = $second_wave/$final_wave {
+    local prev_wave = `wave' - 1
+    gen prev_SHHADID`wave' = SHHADID`prev_wave' if (missing(SHHADID`wave') & missing(prev_SHHADID`prev_wave'))
+    replace prev_SHHADID`wave' = prev_SHHADID`prev_wave' if (missing(SHHADID`wave') & (!missing(prev_SHHADID`prev_wave')))
+}
+
+
+********************************************************************************
+** Function:  Propagate shhadid_members backward into future_hh_members for missing waves.  
+********************************************************************************
+
+gen future_SHHADID$final_wave = .
+forvalues wave = $penultimate_wave (-1) $first_wave {
+    local next_wave = `wave' + 1
+    gen future_SHHADID`wave' = SHHADID`next_wave' if (missing(SHHADID`wave') & missing(future_SHHADID`next_wave'))
+    replace future_SHHADID`wave' = future_SHHADID`next_wave' if (missing(SHHADID`wave') & (!missing(future_SHHADID`next_wave')))
+}
+
+
+
+********************************************************************************
+** Function: walk backward through the waves and for each wave in which ego is missing  compare prev_SHHAIDD to see if we find anyone
+********************************************************************************
+
+gen found_prev_SHHADID$first_wave = .
+forvalues wave = $final_wave (-1) $second_wave {
+	gen found_prev_SHHADID`wave'= 0 if (missing(SHHADID`wave'))
+	gen found_prev_SHHADID_in_gap`wave'=0 if (missing(SHHADID`wave'))
+	replace found_prev_SHHADID`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(prev_SHHADID`wave') + " ") != 0))
+	replace found_prev_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(prev_SHHADID`wave') + " ") !=0))
+	if (`wave' < $final_wave) {
+		local next_wave = `wave' + 1
+		replace found_prev_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_prev_SHHADID_in_gap`next_wave' == 1))
+	}
+}
+
+********************************************************************************
+** Function: walk forward through the waves 
+********************************************************************************
+
+gen found_future_SHHADID$final_wave = .
+forvalues wave = $first_wave/$penultimate_wave {
+	gen found_future_SHHADID`wave'= 0 if (missing(SHHADID`wave'))
+	gen found_future_SHHADID_in_gap`wave'=0 if (missing(SHHADID`wave'))
+	replace found_future_SHHADID`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(prev_SHHADID`wave') + " ") != 0))
+	replace found_future_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (strpos(ssuid_shhadid`wave', " " + string(prev_SHHADID`wave') + " ") !=0))
+	if (`wave' > $final_wave) {
+		local prev_wave = `wave' - 1
+		replace found_future_SHHADID_in_gap`wave' = 1 if ((missing(SHHADID`wave')) & (found_future_SHHADID_in_gap`prev_wave' == 1))
+	}
+}
+
 *******************************************************************************
 ** Function: Compute address change.
 *******************************************************************************
+
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1
 
@@ -47,13 +105,26 @@ forvalues wave = $first_wave/$penultimate_wave {
     tab addr_change`wave' comp_change`wave', m
 }
 
-reshape long SHHADID adj_age arrivers leavers stayers comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
+keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* 
+
+*add in own demographics
+merge 1:1 SSUID EPPPNUM using "$tempdir\person_wide.dta", keepusing(my_race, my_sex)
+
+drop _merge
+
+reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
+
+rename EPPPNUM pdemo_epppnum
 
 * add in parental characteristics
-merge 1:1 SSUID EPPPNUM using "$tempdir\pdemo.dta"
+merge 1:1 SSUID pdemo_epppnum SWAVE using "$tempdir\person_pdemo.dta"
 
-*add in own demographics 
-merge 1:1 SSUID EPPPNUM using "tempdir\person_wide.dta", keepusing(my_race*, my_sex)
+rename pdemo_epppnum EPPPNUM
+
+drop _merge
+
+ 
+merge 1:1 SSUID EPPPNUM using "$tempdir\person_wide.dta", keepusing(my_race*, my_sex)
 
 
 save "$tempdir\hh_change.dta", $replace
