@@ -29,7 +29,7 @@ rename educ mom_educ
 rename immigrant mom_immigrant
 rename page mom_age
 
-gen biomom_age=page if ETYPMOM==1
+gen biomom_age=mom_age if ETYPMOM==1
 
 label var mom_educ "Mother's (bio, step, adopt) educational level (this wave)"
 label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wave)"
@@ -47,7 +47,7 @@ rename educ dad_educ
 rename immigrant dad_immigrant
 rename page dad_age
 
-gen biodad_age=page if ETYPDAD==1
+gen biodad_age=dad_age if ETYPDAD==1
 
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
 label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wave)"
