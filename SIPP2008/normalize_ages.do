@@ -140,11 +140,13 @@ drop TAGE*
 
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age*
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race ///
+my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* ///
+biomom_age* dad_age* biodad_age*
 
 save "$tempdir/demo_wide.dta", $replace
 
-reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant, i(SSUID EPPPNUM) j(SWAVE)
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age, i(SSUID EPPPNUM) j(SWAVE)
 
 label variable adj_age "Adjusted Age"
 save "$tempdir/demo_long", $replace

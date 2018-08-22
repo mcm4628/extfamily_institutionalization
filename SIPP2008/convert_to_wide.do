@@ -27,9 +27,14 @@ drop _merge
 drop pdemo_epppnum
 rename educ mom_educ
 rename immigrant mom_immigrant
+rename page mom_age
+
+gen biomom_age=page if ETYPMOM==1
 
 label var mom_educ "Mother's (bio, step, adopt) educational level (this wave)"
 label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wave)"
+label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
+label var biomom_age "Age of coresident biological mother if present (uncleaned)"
 
 * rename EPNMOM to educ_eppnum for merging
 recode EPNDAD (9999 = .), gen(pdemo_epppnum)
@@ -40,15 +45,21 @@ drop _merge
 drop pdemo_epppnum
 rename educ dad_educ
 rename immigrant dad_immigrant
+rename page dad_age
+
+gen biodad_age=page if ETYPDAD==1
 
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
 label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wave)"
+label var dad_age "Father's (bio, step, adoptive) Age (uncleaned)"
+label var biomom_age "Age of coresident biological father if present (uncleaned)"
 
 *Make the dataset wide by wave (15 waves).
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant shhadid_member_ages shhadid_members max_shhadid_members shhadid_adults max_shhadid_adults shhadid_children max_shhadid_children"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age ///
+shhadid_member_ages shhadid_members max_shhadid_members shhadid_adults max_shhadid_adults shhadid_children max_shhadid_children"
 local extra_vars "overall_max_shhadid_members overall_max_shhadid_adults overall_max_shhadid_children"
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
 reshape wide `wide_vars', i(`i_vars') j(`j_vars')

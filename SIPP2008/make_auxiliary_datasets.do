@@ -229,7 +229,7 @@ save "$tempdir/ssuid_shhadid_wide", $replace
 
 
 //================================================================================//
-//== Purpose: Create a dataset with education and immigration status for merging 
+//== Purpose: Create a dataset with education, immigration status, and age for merging 
 //== 
 //== Logic: Rename EPPPNUM to later merge onto person number of mother (EPNMOM) 
 //==        and father (EPNDAD) to get parents' educ and immigration status in the analysis dataset.
@@ -241,8 +241,8 @@ local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
 
 
-keep `i_vars' `j_vars' EEDUCATE EBORNUS
-sort `i_vars' `j_vars' EEDUCATE EBORNUS
+keep `i_vars' `j_vars' EEDUCATE EBORNUS TAGE
+sort `i_vars' `j_vars' EEDUCATE EBORNUS TAGE
 
 
 ** Label recoded education.
@@ -263,6 +263,7 @@ drop EEDUCATE EBORNUS
 * demo_epppnum will be key to merge with epnmom and epndad to get parent education onto
 * ego's record
 rename EPPPNUM pdemo_epppnum
+rename TAGE page /* page for "parent age" */
 
 save "$tempdir/person_pdemo", $replace
 
