@@ -91,11 +91,11 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relat
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_comp_change 
 
 ** Creates addr_change and hh_change. Converts data file to long. Core file: hh_change.dta
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" hh_change 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_hh_change 
 
 ** Links ego's household arrivers and stayers (in comp_change) 
 ** to relationships data created by unify_relationships_across_waves. 
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" comp_change_with_relationships 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changer_rels 
 
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
