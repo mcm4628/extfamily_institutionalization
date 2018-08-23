@@ -25,7 +25,7 @@ global max_tc 1
 //     simplified_rel - The name of the variable to be created containing the intermediate simplification of relationships.
 //     ultra_simple_rel - The name of the variable to be created containing the most compact form of relationships.
 //
-//== Note: The program assumes that input_rel uses the value label "realtionships".
+//== Note: The program assumes that input_rel uses the value label "relationships".
 //==============================================================================//
 capture program drop simplify_relationships
 program define simplify_relationships
@@ -39,10 +39,9 @@ program define simplify_relationships
     replace `simplified_rel' = "GRANDPARENT":relationship if inlist(`input_rel', "GRANDPARENT":relationship, "GREATGRANDPARENT":relationship)
     replace `simplified_rel' = "SIBLING":relationship if inlist(`input_rel', "SIBLING":relationship)
     replace `simplified_rel' = "OTHER_REL":relationship if inlist(`input_rel', "OTHER_REL":relationship, "SPOUSE":relationship, "AUNTUNCLE_OR_PARENT":relationship, "AUNTUNCLE":relationship, "NEPHEWNIECE":relationship, "SIBLING_OR_COUSIN":relationship, "CHILD_OR_NEPHEWNIECE":relationship)
-    replace `simplified_rel' = "NOREL":relationship if inlist(`input_rel', "NOREL":relationship, "PARTNER":relationship, "F_CHILD":relationship)
+    replace `simplified_rel' = "NOREL":relationship if inlist(`input_rel', "NOREL":relationship, "PARTNER":relationship)
 
-    replace `simplified_rel' = "F_PARENT":relationship if inlist(`input_rel', "F_PARENT":relationship)
-
+	replace `simplified_rel' = "FOSTER":relationship if inlist(`input_rel', "F_CHILD":relationship, "F_PARENT":relationship, "F_SIB":relationship)
     replace `simplified_rel' = "GRANDCHILD_P":relationship if inlist(`input_rel', "GRANDCHILD_P":relationship)
     replace `simplified_rel' = "GRANDPARENT_P":relationship if inlist(`input_rel', "GRANDPARENT_P":relationship)
     replace `simplified_rel' = "OTHER_REL_P":relationship if inlist(`input_rel', "OTHER_REL_P":relationship)
@@ -50,8 +49,6 @@ program define simplify_relationships
     replace `simplified_rel' = "DONTKNOW":relationship if inlist(`input_rel', "DONTKNOW":relationship)
 
     replace `simplified_rel' = "CONFUSED":relationship if inlist(`input_rel', "CONFUSED":relationship, .a, .m)
-
-
 
     gen `ultra_simple_rel' = .
     label values `ultra_simple_rel' ultra_simple_rel
