@@ -7,16 +7,22 @@
 ****************************************************************************
 use "$tempdir/allwaves"
 
-do "$sipp2008_code/simple_rel_label"
-
 keep SSUID SHHADID EPPPNUM SWAVE ERRP
 
 sort SSUID SHHADID SWAVE
 
 by SSUID SHHADID SWAVE:  gen HHmembers = _N  /* Number the people in the household in each wave. */
 
+* merge in age of other person in the household to save as "to_age"
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long.dta", keepusing(adj_age)
+
+assert _merge==3
+
+drop _merge
+
 rename EPPPNUM relto
 rename ERRP ERRPto
+rename adj_age to_age
 
 save "$tempdir/to", $replace
 
@@ -24,14 +30,8 @@ use "$tempdir/allwaves", clear
 
 keep SSUID SHHADID EPPPNUM SWAVE ERRP
 
-* merge in age of other person in the household to save as "to_age"
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long.dta", keepusing(adj_age)
-
-drop _merge
-
 rename EPPPNUM relfrom
 rename ERRP ERRPfrom
-rename adj_age to_age
 
 joinby SSUID SHHADID SWAVE using "$tempdir/to"  
 
@@ -71,12 +71,16 @@ rename relto to_EPPNUM
 
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long.dta"
 
+drop if _merge==2
+
 drop _merge
 
-tab unified_rel if (adj_age < $adult_age), m
+tab unified_rel, m 
+
+do "$sipp2008_code/simple_rel_label"
 
 ******************************************************************
-** Function: This calls a program defined in "project_macros". 
+** Function: This calls a program "simplify_relationship" defined in "project_macros". 
 ******************************************************************
 simplify_relationships unified_rel simplified_rel ultra_simple_rel
 
@@ -91,20 +95,12 @@ tab unified_rel if (missing(simplified_rel) & (adj_age < $adult_age)), m sort
 tab simplified_rel, m sort
 tab simplified_rel if (adj_age < $adult_age), m sort
 
-sort SWAVE
-by SWAVE:  tab simplified_rel, m sort
-by SWAVE:  tab simplified_rel if (adj_age < $adult_age), m sort
-
-
 tab ultra_simple_rel, m sort
 tab ultra_simple_rel if (adj_age < $adult_age), m sort
 
 * data file with one record per pair of coresident individuals per wave
 * in many cases you'll collapse by hh (SSUID SHHADID SWAVE) to identify HH composition
 * for example, collapse to see if ego is grandchild to anyone in the household
-
-tab to_age
-tab my_sex
 
 save "$tempdir/HHComp.dta", $replace
 
