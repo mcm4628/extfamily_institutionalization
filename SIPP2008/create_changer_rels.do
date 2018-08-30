@@ -94,9 +94,10 @@ foreach changer in leaver arriver {
 
     drop EPPPNUM
     gen EPPPNUM = relto
-    merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long", keepusing(adj_age)
+    merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all", keepusing(adj_age)
     drop if (_merge == 2)
     assert (_merge == 3)
+	
     drop _merge
     drop EPPPNUM
     rename adj_age to_age
@@ -114,8 +115,10 @@ label values change_type change_type
 
 simplify_relationships unified_rel simplified_rel ultra_simple_rel
 
+merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long"
+keep if _merge==3
+
 
 save "$tempdir/changer_rels", $replace
 

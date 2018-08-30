@@ -115,7 +115,9 @@ keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reaso
 
 reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long.dta"
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all.dta"
+
+keep if _merge==3
 
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
