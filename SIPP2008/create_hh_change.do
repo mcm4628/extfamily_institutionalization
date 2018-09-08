@@ -119,6 +119,8 @@ merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all.dta"
 
 keep if _merge==3
 
+drop _merge
+
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
 
