@@ -99,8 +99,10 @@ tab ultra_simple_rel, m sort
 tab ultra_simple_rel if (adj_age < $adult_age), m sort
 
 * data file with one record per pair of coresident individuals per wave
-* in many cases you'll collapse by hh (SSUID SHHADID SWAVE) to identify HH composition
+* in many cases you'll collapse by person (SSUID EPPPNUM SWAVE) to identify HH composition
 * for example, collapse to see if ego is grandchild to anyone in the household
+
+* Note: the file does not include people living alone
 
 save "$tempdir/HHComp.dta", $replace
 
