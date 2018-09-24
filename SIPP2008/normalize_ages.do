@@ -11,7 +11,7 @@ forvalues wave = $first_wave/$final_wave {
 }
 
 ******************************************************************************
-*Function: create expected age variables based on age at first observation and 
+*Section: create expected age variables based on age at first observation and 
 *          aging the person one year every 3 observations or based on last observation
 *          and decrementing one year every 3 observations 
 ******************************************************************************
@@ -63,7 +63,7 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 drop num_curr_age expected_age_bkwd
 
 ********************************************************************************
-* Function: Check backwards and forwards projections against what is coded
+* Section: Check backwards and forwards projections against what is coded
 ********************************************************************************
 
 *** Count the number of times age matches each projection (within one, in the correct direction).
@@ -86,7 +86,7 @@ replace anyproblem=1 if num_fwd_problem > 0 | num_bkwd_problem > 0
 tab anyproblem
 
 ********************************************************************************
-* Function: adjust age to projection if backwards and forwards projection are within 1
+* Section: adjust age to projection if backwards and forwards projection are within 1
 ********************************************************************************
 
 gen adj_age$first_wave = TAGE$first_wave
@@ -104,7 +104,7 @@ forvalues wave = $second_wave/$final_wave {
 * The plan will be to replace adjusted ages when adj_age is missing and expected_age_fwd/expected_age_bkwd are not.
 
 ********************************************************************************
-* Function: Check backwards and forwards projections against adjusted age
+* Section: Check backwards and forwards projections against adjusted age
 ********************************************************************************
 gen num_adjfwd_matches = 0
 gen num_adjbkwd_matches = 0
@@ -122,7 +122,7 @@ gen any_adj_problem=0
 replace any_adj_problem=1 if num_adjfwd_problem > 0 | num_adjbkwd_problem > 0
 
 *******************************************************************************
-* Function: create flags for data that remain problematic. 
+* Section: create flags for data that remain problematic. 
 *******************************************************************************
 
 gen monotonic = 1 /* dpes age always increase? */
@@ -151,18 +151,32 @@ drop anyproblem
 drop any_adj_problem
 drop TAGE*
 
+
+* Create dummies for whether in this interview to be able to create an indicator for whether in interview next wave
+forvalues w=1/15 {
+  gen in`w'=0
+  replace in`w'=1 if !missing(ERRP`w')
+  }
+  
+forvalues w=1/14 {
+  local x=`w'+1
+  gen innext`w'=0
+  replace innext`w'=1 if in`x'==1
+ }
+
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* dad_age* biodad_age*
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* dad_age* biodad_age* innext*
 
 save "$tempdir/demo_wide.dta", $replace
 
-reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age, i(SSUID EPPPNUM) j(SWAVE)
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age innext, i(SSUID EPPPNUM) j(SWAVE)
 
 label variable adj_age "Adjusted Age"
+label variable innext "Is this person interviewed in next wave?"
 
 * now includes all observations, even when missing interview. ERRP is missing when no interview.
-tab ERRP
+tab ERRP,m 
 
 * most important for linking to arrivers who have missing data 
 save "$tempdir/demo_long_all", $replace
