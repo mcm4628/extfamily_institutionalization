@@ -117,11 +117,31 @@ reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all.dta"
 
-keep if _merge==3
-
-drop _merge
+* can't know if change after last observation
+drop if SWAVE==15
 
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
+
+keep if _merge==3
+
+gen insample=0
+* Keep if inthis wave and next
+replace insample=1 if !missing(ERRP) & innext==1
+* also keep if hh_change==1. This would be if not in current wave, but in next one and people you live with in next wave appear while ego is missing.
+* hh_change also ==1 if in current wave and not in next, but some of the people you are living with now appear in "next" wave while ego is missing.
+replace insample=1 if hh_change==1
+
+tab insample hh_change, m
+
+tab ERRP insample, m
+
+tab ERRP hh_change, m
+
+tab innext hh_change, m
+
+drop if insample==0
+
+drop _merge
 
 save "$tempdir\hh_change.dta", $replace
