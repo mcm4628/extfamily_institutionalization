@@ -1,26 +1,27 @@
 //==============================================================================
 //===== Children's Household Instability Project
 //===== Dataset: SIPP2008
-//===== Purpose:  Compute household composition changes for children.  We compute not just the fact of a change, but who
-//=====           changed so that we can examine relationships for those responsible for the changes.
+//===== Purpose:  Compute household composition changes.  We compute not just 
+//=====           the fact of a change, but the id's of who changed so that we 
+//=====           can examine relationships for those responsible for the changes.
 //=====           We segregate leavers from arrivers in case this distinction is relevant.
 //=====           We also compute who stays in the household so we can look at the attributes of stayers.
 //==============================================================================
 
 use "$tempdir/person_wide_adjusted_ages"
 
-drop my_race* my_sex*
+* drop demographic data 
+drop my_race* my_sex* EBORNUS* EMS* EPNDAD* EPNMOM* EPNSPOUS* ERRP* ETYPDAD* ETYPMOM* mom* dad* bio*
 
 ********************************************************************************
-** Function:  Propagate shhadid_members forward into prev_hh_members for missing waves.  This allows us to
-**            know who was in the household with the respondent in the most recent wave during which the
-**            respondent was present.
+** Section:  Propagate shhadid_members (a list of ids of people in ego's address)
+**           forward into prev_hh_members for missing waves.  This allows us to
+**           know who was in the household with the respondent in the most recent 
+**           wave at which the respondent was present.
 
-** Logic:   Walk forward through the waves, starting with the second (there's nothing we could propagate
-**			forward into the first wave).  When the respondent is missing, SHHADID will be missing.
-**          For the first wave of a gap, prev_hh_members for the previous wave will be missing, and we.
-**          copy shhadid_members for the previous wave into prev_hh_members for this wave.
-**	       	For subsequent waves of a continuous gap prev_hh_members for the previous wave will exist
+** Logic:   Walk forward through the waves, starting with the second.  When the respondent is missing, SHHADID will be missing.
+**          We copy shhadid_members for the previous wave into prev_hh_members for the first missing wave.
+**	       	For subsequent waves of a continuous gap (stretch of missing interviews) prev_hh_members for the previous wave will exist
 **        	so we just copy this into prev_hh_members for this wave.
 ********************************************************************************
 
@@ -32,7 +33,7 @@ forvalues wave = $second_wave/$final_wave {
 }
 
 ********************************************************************************
-** Purpose:  Propagate shhadid_members backward into future_hh_members for missing waves.  This allows us to
+** Section:  Propagate shhadid_members backward into future_hh_members for missing waves.  This allows us to
 **          know who will be in the household with the respondent in wave in which the respondent reappears.
 **
 ** Logic:  Very similar to the logic for prev_hh_members except that we walk backward from the penultimate wave.
@@ -46,9 +47,9 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 }
 
 ********************************************************************************
-** Function:  Compute flags indicating if each previous household member is found anywhere during a contiguous
+** Section:  Compute flags indicating whether each previous household member is found anywhere during a contiguous
 **          gap in which the respondent is missing.  The flags are encoded in found_prev_hh_member_in_gap:
-**           if we find a previous household member is found we place a 1 in found_prev_hh_member_in_gap at
+**           if we find a previous household member in the gap we place a 1 in found_prev_hh_member_in_gap at
 **          the same position as the previous household member is found in prev_hh_members.
 **           For example, if prev_hh_members5 is " 102 104 303 " and we have found 102 and 303 in the gap
 **          found_prev_hh_member_in_gap5 will be "1       1    ".  Note the off-by-one positioning
@@ -64,7 +65,7 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 **         previous members).  Copy the flags discovered so far if this is not the last wave of a gap
 **        (since we're walking backward, the last wave of the gap is the first wave we encounter).
 **         If this wave is part of a gap (the respondent is missing), for each previous household member
-**         look to see if that person appears in this wave.  If so, put a 1 at the appropriate position
+**         look to see if that person appears in this wave. If so, put a 1 at the appropriate position
 **         in found_prev_hh_member_in_gap for this wave.  Note that it doesn't hurt to put a 1 there
 **         even if one is already present -- the resulting string is identical to what it already was.
 
@@ -116,7 +117,7 @@ forvalues wave = $final_wave (-1) $second_wave {
 }
 
 ********************************************************************************
-** Function:  Compute flags indicating if each future household member is found anywhere during a contiguous
+** Section:  Compute flags indicating if each future household member is found anywhere during a contiguous
 **           gap in which the respondent is missing.  The flags are encoded in found_future_hh_member_in_gap
 **           in the same way as found_prev_hh_member in gap.  See above.
 ********************************************************************************
@@ -143,7 +144,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 }
 
 ********************************************************************************
-** Purpose:  Compute composition change.  Outputs for each wave are:
+** Section:  Compute composition change.  Outputs for each wave are:
 **           comp_change, a flag indicating whether or not there is any composition change;
 **           comp_change_reason, an indicator of why we believe there is a change;
 **           leavers, a string containing the person numbers of those who leave from the child's perspective;
@@ -180,7 +181,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
     ********************************************************************************
-    ** Function:  Compute composition change when respondent is present in adjacent waves.
+    ** Section:  Compute composition change when respondent is present in adjacent waves.
     ********************************************************************************
 
     *** If we have data in both waves, just compare HH members.
@@ -214,7 +215,7 @@ forvalues wave = $first_wave/$penultimate_wave {
     drop comp_change_case
 
     *******************************************************************************
-    ** Purpose:  Compute composition change for respondent's first appearance when not a birth.
+    ** Section:  Compute composition change for respondent's first appearance when not a birth.
     **           The change is marked in this wave if the appearance is in the following wave,
     **           consistent with our choice of marking a change of state in the first wave of the two that differ.
     **
