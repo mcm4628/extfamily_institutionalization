@@ -1,0 +1,45 @@
+//=========================================================================================//
+//===== Children's experience in poverty               
+//===== Dataset: SIPP2008                                      
+//===== Purpose: This file creates monthly household income measure for children by wave
+//=========================================================================================//
+
+use "$tempdir/person_wide_adjusted_ages", clear
+
+keep SSUID EPPPNUM SHHADID* adj_age* 
+
+reshape long SHHADID adj_age, i(SSUID EPPPNUM) j(SWAVE)
+
+*********************************************************************************
+**  Drop people who were not present in a wave
+*********************************************************************************
+assert (missing(SHHADID) == missing(adj_age)) /*confirms that we're not missing any ages when data is present.*/
+drop if missing(adj_age)
+
+*********************************************************************************
+**  Now merge with the base data to get the income variable 
+********************************************************************************* 
+merge 1:1 SWAVE SSUID EPPPNUM using "$tempdir/allwaves", keepusing(THTOTINC EHHNUMPP WPFINWGT) 
+/* THTOTINC: total household income; EHHNUMPP: total number of persons in the household */
+assert (_merge == 3)
+drop _merge
+
+*********************************************************************************
+**  Keep the sample to children
+********************************************************************************* 
+keep if adj_age < 17
+
+*********************************************************************************
+**  generate poverty indicator
+********************************************************************************* 
+ssc install povguide
+/*povguide generates a numeric variable representing the official U.S. poverty guideline.*/
+
+gen annualinc= THTOTINC*12 /*convert monthly income to annual income*/
+
+povguide, gen(povguide) famsize(EHHNUMPP) year(2008) /*generate poverty line*/
+gen byte pov = annualinc < povguide if ~mi(povguide) & ~mi(annualinc) /*generate poverty indicator 1=in poverty*/
+
+tab pov [aw=WPFINWGT]
+
+save "$tempdir/child_hhincome", $replace
