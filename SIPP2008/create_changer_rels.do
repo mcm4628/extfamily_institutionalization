@@ -80,6 +80,7 @@ foreach changer in leaver arriver stayer {
 }
 
 
+*getting the age of each person so that we can calculate an age difference
 
 foreach changer in leaver arriver {
 	clear
@@ -87,12 +88,11 @@ foreach changer in leaver arriver {
 	
 	use "$tempdir/`changer'_rels"
 
-* Label relationships. 
-    do "$sipp2008_code/simple_rel_label"
-	
     rename adj_age from_age
 
-    drop EPPPNUM
+	drop EPPPNUM
+	
+	* get changer age *
     gen EPPPNUM = relto
     merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all", keepusing(adj_age)
     drop if (_merge == 2)
@@ -101,11 +101,16 @@ foreach changer in leaver arriver {
     drop _merge
     drop EPPPNUM
     rename adj_age to_age
-}
+	
+	* bring back ego's person number
+	rename relfrom EPPPNUM
+	
+	save "$tempdir/`changer'_rels_withage", $replace
+}    
 
 gen change_type=1
 
-append using "$tempdir/leaver_rels"
+append using "$tempdir/leaver_rels_withage"
 replace change_type=2 if missing(change_type)
 
 label variable change_type "Indicator for whether this person arrive in or left from ego's household"
@@ -113,9 +118,16 @@ label define change_type 1 "arriver" 2 "leaver"
 
 label values change_type change_type 
 
+* Label relationships. 
+do "$sipp2008_code/simple_rel_label"
+
 simplify_relationships unified_rel simplified_rel ultra_simple_rel
 
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
+
+*need to match all leavers and arrivers in the demographic data
+ drop if (_merge == 2)
+ assert (_merge == 3)
 
 keep if _merge==3
 
