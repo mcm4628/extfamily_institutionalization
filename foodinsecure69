@@ -1,0 +1,190 @@
+capture log close
+set more off
+set linesize 80
+clear all
+
+//========================================================================================================//
+//===== Household Instability and Child Food Insecurity Project                               
+//===== Dataset: SIPP2008                                                     
+//===== Purpose: Create an analysis file 
+//===== Author: Yiwen Wang\ 2018-09-24
+//========================================================================================================//
+
+//***extract food security variables from source data wave6***//
+use "$SIPP2008/food insecurity data/sippp08putm6.dta", clear
+
+****generate food insecurity variable 1=foodinsecure******
+recode eafbaln (2=1) (3=2), gen (eafbalnr)
+recode eaflast (2=1) (3=2), gen (eaflastr)
+
+egen fcount=anycount(eafbalnr eaflastr eafless eafskip eafday),v(1)
+recode fcount (1=0) (2/5=1), gen (foodins6)
+label values foodins6 foodinsl
+label define foodinsl 0 "food secure" 1 "food insecure"
+
+rename wpfinwgt wpfinwgt6
+keep ssuid epppnum wpfinwgt6 foodins6 
+destring epppnum,replace
+recast float epppnum
+save "$tempdir/food6.dta", $replace
+
+//***extract household size and income info from source data wave6 and merge with food6***//
+use "$SIPP2008/wave6_extract.dta", clear
+keep if SREFMON==1
+rename EHHNUMPP ehhnumpp6
+rename THTOTINC thtotinc6
+rename SSUID ssuid
+rename EPPPNUM epppnum
+
+merge 1:1 ssuid epppnum using "$tempdir/food6.dta"
+rename _merge merge1 
+keep ssuid epppnum wpfinwgt6 ehhnumpp6 thtotinc6 foodins6 merge1
+save "$tempdir/food6.dta", $replace 
+//***not matched=2340(from master=1163;from using=1177)matched=86987***//
+
+//***extract food security variables from source data wave9***//
+use "$SIPP2008/food insecurity data/sippp08putm9.dta", clear
+
+recode eafbaln (2=1) (3=2), gen (eafbalnr)
+recode eaflast (2=1) (3=2), gen (eaflastr)
+
+egen fcount=anycount(eafbalnr eaflastr eafless eafskip eafday),v(1)
+recode fcount (1=0) (2/5=1), generate (foodins9)
+label values foodins9 foodinsl
+label define foodinsl 0 "food secure" 1 "food insecure"
+
+rename wpfinwgt wpfinwgt9
+keep ssuid epppnum wpfinwgt9 foodins9 
+destring epppnum,replace
+recast float epppnum
+save "$tempdir/food9.dta", $replace
+
+//***extract household size and income info from source data wave6 and merge with food9***//
+use "$SIPP2008/wave9_extract.dta", clear
+keep if SREFMON==1
+rename EHHNUMPP ehhnumpp9
+rename THTOTINC thtotinc9
+rename SSUID ssuid
+rename EPPPNUM epppnum
+
+merge 1:1 ssuid epppnum using "$tempdir/food9.dta"
+rename _merge merge2
+keep ssuid epppnum wpfinwgt9 ehhnumpp9 thtotinc9 foodins9 merge2 
+//***not matched=2040;from master=1093;from using=947;matched=81313***//
+
+***merge with food6.dta***
+merge 1:1 ssuid epppnum using "$tempdir/food6.dta"
+rename _merge merge3
+save "$tempdir/food69.dta", $replace 
+//***not matched=26428(from master=10227;from using=16201);matched=73126***//
+
+//***extract and compute household instability variables for wave6-9 from hhchange.dta***//
+use "$tempdir/hh_change.dta", clear
+
+***calculate number of changes experienced between wave 6&9***
+gen nmis_compchange69=0 
+gen numchange69=0
+
+forvalues i=6/8 {
+	replace nmis_compchange69=nmis_compchange69+1 if missing(comp_change`i')
+	replace numchange69=numchange69+1 if comp_change`i'==1
+}
+
+
+***drop cases that don't appear in the data between wave6&9***
+drop if nmis_compchange69==3
+
+egen child_enters69=anycount ( child_enter6 child_enter7 child_enter8 ), v(1)
+egen adult_enters69=anycount ( adult_enter6 adult_enter7 adult_enter8 ), v(1)
+egen adult_exits69=anycount ( adult_exit6 adult_exit7 adult_exit8 ), v(1)
+egen child_exits69=anycount ( child_exit6 child_exit7 child_exit8 ), v(1)
+egen child_changes69=anycount ( child_change6 child_change7 child_change8 ), v(1)
+egen adult_changes69=anycount ( adult_change6 adult_change7 adult_change8 ), v(1)
+egen addrchanges69=anycount (addr_change6 addr_change7 addr_change8 ), v(1)
+
+***create indicators of whether experienced any change/missing compchange/child change/adult change/address change
+//child enter/child exit/adult enter/adult exit***
+gen anychange69=numchange69
+recode anychange69 2/max=1
+gen anymischange69=nmis_compchange69
+recode anymischange69 2/max=1
+gen anycchange69=child_changes69
+recode anycchange69 2/max=1
+gen anyachange69=adult_changes69
+recode anyachange69 2/max=1
+gen anyaddrchange69=addrchanges69
+recode anyaddrchange69 2/max=1
+gen anycenters69=child_enters69
+recode anycenters69 2/max=1
+gen anycexits69=child_exits69
+recode anycexits69 2/max=1
+gen anyaenters69=adult_enters69
+recode anyaenters69 2/max=1
+gen anyaexits69=adult_exits69
+recode anyaexits69 2/max=1
+
+rename SSUID ssuid
+rename EPPPNUM epppnum
+keep ssuid epppnum adj_age9 mom_educ9 my_race my_sex anychange69 anymischange69 anycchange69 ///
+anyachange69 anyaddrchange69 anycenters69 anycexits69 anyaenters69 anyaexits69
+
+***merge with food69.dta***
+merge 1:1 ssuid epppnum using "$tempdir/food69.dta"
+rename _merge merge4
+//***not matched=74157(from master=650;from using=73507);matched=26047***//
+save "$tempdir/food_hhchange69.dta", $replace
+
+//***disentangle changers' relationships to children between wave 6 and 9***//
+use "$tempdir/simpler_leaver_and_arriver_rels", clear
+
+keep if SWAVE==6|SWAVE==7|SWAVE==8
+keep if from_age < 18
+rename relfrom EPPPNUM
+
+sort SSUID EPPPNUM SWAVE
+by SSUID EPPPNUM: gen i=_n
+keep SSUID EPPPNUM ultra_simple_rel i
+reshape wide ultra_simple_rel, i(SSUID EPPPNUM) j(i)
+***create flags for any change of parents, siblings, grandparents, other adults and other chilren***
+egen anyparent69=anymatch(ultra_simple_rel*), v(1)
+egen anysibling69=anymatch(ultra_simple_rel*), v(2)
+egen anygrandparent69=anymatch(ultra_simple_rel*), v(3)
+egen anyotheradult69=anymatch(ultra_simple_rel*), v(4)
+egen anyotherchild69=anymatch(ultra_simple_rel*), v(5)
+
+keep SSUID EPPPNUM anyparent69 anysibling69 anygrandparent69 anyotheradult69 anyotherchild69
+rename SSUID ssuid
+rename EPPPNUM epppnum
+save "$tempdir/relflags", $replace
+
+***merge with relationship flags****
+use "$tempdir/food_hhchange69.dta", clear
+merge 1:1 ssuid epppnum using "$tempdir/relflags"
+rename _merge merge5
+//***not matched=94477(from master=94477;from using=0);matched=5727***//
+keep if adj_age9<=16 
+//****sample size 18130***//
+recode anyparent69 .=0 if anychange69==0
+recode anysibling69 .=0 if anychange69==0
+recode anygrandparent69 .=0 if anychange69==0
+recode anyotheradult69 .=0 if anychange69==0
+recode anyotherchild69 .=0 if anychange69==0
+
+//***adjust household income by FPL***//
+gen hhincome9=.
+replace hhincome9=thtotinc9/10890 if ehhnumpp9==1
+replace hhincome9=thtotinc9/14710 if ehhnumpp9==2
+replace hhincome9=thtotinc9/18530 if ehhnumpp9==3
+replace hhincome9=thtotinc9/22350 if ehhnumpp9==4
+replace hhincome9=thtotinc9/26170 if ehhnumpp9==5
+replace hhincome9=thtotinc9/29990 if ehhnumpp9==6
+replace hhincome9=thtotinc9/33810 if ehhnumpp9==7
+replace hhincome9=thtotinc9/37630 if ehhnumpp9==8
+replace hhincome9=thtotinc9/41450 if ehhnumpp9==9
+replace hhincome9=thtotinc9/45270 if ehhnumpp9==10
+replace hhincome9=thtotinc9/49090 if ehhnumpp9==11
+replace hhincome9=thtotinc9/52910 if ehhnumpp9==12
+replace hhincome9=thtotinc9/56730 if ehhnumpp9==13
+replace hhincome9=thtotinc9/60550 if ehhnumpp9==14
+replace hhincome9=thtotinc9/64370 if ehhnumpp9==15
+save "$tempdir/food9rel.dta", $replace
