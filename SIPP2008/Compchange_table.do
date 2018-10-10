@@ -1,8 +1,21 @@
 * Creates an excel spreadsheet with tables for estimates of composition change for total and by race-ethnicity and by householder education
 
-global results "$projdir/Results and Papers/Household Instability (PAA17)"
+use "$tempdir/comp_change.dta", clear
+
+merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide.dta"
+
+keep comp_change* adj_age* biomom_age* WPFINWGT* my_race mom_educ* SSUID EPPPNUM  
+
+reshape long adj_age comp_change comp_change_reason WPFINWGT biomom_age mom_educ, i(SSUID EPPPNUM) j(SWAVE)
 
 keep if adj_age < $adult_age
+
+* this doesn't really matter since comp_change is missing if SWAVE==15
+drop if SWAVE==15
+
+tab comp_change
+
+global results "$projdir/Results and Papers/Household Instability (PAA17)"
 
 putexcel set "$results/HHChange.xlsx", sheet(CompchangeRaw) modify
 
