@@ -84,9 +84,9 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_bas
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships 
 
 ** Identifies one consistent relationship between every pair of coresident individuals
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relationships_across_waves 
+*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relationships_across_waves 
 
-** Creates a variable to measuer change in household composition.
+** Creates a variable to measure change in household composition.
 ** Also creates lists of people who arrive/leave or stay in ego's household
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_comp_change 
 
@@ -97,8 +97,11 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_hh_c
 ** to relationships data created by unify_relationships_across_waves. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changer_rels 
 
+** Merges relationship of changers to ego back to comp_change
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changebytype 
+
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
 ** households of children, need to collapse by SSUID SHHADID and SWAVE and then select if adj_age < 18
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_HHComp
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_HHComp_asis
 

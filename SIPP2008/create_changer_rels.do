@@ -54,7 +54,7 @@ foreach changer in leaver arriver stayer {
 }
 
 ********************************************************************************
-* Linking those who experience a composition change to unified relationships 
+* Linking those who experience a composition change to relationships
 ********************************************************************************
 
 foreach changer in leaver arriver stayer {
@@ -64,18 +64,18 @@ foreach changer in leaver arriver stayer {
     drop if missing(`changer')
     gen relfrom = EPPPNUM
     destring `changer', gen(relto)
-    merge m:1 SSUID relfrom relto using "$tempdir/unified_rel", keepusing(unified_rel)
+    merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave", keepusing(relationship)
 	
 	display "deleting relationships to self"
 	drop if relfrom==relto
 
-	replace unified_rel=40 if _merge==1
+	replace relationship=40 if _merge==1
 
     drop if _merge == 2
     drop _merge
 
-    display "Unified relationships for `changer's"
-    tab unified_rel, m sort
+    display "Relationships for `changer's"
+    tab relationship, m sort
     save "$tempdir/`changer'_rels", $replace
 }
 
@@ -121,7 +121,16 @@ label values change_type change_type
 * Label relationships. 
 do "$sipp2008_code/simple_rel_label"
 
-simplify_relationships unified_rel simplified_rel ultra_simple_rel
+gen bioparent=1 if relationship==1
+gen parent=1 if inlist(relationship,1,4,7,19,20,21,30,31,38)
+gen sibling=1 if inlist(relationship, 17,33,34)
+gen child=1 if inlist(relationship,2,3,5,6,8,9,10,11,22,23,25,26)
+gen spartner=1 if inlist(relationship,12,18)
+gen nonrel=1 if relationship==37
+gen grandparent=1 if inlist(relationship,13,14,27)
+gen other_rel=1 if inlist(relationship, 15,16,24,28,29,32,35)
+gen unknown=1 if relationship==40 | missing(relationship)
+gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
@@ -131,15 +140,6 @@ merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
 keep if _merge==3
 
-
 save "$tempdir/changer_rels", $replace
 
-* Tabulate relatinshps for child. 	
-tab simplified_rel if (adj_age < $adult_age)
-tab ultra_simple_rel if (adj_age < $adult_age)
 
-tab simplified_rel my_race if (adj_age < $adult_age)
-tab ultra_simple_rel my_race if (adj_age < $adult_age)
-
-tab simplified_rel my_race if (adj_age < $adult_age), col
-tab ultra_simple_rel my_race if (adj_age < $adult_age), col
