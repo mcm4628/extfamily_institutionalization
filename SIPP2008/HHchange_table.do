@@ -1,4 +1,5 @@
-* Creates an excel spreadsheet with tables for estimates of HHchange, all inclusive, for total and by race-ethnicity and by householder education
+* Creates an excel spreadsheet with tables for estimates of HHchange, 
+* all inclusive, for total and by race-ethnicity and by householder education
 
 use "$tempdir\hh_change.dta", clear
 
@@ -24,7 +25,7 @@ local racegroups "NHWhite Black Hispanic NHAsian NHOther"
 putexcel E3=("No Change") F3=("Change") G3=("Annual Rate")
 
 forvalues r=1/5 {
-  local rw=(`r'-1)*19+4
+  local rw=(`r'-1)*20+4
   tab adj_age hh_change [aweight=WPFINWGT] if my_race==`r', matcell(agerace`r')
   putexcel E`rw'=matrix(agerace`r')
   forvalues a=1/18 {
@@ -36,7 +37,7 @@ forvalues r=1/5 {
 putexcel H3=("No Change") I3=("Change") J3=("Annual Rate")
 
 forvalues e=1/4 {
-  local rw=(`e'-1)*19+4
+  local rw=(`e'-1)*20+4
   tab adj_age hh_change [aweight=WPFINWGT] if mom_educ==`e', matcell(ageeduc`e')
   putexcel H`rw'=matrix(ageeduc`e')
   forvalues a=1/18 {
