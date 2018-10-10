@@ -1,5 +1,7 @@
 use "$tempdir/comp_change.dta"
 
+merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide.dta"
+
 keep comp_change* adj_age* biomom_age* WPFINWGT* SSUID EPPPNUM  
 
 reshape long adj_age comp_change comp_change_reason WPFINWGT biomom_age, i(SSUID EPPPNUM) j(SWAVE)
