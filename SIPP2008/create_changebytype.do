@@ -17,7 +17,7 @@ local reltyp "parent sib other"
 tab comp_change relationship, m
 
 gen parent_change=1 if comp_change==1 & parent==1
-gen sib_change=1 if comp_change==1 & sibling==2
+gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 
 collapse (max) comp_change parent_change sib_change other_change, by(SSUID EPPPNUM SWAVE)
@@ -26,9 +26,12 @@ merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/comp_change_long.dta"
 
 drop _merge
 
+* set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{
-	replace `r'_change=0 if missing(`r'_change) & comp_change==0
+	replace `r'_change=0 if missing(`r'_change) & !missing(comp_change)
 }
+
+tab parent_change comp_change, m
 
 save "$tempdir/changebytype.dta", $replace
 
