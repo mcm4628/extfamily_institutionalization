@@ -128,9 +128,17 @@ keep if _merge==3
 gen insample=0
 * Keep if inthis wave and next
 replace insample=1 if !missing(ERRP) & innext==1
-* also keep if hh_change==1. This would be if not in current wave, but in next one and people you live with in next wave appear while ego is missing.
-* hh_change also ==1 if in current wave and not in next, but some of the people you are living with now appear in "next" wave while ego is missing.
-replace insample=1 if hh_change==1
+* also keep if hh_change is not missing. This would be (for example) if not in current wave, 
+* but in next one and people you live with in next wave appear while ego is missing.
+* hh_change also ==1 if in current wave and not in next, but some of the people 
+* you are living with now appear in "next" wave while ego is missing.
+* hh_change can =0 if not in next wave but in a subsequent one and everyone ego 
+* is with in this wave is in the household in the next appearence
+replace insample=2 if insample==0 & !missing(hh_change)
+
+gen inwave = !missing(ERRP)
+
+tab inwave
 
 tab insample hh_change, m
 
@@ -144,4 +152,4 @@ drop if insample==0
 
 drop _merge
 
-save "$tempdir\hh_change.dta", $replace
+*save "$tempdir\hh_change.dta", $replace
