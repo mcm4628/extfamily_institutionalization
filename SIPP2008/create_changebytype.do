@@ -1,12 +1,6 @@
-use "$tempdir/comp_change.dta"
+use "$tempdir/hh_change.dta"
 
-merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide.dta"
-
-keep comp_change* adj_age* biomom_age* WPFINWGT* SSUID EPPPNUM  
-
-reshape long adj_age comp_change comp_change_reason WPFINWGT biomom_age, i(SSUID EPPPNUM) j(SWAVE)
-
-save "$tempdir/comp_change_long.dta", $replace
+keep SSUID EPPPNUM SWAVE comp_change hh_change addr_change 
 
 merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling change_type my_race my_race2 my_sex biomom_age)
 
@@ -22,7 +16,7 @@ gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 
 collapse (max) comp_change parent_change sib_change other_change, by(SSUID EPPPNUM SWAVE)
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/comp_change_long.dta"
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/hh_change.dta"
 
 drop _merge
 

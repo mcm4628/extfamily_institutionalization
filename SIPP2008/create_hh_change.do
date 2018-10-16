@@ -104,11 +104,13 @@ forvalues wave = $first_wave/$penultimate_wave {
     * Tab "original" addr_change and comp_change variables.
     tab addr_change`wave' comp_change`wave', m
 
-    * Now fix them up to have the same denominator.  Set to zero if missing and the other variable is not missing.
-    replace addr_change`wave' = 0 if (missing(addr_change`wave') & (!missing(comp_change`wave')))
-    replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(addr_change`wave')))
+    * We once forced them up to have the same denominator by setting to zero if missing and the other variable is not missing.
+	* but this is not appropriate. Sometimes we can know if there was an address change even if we don't know household composition
+	* Keeping this here to document.
+*    replace addr_change`wave' = 0 if (missing(addr_change`wave') & (!missing(comp_change`wave')))
+*    replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(addr_change`wave')))
 
-    tab addr_change`wave' comp_change`wave', m
+*    tab addr_change`wave' comp_change`wave', m
 }
 
 keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* 
@@ -152,4 +154,4 @@ drop if insample==0
 
 drop _merge
 
-*save "$tempdir\hh_change.dta", $replace
+save "$tempdir\hh_change.dta", $replace

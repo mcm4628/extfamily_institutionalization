@@ -1,12 +1,6 @@
 * Creates an excel spreadsheet with tables for estimates of composition change for total and by race-ethnicity and by householder education
 
-use "$tempdir/comp_change.dta", clear
-
-merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide.dta"
-
-keep comp_change* adj_age* biomom_age* WPFINWGT* my_race mom_educ* SSUID EPPPNUM  
-
-reshape long adj_age comp_change comp_change_reason WPFINWGT biomom_age mom_educ, i(SSUID EPPPNUM) j(SWAVE)
+use "$tempdir/hh_change.dta", clear
 
 keep if adj_age < $adult_age
 
