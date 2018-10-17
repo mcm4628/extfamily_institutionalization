@@ -11,7 +11,7 @@
 //=========================================================================//
 
 ***************************************************************************
-** Function: The following code attempts to make sure these packages are installed before allowing execution.
+** Section: The following code attempts to make sure these packages are installed before allowing execution.
 ***************************************************************************
 capture findfile mdesc.ado
 if ("`r(fn)'" == "") {
@@ -28,12 +28,12 @@ if ("`r(fn)'" == "") {
 }
 
 ***************************************************************************
-** Function: Creates macros for wave, age, month, relationships
+** Section: Create macros for wave, age, month, relationships
 ***************************************************************************
 do "$childhh_base_code/SIPP2008/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
-** Function: Check to make sure the required directories exist.
+** Section: Check to make sure the required directories exist.
 ***************************************************************************
 
 if ("$sipp2008_code" == "") {
@@ -61,9 +61,9 @@ if `r(confirmdir)' {
 }
 
 ********************************************************************************
-* Execute scripts to process data.
+* Section: Execute scripts to process data.
 ********************************************************************************
-** Combines all the waves. 
+** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves  
 
 ** Makes sub-datasets for analyses.
@@ -77,13 +77,14 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_
 * Also produces demo_wide and demo_long data files
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages 
 
-** Computes biderectional base relationships (mom, dad, child, spouse) 
+** Computes bidirectional base relationships (mom, dad, child, spouse) 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships 
 
 ** Identifies additional relationships transitively
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_secondary_relationships 
 
 ** Identifies one consistent relationship between every pair of coresident individuals
+** We no longer use unified relationships favoring instead measures based on reports in current wave.
 *do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" unify_relationships_across_waves 
 
 ** Creates a variable to measure change in household composition.
@@ -94,7 +95,7 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_comp
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_hh_change 
 
 ** Links ego's household arrivers and stayers (in comp_change) 
-** to relationships data created by unify_relationships_across_waves. 
+** to relationships data created by compute_secondary_relationships. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changer_rels 
 
 ** Merges relationship of changers to ego back to comp_change

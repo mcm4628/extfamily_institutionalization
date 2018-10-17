@@ -1,78 +1,64 @@
 //=================================================================================//
 //====== Children's Household Instability Project                          
 //====== Dataset: SIPP2008                                               
-//====== Purpose: Creates sub-databases                               
+//====== Purpose: Creates sub-databases: shhadid_members.dta, ssuid_members_wide.dta
+//====== ssuid_shhadid_wide.dta, person_pdemo (parents demographics), partner_of_ref_person_long (and wide)
 //=================================================================================//
 
 
 //================================================================================//
-//== Purpose: Make the shhadid member database with a single string variable containing a list of all EPPPNUMs in a household in a wave
-//== This file will be used for normalize ages and so it includes a string variable with list of all ages of household members with EPPPNUM
+//== Purpose: Make the shhadid member database with a single string variable 
+//== containing a list of all EPPPNUMs in a household in a wave. This file will also 
+//== be used for normalize ages and so it includes a string variable with list of 
+//== all ages of household members with EPPPNUM.
 //================================================================================//
 use "$tempdir/allwaves"
 
 local i_vars "SSUID SHHADID" 
 local j_vars "SWAVE"
 
-
 keep `i_vars' `j_vars' EPPPNUM TAGE
 sort `i_vars' `j_vars' EPPPNUM TAGE
 
+by `i_vars' `j_vars':  gen hhmemnum = _n  /* Number the people in household in each wave. */
 
-by `i_vars' `j_vars':  gen pnum = _n  /* Number the people in the household in each wave. */
-
-egen maxpnum = max(pnum) /* max n of people in any household in any wave. */
+egen maxpnum = max(hhmemnum) /* max n of people in household in any wave. */
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
-
-//======================= Attention! =======================//
-/* I'm not sure if I'll use the age-person thing or the child/adult concatenations.
- Probably don't need both. */
-//==========================================================//
-
-*******************************************************************
-** Function: Generate a horizontal list of people in the household at each wave.
-********************************************************************
+*******************************************************************************
+** Section: Generate a horizontal list of people in the household at each wave.
+*******************************************************************************
 
 * Create for_concat* variables equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 * and for_concat_age_* variables equal to string value of TAGE-EPPPNUM
 forvalues pn = 1/`maxpn' {
-    gen for_concat_person`pn' = string(EPPPNUM) if (pnum == `pn')
-    gen for_concat_child`pn' = string(EPPPNUM) if ((pnum == `pn') & (TAGE < $adult_age))
-    gen for_concat_adult`pn' = string(EPPPNUM) if ((pnum == `pn') & (TAGE >= $adult_age))
-    gen for_concat_age_person`pn' = string(TAGE) + "-" + string(EPPPNUM) if (pnum == `pn')
+    gen for_concat_person`pn' = string(EPPPNUM) if (hhmemnum == `pn')
 }
 
-drop pnum
+drop hhmemnum
 
-* Collapse to take the first non-missing of the variables we built above.  
-* There is exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
-keep `i_vars' `j_vars' for_concat_person* for_concat_child* for_concat_adult* for_concat_age_person*
+* Collapse by address (SSUID SHHADID) to take the first non-missing value of the 
+* variables we built above. Note that there is exactly one non-missing -- 
+* only the nth person in the household in this wave got a value set for variable #n.
 
-collapse (firstnm) for_concat_child* (firstnm) for_concat_adult* (firstnm) for_concat_person* (firstnm) for_concat_age*, by (`i_vars' `j_vars')
+keep `i_vars' `j_vars' for_concat_person* 
+
+collapse (firstnm) for_concat_person* , by (`i_vars' `j_vars')
 
 * Concatenate all for_concat* variables into a single string where each person number is separated by a blank.
 egen shhadid_members = concat(for_concat_person*), punct(" ")
-egen shhadid_children = concat(for_concat_child*), punct(" ")
-egen shhadid_adults = concat(for_concat_adult*), punct(" ")
-egen shhadid_member_ages = concat(for_concat_age_person*), punct(" ")
 
-drop for_concat_person* for_concat_age_person* for_concat_child* for_concat_adult*
+* clean up
+drop for_concat_person* 
 
 * Strip out extra spaces.
 replace shhadid_members = strtrim(shhadid_members)
-replace shhadid_children = strtrim(shhadid_children)
-replace shhadid_adults = strtrim(shhadid_adults)
-replace shhadid_member_ages = strtrim(shhadid_member_ages)
 
 * Add a space at the beginning and end of the string to make sure every person appears surrounded by spaces.
 replace shhadid_members = " " + shhadid_members + " "
-replace shhadid_children = " " + shhadid_children + " "
-replace shhadid_adults = " " + shhadid_adults + " "
-replace shhadid_member_ages = " " + shhadid_member_ages + " "
 
 ********************************************************************
-** Function: Compute number of household members by wave and overall.
+** Section: Compute number of household members by wave and overall.
 ********************************************************************
 sort SWAVE
 gen n_shhadid_members = wordcount(shhadid_members)
@@ -80,23 +66,11 @@ by SWAVE:  egen max_shhadid_members = max(n_shhadid_members)
 egen overall_max_shhadid_members = max(n_shhadid_members)
 drop n_shhadid_members
 
-gen n_shhadid_children = wordcount(shhadid_children)
-by SWAVE:  egen max_shhadid_children = max(n_shhadid_children)
-egen overall_max_shhadid_children = max(n_shhadid_children)
-drop n_shhadid_children
-
-gen n_shhadid_adults = wordcount(shhadid_adults)
-by SWAVE:  egen max_shhadid_adults = max(n_shhadid_adults)
-egen overall_max_shhadid_adults = max(n_shhadid_adults)
-drop n_shhadid_adults
-
 compress 
 
 macro drop i_vars j_vars 
 
-
 save "$tempdir/shhadid_members", $replace
-
 
 //================================================================================//
 //== Purpose: Make the ssuid member database
@@ -113,21 +87,21 @@ local j_vars "SWAVE"
 keep `i_vars' `j_vars' EPPPNUM
 sort `i_vars' `j_vars' EPPPNUM
 
-by `i_vars' `j_vars':  gen pnum = _n  /* Number the people in the sampling unit in each wave. */
+by `i_vars' `j_vars':  gen hhmemnum = _n  /* Number the people in the sampling unit in each wave. */
 
-egen maxpnum = max(pnum) /* max n of people in sampling unit in any wave. */
+egen maxpnum = max(hhmemnum) /* max n of people in sampling unit in any wave. */
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 *******************************************************************
-** Function: Generate a horizontal list of people in the SSUID (original sampling unit).
+** Section: Generate a horizontal list of people in the SSUID (original sampling unit).
 ********************************************************************
 
 * Create for_concat* variable equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 forvalues pn = 1/`maxpn' {
-    gen for_concat_person`pn' = string(EPPPNUM) if (pnum == `pn')
+    gen for_concat_person`pn' = string(EPPPNUM) if (hhmemnum == `pn')
 }
 
-drop pnum
+drop hhmemnum
 
 keep `i_vars' `j_vars' for_concat_person*
 
@@ -183,7 +157,7 @@ egen maxanum = max(anum)
 local maxan = `=maxanum'
 
 *******************************************************************
-** Function: Generate a horizontal list of addresses in the SSUID (original sampling unit).
+** Section: Generate a horizontal list of addresses in the SSUID (original sampling unit).
 ********************************************************************
 
 * Create for_concat* variable equal to string value of address's SHHADID for for_contact_*[an] and missing otherwise
@@ -227,10 +201,8 @@ macro drop i_vars j_vars
 
 save "$tempdir/ssuid_shhadid_wide", $replace
 
-
 //================================================================================//
 //== Purpose: Create a dataset with education, immigration status, and age for merging 
-//== 
 //== Logic: Rename EPPPNUM to later merge onto person number of mother (EPNMOM) 
 //==        and father (EPNDAD) to get parents' educ and immigration status in the analysis dataset.
 //================================================================================//

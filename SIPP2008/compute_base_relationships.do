@@ -5,7 +5,7 @@
 //========================================================================================================//
 
 ********************************************************************************
-* Function: Start by creating programs to process data
+* Section: Start by creating programs to process data
 ********************************************************************************
 
 ** Program to create process data from all waves and save a record for EGO and coresident (bio/step/adoptive mother/father) 
@@ -72,13 +72,13 @@ use "$tempdir/allwaves"
 do "$sipp2008_code/relationship_label"
 ********************************************************************************
 
-* A small numer of cases identified themselves as their own mother, father, or spouse
+* A small number of cases identified themselves as their own mother, father, or spouse
 replace EPNMOM=. if EPPPNUM==EPNMOM
 replace EPNDAD=. if EPPPNUM==EPNDAD
 replace EPNSPOUS=. if EPPPNUM==EPNSPOUS
 
 ********************************************************************************
-** Function: Process parent/child relationships from EPNMOM, EPNDAD, and EPNSPOUS.
+** Section: Process parent/child relationships from EPNMOM, EPNDAD, and EPNSPOUS.
 **
 ** Use Program: compute_relationships
 **        args: person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
@@ -92,7 +92,9 @@ compute_relationships EPPPNUM EPNDAD ADOPTCHILD ADOPTDAD EPNDAD "((!missing(EPND
 compute_relationships EPPPNUM EPNSPOUS SPOUSE SPOUSE EPNSPOUS "((!missing(EPNSPOUS)) & (EPNSPOUS != 9999) & (ESEX == 1))" epnspous1 epnspous2 
 
 ********************************************************************************
-** Function: Merge in ERRP, a variable indicating the reference person for the household.
+** Section: Merge in ERRP, a variable indicating the reference person for the household.
+**          ref_person_long was created with make_auxiliary_datasets
+********************************************************************************
 
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
 assert missing(ref_person) if (_merge == 2)
@@ -102,10 +104,12 @@ drop _merge
 ********************************************************************************
 
 
-**********************************************************************************************************************
-** Function: Generate records for spouse, child, grandchild, parent, sibling, others, foster child, partener, no relation based ERRP. 
+********************************************************************************
+** Section: Generate records for spouse, child, grandchild, parent, sibling, 
+**          others, foster child, partener, no relation based ERRP. 
 ** Note: The 1 and 2 suffixes below are convenient but not very descriptive.
-**        1 means the relationship as stated; 2 means the reverse.  E.g., errp_child_of_mom2 are moms of children identified by ERRP == 4.
+**        1 means the relationship as stated; 2 means the reverse.  
+**        E.g., errp_child_of_mom2 are moms of children identified by ERRP == 4.
 **
 ** Use Program: compute_relationships
 **        args: person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
@@ -143,7 +147,7 @@ compute_relationships EPPPNUM ref_person NOREL NOREL ERRP_GE_11 "((ERRP == 11) |
 clear
 
 *******************************************************************************
-** Function: Append all relationship data sets together.
+** Section: Append all relationship data sets together.
 *******************************************************************************
 use "$tempdir/biochild_of_mom"
 append using "$tempdir/biomom"
@@ -189,7 +193,7 @@ duplicates drop SSUID SHHADID SWAVE relfrom relto relationship_tc0, force
 save "$tempdir/relationships_tc0_all", $replace
 
 ********************************************************************************
-** Function: Find pairs for which we have more than one relationship type in a single wave.
+** Section: Find pairs for which we have more than one relationship type in a single wave.
 **           Select the more specific one
 ********************************************************************************
 sort SSUID SHHADID SWAVE relfrom relto
@@ -239,17 +243,8 @@ drop relationship_tc02 reason_tc02
 
 replace relationship=. if numrels_tc0 > 1
 
-*Despite the name, this file is still ong. One record per pair per wave.
+*Despite the name, this file is still long. One record per pair per wave.
 save "$tempdir/relationships_tc0_wide", $replace
 
-****************************************************************************************************************************
-** Function: Drop cases with conflicting relationships that cannot be easily resolved. 
-****************************************************************************************************************************
-drop if (numrels_tc0 > 1)
-drop numrels_tc0
-
-
-* Note: keeping this here, but subsequent code uses file with the conflicting records.
-save "$tempdir/relationships_tc0_resolved", $replace
 
 

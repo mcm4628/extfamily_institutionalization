@@ -5,6 +5,10 @@
 //=========== directly identifiable with parent pointers, spouse pointer, or ERRP  
 //================================================================================
 
+********************************************************************************
+**  Section: programs to process data to identify relationships transitively
+********************************************************************************
+
 * Program generates relationship from relationship1 and relatiosnhip2, 
 * where A is [relationship1] of person B.
 * Person B is [relationship2] of person C.
@@ -53,6 +57,11 @@ program define make_relationship_list, rclass /* results are in r() vector */
     }
     return local rel_list `"`my_rel_list'"'
 end
+
+********************************************************************************
+**  Section: apply programs to data to identify relationships bewteen ego and
+**  every other person in ego's household in the wave.
+********************************************************************************
 
     use "$tempdir/relationships_tc0_wide"
 
@@ -279,7 +288,8 @@ mdesc relationship
  drop intermediate_person relationship1 relationship2 reason1 reason2
 
 ********************************************************************************
-*Function: Checking records with more than one relationship in a wave
+* Section: Checking records with more than one relationship in a wave
+*          and select "best" relationship when more than one relationship type.
 ********************************************************************************
 
 sort SSUID SHHADID SWAVE relfrom relto
@@ -361,5 +371,4 @@ save "$tempdir/relationship_pairs_bywave", $replace
 
 ********************************************************************************
 *Note: File still has one observation per pair PER WAVE. 
-*(Why not run across all waves using the same scrubbing machine as we did within wave?
 ********************************************************************************

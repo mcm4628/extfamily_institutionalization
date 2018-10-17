@@ -13,12 +13,11 @@ assert _merge == 3
 drop _merge
 
 ********************************************************************************
-* Function: create variables describing mother's and father's education and mother's
+* Section: create variables describing mother's and father's education and mother's
 *           immigration status by merging to person_pdemo 
 *           (created in make_auxiliary_datasets)using pdemo_eppnum as key
 ********************************************************************************
 
-* rename EPNMOM to educ_eppnum for merging
 recode EPNMOM (9999 = .), gen(pdemo_epppnum)
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
 assert missing(pdemo_epppnum) if (_merge == 1)
@@ -36,7 +35,6 @@ label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wa
 label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
 
-* rename EPNMOM to educ_eppnum for merging
 recode EPNDAD (9999 = .), gen(pdemo_epppnum)
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
 assert missing(pdemo_epppnum) if (_merge == 1)
@@ -54,17 +52,20 @@ label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wa
 label var dad_age "Father's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological father if present (uncleaned)"
 
-*Make the dataset wide by wave (15 waves).
+********************************************************************************
+* Section: Make the dataset wide by wave (15 waves).
+********************************************************************************
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_member_ages shhadid_members max_shhadid_members shhadid_adults max_shhadid_adults shhadid_children max_shhadid_children"
-local extra_vars "overall_max_shhadid_members overall_max_shhadid_adults overall_max_shhadid_children"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members"
+local extra_vars "overall_max_shhadid_members"
+
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
 reshape wide `wide_vars', i(`i_vars') j(`j_vars')
 
 ***********************************************************************
-* Function: Create Race/Ethnicity variables (2 versions) and set my_race 
+* Section: Create Race/Ethnicity variables (2 versions) and set my_race 
 *           (and my_race_v2) equal to first observation. 
 ***********************************************************************
 
@@ -114,9 +115,9 @@ forvalues wave = $second_wave/$final_wave {
 egen any_race_diff = rowmax(race_diff*)
 tab any_race_diff
 
-*************************************************************************
-* Function: Create sex variable. Set value of my_sex to the value at first observation. 
-*************************************************************************
+********************************************************************************
+* Section: Create sex variable. Set value of my_sex to the value at first observation. 
+********************************************************************************
 
 gen my_sex = ESEX$first_wave
 forvalues wave = $second_wave/$final_wave {
@@ -145,6 +146,10 @@ forvalues wave = $second_wave/$final_wave {
 egen any_sex_diff = rowmax(sex_diff*)
 tab any_sex_diff
 
+********************************************************************************
+* Section: Add variables for other members of sampling unit and other members who 
+*          ever share an address
+********************************************************************************
 
 * Merge in file with information on number of persons in sampling unit per wave and overall (make_auxiliary_datasets)
 merge m:1 SSUID using "$tempdir/ssuid_members_wide"
