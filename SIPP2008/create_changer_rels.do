@@ -160,6 +160,9 @@ gen other_rel=1 if inlist(relationship, 15,16,24,28,29,32,35)
 gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 
+gen adult_arrive=1 if change_type==1 & to_age >= $adult_age
+gen adult_leave=1 if change_type==1 & to_age >= $adult_age
+
 merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
 *need to match all leavers and arrivers in the demographic data
