@@ -27,12 +27,17 @@ drop if missing(comp_change)
 
 drop if (comp_change == 0)
 
-save "$tempdir/comp_change_with_relationships", $replace
+save "$tempdir/comp_change_onlychangers", $replace
+
+********************************************************************************
+* Section: create long file where each record is a person who started or stopped
+*          living with ego (and stayed living with ego).
+********************************************************************************
 
 foreach changer in leaver arriver stayer {
     clear
 
-    use "$tempdir/comp_change_with_relationships"
+    use "$tempdir/comp_change_onlychangers"
 
     * Compute max number of leavers/arrivers.
     gen n_`changer's = wordcount(`changer's)
@@ -54,34 +59,57 @@ foreach changer in leaver arriver stayer {
 }
 
 ********************************************************************************
-* Linking those who experience a composition change to relationships
+* Section: Linking those who leave to relationships in that wave
 ********************************************************************************
 
-foreach changer in leaver arriver stayer {
-    clear
-
-    use "$tempdir/hh_`changer's"
-    drop if missing(`changer')
-    gen relfrom = EPPPNUM
-    destring `changer', gen(relto)
-    merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave", keepusing(relationship)
+use "$tempdir/hh_leavers", clear
+drop if missing(leaver)
+gen relfrom = EPPPNUM
+destring leaver, gen(relto)
+merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave", keepusing(relationship)
 	
-	display "deleting relationships to self"
-	drop if relfrom==relto
+display "deleting relationships to self"
+drop if relfrom==relto
 
-	replace relationship=40 if _merge==1
+replace relationship=40 if _merge==1
 
-    drop if _merge == 2
-    drop _merge
+drop if _merge == 2
+drop _merge
 
-    display "Relationships for `changer's"
-    tab relationship, m sort
-    save "$tempdir/`changer'_rels", $replace
-}
+display "Relationships for leavers"
+tab relationship, m sort
+save "$tempdir/leaver_rels", $replace
 
+********************************************************************************
+* Section: Linking those who arrive to relationships
+*          We have to link in wave+n because they aren't with egoin the current 
+*          wave else they wouldn't be arrivers 
+********************************************************************************
 
-*getting the age of each person so that we can calculate an age difference
+use "$tempdir/hh_arrivers", clear
 
+* We link to relationship in next wave, since they aren't together in this wave
+replace SWAVE=SWAVE+1
+drop if missing(arriver)
+gen relfrom = EPPPNUM
+destring arriver, gen(relto)
+merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave", keepusing(relationship)
+	
+display "deleting relationships to self"
+drop if relfrom==relto
+
+replace relationship=40 if _merge==1
+
+drop if _merge == 2
+drop _merge
+
+display "Relationships for arrivers"
+tab relationship, m sort
+save "$tempdir/arriver_rels", $replace
+
+********************************************************************************
+* Section: getting the age of each person so that we can calculate an age difference
+********************************************************************************
 foreach changer in leaver arriver {
 	clear
     display "Processing `changer's"
