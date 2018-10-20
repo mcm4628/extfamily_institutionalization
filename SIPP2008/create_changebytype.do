@@ -1,42 +1,68 @@
+//====================================================================//
+//===== Children's Household Instability Project                    
+//===== Dataset: SIPP2008                                           
+//===== Purpose: This code merges a file with information on the relationship
+//                 of household members who arrive or leave in the next wave                
+//               to comp_change hh_change and addr_change. And then collapses
+//               to an individual data file with dummy indicators of whether 
+//               ego saw anyone leave, anyone arrive, a parent leave or arrive,
+//               a sibling leave or arrive, anyone else leave or arrive.
+//=====================================================================//
+
+* hh_change has one record per person per wave
 use "$tempdir/hh_change.dta"
 
 keep SSUID EPPPNUM SWAVE comp_change hh_change addr_change 
 
-merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling adult_arrive adult_leave change_type my_race my_race2 my_sex biomom_age)
+* changer_rels.dta has one record for every person arriving or leaving ego's 
+* household between this wave and the next. There may be records for both 
+* arrivers and leavers. An "arriver" might be someone that ego moves in with
+* or someone who moves in with ego. Analogously, a leaver could be someone ego
+* leaves ego's household or someone who ego leaves behind when she leaves.   
 
-tab _merge if comp_change==1
+* changer_rels includes no records for individuals who experienced no composition change in the wave
+* we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
+* who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
+merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling adult_arrive adult_leave change_type)
 
-local reltyp "parent sib other"
+* be sure that all cases with a comp_change were found in changer_rels
+assert _merge==3 if comp_change==1
+
+drop _merge
 
 tab  relationship change_type, m
+
+gen someoneleft=0 if !missing(comp_change)
+gen someonearrived=0 if !missing(comp_change)
+
+replace someonearrived=1 if change_type==1
+replace someoneleft=1 if change_type==2
 
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 
-gen adult_arrive=1 if comp_change==1 & adult_arrive==1
-gen adult_leave=1 if comp_change==1 & adult_leave==1
-
-collapse (max) comp_change parent_change sib_change other_change, by(SSUID EPPPNUM SWAVE)
+collapse (max) comp_change parent_change sib_change other_change adult_arrive adult_leave someonearrived someoneleft, by(SSUID EPPPNUM SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/hh_change.dta"
 
 drop _merge
+
+local reltyp "parent sib other"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{
 	replace `r'_change=0 if missing(`r'_change) & !missing(comp_change)
 }
 
-tab parent_change comp_change, m
+assert parent_change==. if comp_change==.
+assert parent_change==0 if comp_change==0
+assert other_change==. if comp_change==.
+assert other_change==0 if comp_change==0
 
 replace adult_arrive=0 if missing(adult_arrive) & !missing(comp_change)
 replace adult_leave=0 if missing(adult_leave) & !missing(comp_change)
 
 save "$tempdir/changebytype.dta", $replace
 
-tab comp_change
 
-tab comp_change parent_change, m
-tab comp_change sib_change, m
-tab comp_change other_change, m

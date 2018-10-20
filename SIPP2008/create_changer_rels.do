@@ -82,7 +82,7 @@ save "$tempdir/leaver_rels", $replace
 
 ********************************************************************************
 * Section: Linking those who arrive to relationships
-*          We have to link in wave+n because they aren't with egoin the current 
+*          We have to link in wave+n because they aren't with ego in the current 
 *          wave else they wouldn't be arrivers 
 ********************************************************************************
 
@@ -94,7 +94,11 @@ drop if missing(arriver)
 gen relfrom = EPPPNUM
 destring arriver, gen(relto)
 merge 1:1 SSUID relfrom relto SWAVE using "$tempdir/relationship_pairs_bywave", keepusing(relationship)
-	
+
+* return SWAVE to its original value. (Yiwen, this is the silly error I made 
+* that broke the code. I forgot to put SWAVE back to its original value). 	
+replace SWAVE=SWAVE-1
+
 display "deleting relationships to self"
 drop if relfrom==relto
 
@@ -160,16 +164,20 @@ gen other_rel=1 if inlist(relationship, 15,16,24,28,29,32,35)
 gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 
+* Note that you could also create variables for parent_arrive and parent_leave
+* by combining the logic above (gen parent) and the logic below. If you do 
+* that you'll also need to edit create_changebytype. Please also change this comment.
+
 gen adult_arrive=1 if change_type==1 & to_age >= $adult_age
 gen adult_leave=1 if change_type==1 & to_age >= $adult_age
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
+*merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
 *need to match all leavers and arrivers in the demographic data
- drop if (_merge == 2)
- assert (_merge == 3)
+* drop if (_merge == 2)
+* assert (_merge == 3)
 
-keep if _merge==3
+*keep if _merge==3
 
 save "$tempdir/changer_rels", $replace
 
