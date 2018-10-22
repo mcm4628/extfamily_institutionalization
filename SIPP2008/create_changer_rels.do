@@ -164,12 +164,13 @@ gen other_rel=1 if inlist(relationship, 15,16,24,28,29,32,35)
 gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 
-* Note that you could also create variables for parent_arrive and parent_leave
-* by combining the logic above (gen parent) and the logic below. If you do 
-* that you'll also need to edit create_changebytype. Please also change this comment.
-
 gen adult_arrive=1 if change_type==1 & to_age >= $adult_age
-gen adult_leave=1 if change_type==1 & to_age >= $adult_age
+*Note that there was an error here: it was change_type==1 below, I changed it to 2 (Yiwen)
+gen adult_leave=1 if change_type==2 & to_age >= $adult_age
+
+*create variables for parent_arrive and parent_leave
+gen parent_arrive=1 if change_type==1 & parent==1
+gen parent_leave=1 if change_type==2 & parent==1
 
 *merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
 
