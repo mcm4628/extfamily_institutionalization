@@ -2,9 +2,10 @@
 //===== Children's Household Instability Project                                                    
 //===== Dataset: SIPP2008                                                                               
 //===== Purpose: Create a database with comp_change, addr_change, and sociodemographic characteristics
-//===== One record per person per wave. 
+//===== One record per person per wave.
+//===== create_comp_change generates the variable comp_change. This file adds addr_change
+//===== and reshapes the data to long form.
 //===== Note: this code depends on macros set in project_macros and create_comp_change
-//=====   
 //==============================================================================
 
 use "$tempdir/comp_change.dta", clear

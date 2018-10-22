@@ -20,10 +20,10 @@ drop my_race* my_sex* EBORNUS* EMS* EPNDAD* EPNMOM* EPNSPOUS* ERRP* ETYPDAD* ETY
 **           wave at which the respondent was present.
 
 ** Logic:   Walk forward through the waves, starting with the second.  When the 
-**          respondent is missing, SHHADID will be missing.We copy shhadid_members 
-**          for the previous wave into prev_hh_members for the first missing wave.
-**	       	For subsequent waves of a continuous gap (stretch of missing interviews) 
-**          prev_hh_members for the previous wave will exist
+**          respondent is missing, SHHADID will be missing. If missing, we copy 
+**          shhadid_members for the previous wave into prev_hh_members for the 
+**          first missing wave. For subsequent waves of a continuous gap (stretch 
+**          of missing interviews) prev_hh_members for the previous wave will exist
 **        	so we just copy this into prev_hh_members for this wave.
 ********************************************************************************
 
@@ -89,6 +89,16 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
 **             The idiom of searching for " " + my_hh_member + " ", for example that would be " 102 " for 
 **                 member 102, prevents incorrectly finding 1102 when you're looking for 102.
 ********************************************************************************
+
+* Setting up label for different ways we can observe or infer comp_change
+#delimit ;
+label define comp_change_reason   0 "No change"
+								  1 "Observed in adjascent waves"
+								  2 "First appearance (not age 0)"
+								  3 "Reappearance"
+								  4 "Disappearance"
+								  5 "Compare across a complete gap";
+#delimit cr
 
 gen found_prev_hh_member_in_gap$first_wave = ""
 forvalues wave = $final_wave (-1) $second_wave {
@@ -189,9 +199,9 @@ forvalues wave = $first_wave/$penultimate_wave {
     ** Section:  Compute composition change when respondent is present in adjacent waves.
     ********************************************************************************
 
-    *** If we have data in both waves, just compare HH members.
+    *** If we have data in both waves, just compare HH members (strings shhadid_members this wave compared to shhadid_members next wave).
     replace comp_change`wave' = (shhadid_members`wave' != shhadid_members`next_wave') if ((!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 1 if ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
+    replace comp_change_reason`wave' = 1 if ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
     gen comp_change_case = ((shhadid_members`wave' != shhadid_members`next_wave') & (!missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')))
 
     display "Computing comp change for waves with adjacent data"
@@ -232,14 +242,14 @@ forvalues wave = $first_wave/$penultimate_wave {
     *** If next wave is ego's first and it's not a birth (age > 0), it's a change.
     * We also need to populate age and weight from the next wave since ego has no data in this wave.
     replace comp_change`wave' = 1 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 2 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
+    replace comp_change_reason`wave' = 2 if ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
     gen comp_change_case = ((`next_wave' == my_first_wave) & (adj_age`next_wave' > 0))
     replace adj_age`wave' = adj_age`next_wave' if (comp_change_case == 1)
     replace WPFINWGT`wave' = WPFINWGT`next_wave' if (comp_change_case == 1)
 
-    display "Computing comp change for non-child ego's first wave."
+    display "Computing comp change for non-infant ego's first wave."
     * We look at the "gap" from first wave to this wave to see if anyone from the future HH shows up and set changes accordingly.
-    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
+    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume ego and other were already together.
     forvalues my_hh_member_num = 1/`=max_shhadid_members`next_wave'' {
         gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
@@ -253,18 +263,21 @@ forvalues wave = $first_wave/$penultimate_wave {
 
     drop comp_change_case
 
-
     display "Computing comp change for ego moving from missing to present."
-    *** If we are moving from a wave in which ego is missing to one in which ego is present
-    * there is a composition change if we have seen any member of the future household in gap during which ego was missing.
+	*******************************************************************************
+    ** Section: Dealing with reappearances. If we are moving from a wave in which 
+	** ego is missing to one in which ego is present there is a composition change 
+	** if we have seen any member of the future household in gap during which ego was missing.
     * Again, we also need to populate age and weight from the next wave since ego has no data in this wave.
+	*******************************************************************************
+	
     replace comp_change`wave' = 1 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (indexnot(found_future_hh_member_in_gap`wave', " ") != 0))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 4 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (indexnot(found_future_hh_member_in_gap`wave', " ") != 0))
+    replace comp_change_reason`wave' = 3 if ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (indexnot(found_future_hh_member_in_gap`wave', " ") != 0))
     gen comp_change_case = ((missing(SHHADID`wave')) & (!missing(SHHADID`next_wave')) & (`next_wave' > my_first_wave) & (indexnot(found_future_hh_member_in_gap`wave', " ") != 0))
     replace adj_age`wave' = adj_age`next_wave' if (comp_change_case == 1)
     replace WPFINWGT`wave' = WPFINWGT`next_wave' if (comp_change_case == 1)
 
-    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume we were already together.
+    * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume ego and other were already together.
     forvalues my_hh_member_num = 1/`=max_shhadid_members`next_wave'' {
         gen my_hh_member = word(shhadid_members`next_wave', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
@@ -279,11 +292,14 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
     display "Computing comp change for ego moving from present to missing."
-    *** If we are moving from a wave in which ego is present to one in which ego is missing
+	******************************************************************************
+    ** Section: If we are moving from a wave in which ego is present to one in which ego is missing
     * there is a composition change if we have seen any member of the current household in gap 
     * during which ego is missing as we look forward.
-    replace comp_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") != 0))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 8 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") != 0))
+	*******************************************************************************
+    
+	replace comp_change`wave' = 1 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") != 0))
+    replace comp_change_reason`wave' = 4 if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") != 0))
     gen comp_change_case = ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") != 0))
 
     * For anyone we see in the "gap" they depart from our perspective.  Others we don't know so we assume we stay together.
@@ -303,14 +319,15 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 
     display "Computing comp change for ego missing in a gap in which all past and future HH members are also missing."
-    *** If we are moving from a wave in which ego is present to one in which ego is missing
+	******************************************************************************
+    *** Section If we are moving from a wave in which ego is present to one in which ego is missing
     * and we do not see any member of the current household  or any member of the future
-    * household in the gap looking forward,
-    * we compare the current household to the future household as if we move into the
-    * future household in the first missing wave unless there is no future HH
-    * (ego's last appearance).
+    * household in the gap looking forward, we compare the current household to the 
+	* future household as if we move into the future household in the first missing wave. 
+	* If there there is no future HH (ego's last appearance) we don't code a household change.
+	******************************************************************************
     replace comp_change`wave' = (shhadid_members`wave' != future_hh_members`next_wave') if ((!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(future_hh_members`next_wave', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_wave', " ") == 0))
-    replace comp_change_reason`wave' = comp_change_reason`wave' + 16 if ((shhadid_members`wave' != future_hh_members`next_wave') & (!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(future_hh_members`next_wave', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_wave', " ") == 0))
+    replace comp_change_reason`wave' = 5 if ((shhadid_members`wave' != future_hh_members`next_wave') & (!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(future_hh_members`next_wave', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_wave', " ") == 0))
 
     gen comp_change_case = ((shhadid_members`wave' != future_hh_members`next_wave') & (!missing(SHHADID`wave')) & (missing(SHHADID`next_wave')) & (indexnot(future_hh_members`next_wave', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_wave', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_wave', " ") == 0))
 
@@ -335,23 +352,23 @@ forvalues wave = $first_wave/$penultimate_wave {
     }
 
 
-
-    * Add zeros for comp_change if needed.  We need to confirm this is what we want.  We set to zero if comp_change and ego was present this wave and this is not ego's last wave.
+    * We set comp_change to zero if ego was present this wave and this is not ego's last wave.
     replace comp_change`wave' = 0 if (missing(comp_change`wave') & (!missing(SHHADID`wave') & (`wave' != my_last_wave)))
+	
+	replace comp_change_reason`wave'=. if missing(comp_change`wave')
 
+	label var comp_change_reason`wave' "Codes for whether comp_change is observed in adjascent waves or inferred"
     label values comp_change_reason`wave' comp_change_reason
 	
 	drop comp_change_case
 }
 
+tab comp_change5 comp_change_reason5, m
+
 save "$tempdir/comp_change.dta", $replace
 
 *** TODO:  Fix bugs:
-* Omit self from lists of stayers, arrivers, leavers.
-* Catch the arrival case in #19.  Make sure thiw was computed correctly in hh_change -- and why?
-* Catch similar cases when people show up in the gap.
-* Make sure the flags for who shows up in the gap are correct.
-* There seeem to be a bunch of temp variables in the dataset.  Get rid of them.  How are they still there???
+* There seeem to be a bunch of temp variables in the dataset.  Get rid of them.
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.
