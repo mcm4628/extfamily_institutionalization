@@ -23,7 +23,7 @@ keep SSUID EPPPNUM SWAVE comp_change hh_change addr_change
 * changer_rels includes no records for individuals who experienced no composition change in the wave
 * we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
-merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling adult_arrive adult_leave change_type)
+merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling adult_arrive adult_leave parent_arrive parent_leave change_type)
 
 * be sure that all cases with a comp_change were found in changer_rels
 assert _merge==3 if comp_change==1
@@ -42,7 +42,7 @@ gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 
-collapse (max) comp_change parent_change sib_change other_change adult_arrive adult_leave someonearrived someoneleft, by(SSUID EPPPNUM SWAVE)
+collapse (max) comp_change parent_change sib_change other_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave, by(SSUID EPPPNUM SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/hh_change.dta"
 
@@ -62,6 +62,15 @@ assert other_change==0 if comp_change==0
 
 replace adult_arrive=0 if missing(adult_arrive) & !missing(comp_change)
 replace adult_leave=0 if missing(adult_leave) & !missing(comp_change)
+
+replace parent_arrive=0 if missing(parent_arrive) & !missing(comp_change)
+replace parent_leave=0 if missing(parent_leave) & !missing(comp_change)
+
+gen otheradult_arrive=1 if  comp_change==1 & adult_arrive==1 & parent_arrive==0
+gen otheradult_leave=1 if  comp_change==1 & adult_leave==1 & parent_leave==0
+
+replace otheradult_arrive=0 if missing(otheradult_arrive) & !missing(comp_change)
+replace otheradult_leave=0 if missing(otheradult_leave) & !missing(comp_change)
 
 save "$tempdir/changebytype.dta", $replace
 
