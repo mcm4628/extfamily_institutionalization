@@ -52,9 +52,9 @@ local possible_original_obs=`inwave1'*14
 	putdocx text ("if they are the same, all are coded as not experiencing a composition change. ")
 	
 	putdocx paragraph
-	putdocx text ("In wave 1, the data have `ninwave1' original sample members. ")
+	putdocx text ("In wave 1, the data have `inwave1' original sample members. ")
 	putdocx text ("The maximum possible number of observed intervals for original sample members is ")
-	putdocx text ("`possible_original_obs' (`ninwave1' times 14). ")
+	putdocx text ("`possible_original_obs' (`inwave1' times 14). ")
 
 * Calculate number of fully-observed intervals
 gen interval=1 if inwave==1 & innext==1
@@ -85,50 +85,111 @@ egen numorignmc=max(norignmc)
 local number_original_nmc = `=numorignmc'
 local prop_nmc = int(100*`number_original_nmc'/`possible_original_obs')
 
-	putdocx text ("The number of observed or inferred comp_change intervals original sample members is ")
+	putdocx text ("The number of observed or inferred comp_change intervals for ")
+	putdocx text ("original sample members is ")
 	putdocx text ("`number_original_nmc' (`prop_nmc'%). So inferring composition change ")
 	putdocx text ("reduced missing data by (`prop_nmc' - `prop_fully_observed') percentage points." )
 
 *******************************************************************************
 * Section: Do we observe children < 15 transitioning alone?
 *******************************************************************************	
+* create a measure of number of household members in this wave to compare to number
+* of leavers later 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" count_leavers
+
 	// New paragraph
 	putdocx paragraph	
 
-use "$tempdir/changebytype.dta", clear
+*this datafile includes all intervals, even those with comp_change missing
+use "$tempdir/hh_change.dta", clear
 
-	putdocx text ("The SIPP does not follow original sample members < 15 years old when they ") 
+gen oldenough=1 if adj_age >=15
+
+egen hhmem=count(SHHADID), by(SSUID SHHADID SWAVE)
+egen adultmem=count(oldenough), by(SSUID SHHADID SWAVE)
+
+* I want everyone in current wave included, even when comp_change can't be calculated
+* to include in the denominator cases that can't be inferred. But not cases that enter this interval.
+keep if adj_age < 15 & inwave==1 
+
+local intervals=_N	
+
+	putdocx text ("The SIPP does not follow original sample members < 15 years old ")
+	putdocx text ("(N=`intervals' intervals) when they ") 
 	putdocx text ("leave the household with no original sample member >=15 years old. ")
-	putdocx text ("We are interested to know how often this happens. In our code this would ")
-	putdocx text ("be where a person is < 15 and not observed in the next wave ")
+	putdocx text ("We are interested to know how often this happens. ")
+	putdocx text ("Let's start with an estimate of the number and proportion of children ")
 
-* keep observations < 15 years old and who were not observed in the next wave
-keep if adj_age < 15 & innext==0
+* keep observations < 15 years old who were not observed in the next wave
+keep if innext==0
+local missing_cases=_N
+local per_missing= `=int(100*_N/`intervals')'
 
-local cases=_N
-
-	putdocx text ("(N=`cases'). ")
-	
-	putdocx paragraph
+	putdocx text ("that go missing. We have `missing_cases' (`per_missing' %) intervals end missing. " )	
+	putdocx text ("Simply going missing does not mean that the child left the household ")
+	putdocx text ("unaccompanied by any adults because the whole household might have gone ")
+	putdocx text ("permanently missing (comp_change is missing) or the child might have left ")
+	putdocx text ("with some (but not all) other household members (comp_change=1). ")
 	putdocx text ("If we have a value on comp_change, then someone in the child's household ")
 	putdocx text ("must be observed in some future wave. If everyone the child was living with ")
 	putdocx text ("never appears in the data when the child is missing and is with the child at ")
-	putdocx text ("the child's next appearance, then comp_change will equal zero. ")
+	putdocx text ("the child's next appearance (and noone new appears), then ")
+	putdocx text ("comp_change will equal zero. This is not likely ")
+	putdocx text ("case where the child left the household alone. ")
 	putdocx text ("If someone living with the child is observed living apart from the child before or ")
-	putdocx text ("when the child reappears, then comp_change==1. ")
-
-* if comp_change=1 then we know that some people in child's household are observed in the next wave
+	putdocx text ("when the child reappears, then comp_change==1. These might be cases where the ")
+	putdocx text ("child left alone. ")
 
 	putdocxfreqtable comp_change, nocum 
 
-* if adult_leave=1 then we know that an adult in child's household is observed in next wave
+	putdocx paragraph
+	putdocx text ("Among those that experienced a comp_change, how many were the ")
+	putdocx text ("only ones in their household to go missing? ")
+	putdocx text ("We answer this question by comparing the number of people ")
+	putdocx text ("in the household in this wave (hhmem) to the number ")
+	putdocx text ("of people who left the child's household (from counted_leavers.dta). ")
+	
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/counted_leavers"	
+
+drop _merge
+
+keep if comp_change==1
+	
+gen all_leave=1 if num_leavers==hhmem-1
+replace all_leave=-9 if num_leavers > hhmem-1
+replace all_leave=0 if num_leavers < hhmem-1
+
+label variable all_leave "Did everyone who was in child's hh appear in gap?"
+
+#delimit ;
+label define all_leave   -9 "No one left. Must have gained after a gap."
+						 0 "Child might not have left alone"
+						 1 "All but child appears in the gap";
+							  
+#delimit cr
+
+label values all_leave all_leave
+
+	putdocxfreqtable all_leave
+	
+	putdocx paragraph
+	putdocx text ("If everyone but the child appears in the gap, then we have ")
+	putdocx text ("good evidence that child left alone. ")
+    putdocx text ("Otherwise the child might have left with adults or siblings. ")
+
+use "$tempdir/changebytype.dta", clear
+
+keep if adj_age < 15 & inwave==1 & innext==0
 
 	// New paragraph
 	putdocx paragraph
-	
-	putdocx text ("If the other person is an adult, then adult_leave should ==1. ")
-	
-	putdocxfreqtable adult_leave, nocum
+
+	putdocx text ("Even those who have comp_change=1 might not have exited the household alone. ")
+	putdocx text ("A strict measure of this would be if every person > 15 observed in child's ")
+	putdocx text ("household in the current wave is observed in the next wave. ")
+
+* We don't have a measure of this. I need to know how many people are in child's household
+* in this wave and how mean leavers next wave. n_leavers is now on hh_leavers.dta
 
 use "$tempdir/changebytype.dta", clear
 
@@ -142,7 +203,7 @@ use "$tempdir/changebytype.dta", clear
 keep if adj_age < 15 & inwave==0	
 
 	putdocx text ("They should all experience a composition change, but we aren't ") 
-	putdocx text ("well set-up to determine whether they entered the houeshold alone. ")
+	putdocx text ("well set-up to determine whether they entered the household alone. ")
 	putdocxfreqtable comp_change, nocum
 	
 ********************************************************************************

@@ -41,14 +41,13 @@ foreach changer in leaver arriver stayer {
     * Compute max number of leavers/arrivers.
     gen n_`changer's = wordcount(`changer's)
     egen max_`changer's = max(n_`changer's)
-    drop n_`changer's
 
     forvalues my_`changer'_num = 1/`=max_`changer's' {
         gen `changer'`my_`changer'_num' = word(`changer's, `my_`changer'_num')
     }
     drop `changer's max_`changer's
 
-    keep SSUID EPPPNUM SHHADID SWAVE adj_age comp_change_reason `changer'* 
+    keep SSUID EPPPNUM SHHADID SWAVE adj_age comp_change_reason n_`changer's `changer'* 
 
     reshape long `changer', i(SSUID EPPPNUM SWAVE) j(`changer'_num)
 
@@ -171,14 +170,7 @@ gen adult_leave=1 if change_type==2 & to_age >= $adult_age
 gen parent_arrive=1 if change_type==1 & parent==1
 gen parent_leave=1 if change_type==2 & parent==1
 
-*merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all"
-
-*need to match all leavers and arrivers in the demographic data
-* drop if (_merge == 2)
-* assert (_merge == 3)
-
-*keep if _merge==3
-
 save "$tempdir/changer_rels", $replace
+
 
 
