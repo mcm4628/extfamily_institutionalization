@@ -48,6 +48,10 @@ merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/hh_change.dta"
 
 drop _merge
 
+* remove observations that are missing because of lack of interview and
+* unable to infer comp_change. insample is generated at the end of create_hh_change.do
+keep if insample !=0
+
 local reltyp "parent sib other"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
