@@ -98,6 +98,9 @@ label define comp_change_reason   0 "No change"
 								  3 "Reappearance"
 								  4 "Disappearance"
 								  5 "Compare across a complete gap";
+								  
+label define comp_change          0 "No change"
+                                  1 "Composition Change";								  
 #delimit cr
 
 gen found_prev_hh_member_in_gap$first_wave = ""
@@ -360,17 +363,16 @@ forvalues wave = $first_wave/$penultimate_wave {
 	label var comp_change_reason`wave' "Codes for whether comp_change is observed in adjascent waves or inferred"
     label values comp_change_reason`wave' comp_change_reason
 	
+	label var comp_change`wave' "Indicator for whether a composition change is observed or inferred"
+	label values comp_change`wave' comp_change
+	
 	drop comp_change_case
 }
 
-tab comp_change5 comp_change_reason5, m
+drop _*
 
 save "$tempdir/comp_change.dta", $replace
 
-*** TODO:  Fix bugs:
-* There seeem to be a bunch of temp variables in the dataset.  Get rid of them.
-
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.
-* Basic correctness, too.
 * Make sure we never do a bogus comparison against the "" in first wave and last wave for prev and future, respectively.
