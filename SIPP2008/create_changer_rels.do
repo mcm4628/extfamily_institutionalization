@@ -22,7 +22,6 @@ assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 assert (have_changers == 1) if (comp_change == 1)
 
-*** comp_change needs to be labeled, so does comp_change_reasons (S)
 drop if missing(comp_change)
 
 drop if (comp_change == 0)
