@@ -114,23 +114,27 @@ forvalues wave = $first_wave/$penultimate_wave {
 *    tab addr_change`wave' comp_change`wave', m
 }
 
-keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* 
+gen original=1 if !missing(SHHADID1)
+gen agewave1=adj_age1 if original==1
+
+keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* original agewave1
 
 reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all.dta"
 
-* can't know if change after last observation
-drop if SWAVE==15
+assert _merge==3
+
+drop _merge
 
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
 
-keep if _merge==3
+gen inwave = !missing(ERRP)
 
 gen insample=0
-* Keep if inthis wave and next
-replace insample=1 if !missing(ERRP) & innext==1
+* Keep if in this wave and next
+replace insample=1 if inwave==1 & innext==1
 * also keep if hh_change is not missing. This would be (for example) if not in current wave, 
 * but in next one and people you live with in next wave appear while ego is missing.
 * hh_change also ==1 if in current wave and not in next, but some of the people 
@@ -138,21 +142,5 @@ replace insample=1 if !missing(ERRP) & innext==1
 * hh_change can =0 if not in next wave but in a subsequent one and everyone ego 
 * is with in this wave is in the household in the next appearence
 replace insample=2 if insample==0 & !missing(hh_change)
-
-gen inwave = !missing(ERRP)
-
-tab inwave
-
-tab insample hh_change, m
-
-tab ERRP insample, m
-
-tab ERRP hh_change, m
-
-tab innext hh_change, m
-
-drop if insample==0
-
-drop _merge
 
 save "$tempdir\hh_change.dta", $replace

@@ -3,7 +3,11 @@
 
 use "$tempdir\hh_change.dta", clear
 
-keep if adj_age < $adult_age
+* limit to cases that have fully-observed intervals or we were able to infer hh_change
+
+drop if insample==0
+
+keep if adj_age < $adult_age 
 
 global results "$projdir/Results and Papers/Household Instability (PAA17)"
 putexcel set "$results/HHChange.xlsx", sheet(HHchangeRaw) modify

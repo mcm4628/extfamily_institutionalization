@@ -1,6 +1,9 @@
 * Creates an excel spreadsheet with tables for estimates of address change for total and by race-ethnicity and by householder education
 use "$tempdir\hh_change.dta", clear
 
+* limit to cases that have fully-observed intervals or we were able to infer hh_change
+drop if insample==0
+
 keep if adj_age < $adult_age
 
 global results "$projdir/Results and Papers/Household Instability (PAA17)"
