@@ -142,6 +142,9 @@ local per_missing= `=int(100*_N/`intervals')'
 	putdocx text ("child left alone. ")
 
 * TODO:  Add a check that this command is installed.
+
+label values comp_change comp_change
+
 	putdocxfreqtable comp_change, nocum 
 
 	putdocx paragraph
