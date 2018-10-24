@@ -18,3 +18,5 @@ See SIPP2008/do_all.do for an example of how to use the do_and_log.do file.
 
 To run the ChildHH data creation files, you need to have both mdesc and confirmdir packages installed. 
 If you do not, type ssc install mdesc/confirmdir before attempting to run this code.
+
+To run missing_analysis you need putdocxfreqtable installed. Install using ssc install as described just above.
