@@ -10,6 +10,11 @@
 
 use "$tempdir/comp_change.dta", clear
 
+#delimit ; 
+label define addr_change          0 "No move"
+                                  1 "Move";	 
+#delimit cr
+
 ********************************************************************************
 * Function Propagate shhadid_members forard into prev_SHHADID for missing waves.
 ********************************************************************************
@@ -142,5 +147,14 @@ replace insample=1 if inwave==1 & innext==1
 * hh_change can =0 if not in next wave but in a subsequent one and everyone ego 
 * is with in this wave is in the household in the next appearence
 replace insample=2 if insample==0 & !missing(hh_change)
+
+	label var comp_change_reason "Codes for whether comp_change is observed in adjascent waves or inferred"
+    label values comp_change_reason comp_change_reason
+	
+	label var comp_change "Indicator for whether a composition change is observed or inferred"
+	label values comp_change comp_change
+	
+	label var addr_change "Indicator for whether individual moved"
+	label values addr_change addr_change
 
 save "$tempdir/hh_change.dta", $replace
