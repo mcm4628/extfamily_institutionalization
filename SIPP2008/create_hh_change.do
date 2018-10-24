@@ -143,4 +143,4 @@ replace insample=1 if inwave==1 & innext==1
 * is with in this wave is in the household in the next appearence
 replace insample=2 if insample==0 & !missing(hh_change)
 
-save "$tempdir\hh_change.dta", $replace
+save "$tempdir/hh_change.dta", $replace

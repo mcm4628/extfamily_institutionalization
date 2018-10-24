@@ -12,7 +12,7 @@
 	putdocx paragraph
 
 * Read in data
-use "$tempdir\hh_change.dta", clear
+use "$tempdir/hh_change.dta", clear
 
 ********************************************************************************
 * Section: Does recovering comp_change by looking for other household members in
@@ -88,7 +88,8 @@ local prop_nmc = int(100*`number_original_nmc'/`possible_original_obs')
 	putdocx text ("The number of observed or inferred comp_change intervals for ")
 	putdocx text ("original sample members is ")
 	putdocx text ("`number_original_nmc' (`prop_nmc'%). So inferring composition change ")
-	putdocx text ("reduced missing data by (`prop_nmc' - `prop_fully_observed') percentage points." )
+	local prop_diff = `prop_nmc' - `prop_fully_observed'
+	putdocx text ("reduced missing data by `prop_diff' percentage points." )
 
 *******************************************************************************
 * Section: Do we observe children < 15 transitioning alone?
@@ -140,6 +141,7 @@ local per_missing= `=int(100*_N/`intervals')'
 	putdocx text ("when the child reappears, then comp_change==1. These might be cases where the ")
 	putdocx text ("child left alone. ")
 
+* TODO:  Add a check that this command is installed.
 	putdocxfreqtable comp_change, nocum 
 
 	putdocx paragraph
@@ -210,7 +212,7 @@ keep if adj_age < 15 & inwave==0
 * section: What proportion of original household members have complete data?
 ********************************************************************************
 
-use "$tempdir\comp_change.dta", clear
+use "$tempdir/comp_change.dta", clear
 
 * original respondents have same value for SHHADID1
 gen original=1 if !missing(SHHADID1)

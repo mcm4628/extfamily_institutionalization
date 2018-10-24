@@ -1,4 +1,4 @@
-use "$SIPP2008\marhis.dta", clear
+use "$SIPP2008/marhis.dta", clear
 
 drop if TAGE > 40
 
