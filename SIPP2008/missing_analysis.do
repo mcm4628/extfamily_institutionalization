@@ -134,11 +134,11 @@ local per_missing= `=int(100*_N/`intervals')'
 	putdocx text ("If we have a value on comp_change, then someone in the child's household ")
 	putdocx text ("must be observed in some future wave. If everyone the child was living with ")
 	putdocx text ("never appears in the data when the child is missing and is with the child at ")
-	putdocx text ("the child's next appearance (and noone new appears), then ")
+	putdocx text ("the child's next appearance (and no one new appears), then ")
 	putdocx text ("comp_change will equal zero. This is not likely ")
-	putdocx text ("case where the child left the household alone. ")
+	putdocx text ("a case where the child left the household alone. ")
 	putdocx text ("If someone living with the child is observed living apart from the child before or ")
-	putdocx text ("when the child reappears, then comp_change==1. These might be cases where the ")
+	putdocx text ("when the child reappears, then comp_change==1. These are potential cases where the ")
 	putdocx text ("child left alone. ")
 
 * TODO:  Add a check that this command is installed.
@@ -160,6 +160,8 @@ keep if comp_change==1
 gen all_leave=1 if num_leavers==hhmem-1
 replace all_leave=-9 if num_leavers > hhmem-1
 replace all_leave=0 if num_leavers < hhmem-1
+
+tab hhmem num_leavers, m
 
 label variable all_leave "Did everyone who was in child's hh appear in gap?"
 
