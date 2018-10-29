@@ -153,12 +153,12 @@ drop TAGE*
 
 
 * Create dummies for whether in this interview to be able to create an indicator for whether in interview next wave
-forvalues w=1/15 {
+forvalues w=1/$final_wave {
   gen in`w'=0
   replace in`w'=1 if !missing(ERRP`w')
   }
   
-forvalues w=1/14 {
+forvalues w=1/$penultimate_wave {
   local x=`w'+1
   gen innext`w'=0
   replace innext`w'=1 if in`x'==1
