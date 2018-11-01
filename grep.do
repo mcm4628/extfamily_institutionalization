@@ -2,6 +2,9 @@
 //====== This do file searches all do files in the current directory
 //====== for any of the arguments specified on the command line.
 //======
+//====== Example use:  do grep use save append using
+//======     to find all/most of the places a dataset name is specified.
+//======
 //====== It searches only the first 200 characters of each line.
 //======
 //====== It is not sophisticated.  I don't know how it behaves if you
