@@ -96,7 +96,7 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_comp
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_hh_change 
 
 ** Links ego's household arrivers and stayers (in comp_change) 
-** to relationships data created by unify_relationships_across_waves. 
+** to relationships data created by compute_secondary_relationships. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changer_rels 
 
 ** Merges relationship of changers to ego back to comp_change

@@ -8,7 +8,7 @@
 //===== Note: this code depends on macros set in project_macros and create_comp_change
 //==============================================================================
 
-use "$tempdir/comp_change.dta", clear
+use "$SIPP08keep/comp_change.dta", clear
 
 #delimit ; 
 label define addr_change          0 "No move"
@@ -157,4 +157,4 @@ replace insample=2 if insample==0 & !missing(hh_change)
 	label var addr_change "Indicator for whether individual moved"
 	label values addr_change addr_change
 
-save "$tempdir/hh_change.dta", $replace
+save "$SIPP08keep/hh_change.dta", $replace

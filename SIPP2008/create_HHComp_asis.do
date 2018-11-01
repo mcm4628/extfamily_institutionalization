@@ -79,7 +79,7 @@ tab relationship, m
 
 do "$sipp2008_code/simple_rel_label"
 
-save "$tempdir/HHComp_asis.dta", $replace
+save "$SIPP08keep/HHComp_asis.dta", $replace
 
 
 

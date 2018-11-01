@@ -10,7 +10,7 @@
 //=====================================================================//
 
 * hh_change has one record per person per wave
-use "$tempdir/hh_change.dta"
+use "$SIPP08keep/hh_change.dta"
 
 keep SSUID EPPPNUM SWAVE comp_change hh_change addr_change 
 
@@ -44,7 +44,7 @@ gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 
 collapse (max) comp_change parent_change sib_change other_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave, by(SSUID EPPPNUM SWAVE)
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/hh_change.dta"
+merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/hh_change.dta"
 
 drop _merge
 
@@ -76,6 +76,6 @@ gen otheradult_leave=1 if  comp_change==1 & adult_leave==1 & parent_leave==0
 replace otheradult_arrive=0 if missing(otheradult_arrive) & !missing(comp_change)
 replace otheradult_leave=0 if missing(otheradult_leave) & !missing(comp_change)
 
-save "$tempdir/changebytype.dta", $replace
+save "$SIPP08keep/changebytype.dta", $replace
 
 

@@ -371,7 +371,7 @@ forvalues wave = $first_wave/$penultimate_wave {
 
 drop _*
 
-save "$tempdir/comp_change.dta", $replace
+save "$SIPP08keep/comp_change.dta", $replace
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.
