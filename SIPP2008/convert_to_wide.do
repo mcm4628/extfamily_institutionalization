@@ -29,11 +29,13 @@ rename immigrant mom_immigrant
 rename page mom_age
 
 gen biomom_age=mom_age if ETYPMOM==1
+gen biomom_educ=mom_educ if ETYPMOM==1
 
 label var mom_educ "Mother's (bio, step, adopt) educational level (this wave)"
 label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wave)"
 label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
+label var biomom_educ "Education of coresident biological mother if present (uncleaned)"
 
 recode EPNDAD (9999 = .), gen(pdemo_epppnum)
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
