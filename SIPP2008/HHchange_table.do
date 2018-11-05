@@ -1,21 +1,13 @@
 * Creates an excel spreadsheet with tables for estimates of HHchange, 
 * all inclusive, for total and by race-ethnicity and by householder education
 
-use "$tempdir/hh_change.dta", clear
-
-* limit to cases that have fully-observed intervals or we were able to infer hh_change
-
-drop if insample==0
-
-keep if adj_age < $adult_age 
-
 global results "$projdir/Results and Papers/Household Instability (PAA17)"
 putexcel set "$results/HHChange.xlsx", sheet(HHchangeRaw) modify
 
 tab adj_age hh_change [aweight=WPFINWGT], matcell(agerels)
 
-putexcel A1="Table A1. Household Change by Race-Ethnicity and Maternal Education"
-putexcel A2=("Age") B2=("Total") C2=("By Race-Ethnicity") H2=("By Maternal Education")
+putexcel A1="Table A1. Household Change by Race-Ethnicity and Parental Education"
+putexcel A2=("Age") B2=("Total") C2=("By Race-Ethnicity") H2=("By Parental Education")
 putexcel B3=("No Change") C3=("Change") D3=("Annual Rate")
 putexcel B4=matrix(agerels)
 
@@ -42,7 +34,7 @@ putexcel H3=("No Change") I3=("Change") J3=("Annual Rate")
 
 forvalues e=1/4 {
   local rw=(`e'-1)*20+4
-  tab adj_age hh_change [aweight=WPFINWGT] if mom_educ==`e', matcell(ageeduc`e')
+  tab adj_age hh_change [aweight=WPFINWGT] if par_educ==`e', matcell(ageeduc`e')
   putexcel H`rw'=matrix(ageeduc`e')
   forvalues a=1/18 {
 	local arw=`rw'+`a'-1

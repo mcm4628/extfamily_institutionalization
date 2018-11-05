@@ -1,4 +1,4 @@
-use "$tempdir/changebytype.dta", clear
+use "$SIPP08keep/changebytype.dta", clear
 
 keep if adj_age < 18
 
