@@ -166,11 +166,11 @@ forvalues w=1/$penultimate_wave {
 
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* dad_age* biodad_age* innext*
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ref_person_educ*
 
 save "$tempdir/demo_wide.dta", $replace
 
-reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age innext, i(SSUID EPPPNUM) j(SWAVE)
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ, i(SSUID EPPPNUM) j(SWAVE)
 
 label variable adj_age "Adjusted Age"
 label variable innext "Is this person interviewed in next wave?"

@@ -12,6 +12,14 @@ merge m:1 SSUID SHHADID SWAVE using "$tempdir/shhadid_members"
 assert _merge == 3
 drop _merge
 
+
+* Add characteristics of reference person
+merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
+
+assert _merge == 3
+drop _merge
+
+
 ********************************************************************************
 * Section: create variables describing mother's and father's education and mother's
 *           immigration status by merging to person_pdemo 
@@ -52,7 +60,7 @@ gen biodad_age=dad_age if ETYPDAD==1
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
 label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wave)"
 label var dad_age "Father's (bio, step, adoptive) Age (uncleaned)"
-label var biomom_age "Age of coresident biological father if present (uncleaned)"
+label var biodad_age "Age of coresident biological father if present (uncleaned)"
 
 ********************************************************************************
 * Section: Make the dataset wide by wave (15 waves).
@@ -60,7 +68,7 @@ label var biomom_age "Age of coresident biological father if present (uncleaned)
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS mom_educ biomom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ"
 local extra_vars "overall_max_shhadid_members"
 
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
