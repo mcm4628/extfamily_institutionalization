@@ -166,7 +166,7 @@ forvalues w=1/$penultimate_wave {
 
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_race2 my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ref_person_educ*
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_racealt my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure
 
 save "$tempdir/demo_wide.dta", $replace
 

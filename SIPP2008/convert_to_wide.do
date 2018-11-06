@@ -43,7 +43,7 @@ label var mom_educ "Mother's (bio, step, adopt) educational level (this wave)"
 label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wave)"
 label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
-label var biomom_educ "Education of coresident biological mother if present (uncleaned)"
+label var biomom_educ "Education of coresident biological mother if present"
 
 recode EPNDAD (9999 = .), gen(pdemo_epppnum)
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
@@ -60,7 +60,7 @@ gen biodad_age=dad_age if ETYPDAD==1
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
 label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wave)"
 label var dad_age "Father's (bio, step, adoptive) Age (uncleaned)"
-label var biodad_age "Age of coresident biological father if present (uncleaned)"
+label var biodad_age "Age of coresident biological father if present"
 
 ********************************************************************************
 * Section: Make the dataset wide by wave (15 waves).
@@ -86,7 +86,7 @@ label define race   1 "NH white"
                     4 "NH Asian"
                     5 "NH other";
 
-label define race2  1 "NH white"
+label define racealt  1 "NH white"
 					2 "NH black"
 					3 "Hispanic"
 					4 "NH Asian"
@@ -98,19 +98,19 @@ forvalues wave = $first_wave/$final_wave {
     recode ERACE`wave' (1=1) (2=2) (3=4) (4=5), generate (race`wave')
     replace race`wave' = 3 if ((EORIGIN`wave' == 1) & (ERACE`wave' != 2)) /* non-black Hispanic */
 	recode ERACE`wave' (1=1)(2=2)(3=4)(4=5), generate(race2`wave')
-	replace race2`wave' = 3 if EORIGIN`wave'==1 /*All Hispanic */
+	replace race`wave' = 3 if EORIGIN`wave'==1 /*All Hispanic */
     label values race`wave' race
 }
 
 * use the race value in the first observation.
 gen my_race = race$first_wave
-gen my_race2 = race2$first_wave
+gen my_racealt = race2$first_wave
 forvalues wave = $second_wave/$final_wave {
     replace my_race = race`wave' if (missing(my_race))
-	replace my_race2=race2`wave' if (missing(my_race2))
+	replace my_racealt=race2`wave' if (missing(my_racealt))
 }
 label values my_race race 
-label values my_race2 race2 
+label values my_racealt racealt
 
 * Create flag variables (race_diff*) for difference between reported race and my_race throughout the 15 waves.
 * Use the 15 flag variables to create an indicator variable (any_race_diff) to indicate if there's any different reported race and my_race in any wave. 
@@ -155,6 +155,50 @@ forvalues wave = $second_wave/$final_wave {
 }
 egen any_sex_diff = rowmax(sex_diff*)
 tab any_sex_diff
+
+********************************************************************************
+* Section: Create biological mother education and age variables. 
+*          Set value of my_sex to the value at first observation.
+*          If no biological mother, then use other mother or father 
+********************************************************************************
+
+gen mom_measure=0
+
+* bio mom first
+gen biomom_ed_first=biomom_educ$first_wave 
+gen momageatbirth=biomom_age$first_wave-TAGE$first_wave if biomom_age$first_wave-TAGE$first_wave > 10 & biomom_age$first_wave-TAGE$first_wave < 50
+forvalues wave = $second_wave/$final_wave {
+	replace biomom_ed_first=biomom_educ`wave' if missing(biomom_ed_first)
+	replace momageatbirth=biomom_age`wave'-TAGE`wave' if missing(momageatbirth) & biomom_age`wave'-TAGE`wave' > 10 & biomom_age$first_wave-TAGE$first_wave < 50
+}
+
+replace mom_measure=1 if !missing(biomom_ed_first)
+
+*any mom next
+gen mom_ed_first=biomom_ed_first
+replace mom_ed_first=mom_educ$first_wave if missing(mom_ed_first)
+
+forvalues wave = $second_wave/$final_wave {
+	replace mom_ed_first=mom_educ`wave' if missing(mom_ed_first)
+}
+
+*dad next 
+
+replace mom_measure=2 if !missing(mom_ed_first) & missing(biomom_ed_first)
+
+gen dad_ed_first=dad_educ$first_wave
+forvalues wave = $second_wave/$final_wave {
+	replace dad_ed_first=dad_educ`wave' if missing(dad_ed_first)
+}
+
+replace mom_measure=3 if !missing(dad_ed_first) & missing(biomom_ed_first) & missing(mom_ed_first)
+
+gen par_ed_first=biomom_ed_first
+replace par_ed_first=mom_ed_first if missing(par_ed_first)
+replace par_ed_first=dad_ed_first if missing(par_ed_first)
+
+tab mom_measure
+tab par_ed_first
 
 ********************************************************************************
 * Section: Add variables for other members of sampling unit and other members who 

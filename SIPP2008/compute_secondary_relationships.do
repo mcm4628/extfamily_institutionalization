@@ -310,7 +310,7 @@ gen relationship:relationship=relationship1 if missing(relationship2)
 display "Relationships for which there is only one candidate"
 tab relationship
 	
-* These are lists of "consistent" relationships. The preferred description of the relationship is the earlier one
+* These are lists of relationships. The preferred description of the relationship is the earlier one
 * So, for example, if the same relationship is coded as biodad stepdad and auntuncle_or_parent, we'll choose biodad (below)
 local dad_relations " BIODAD STEPDAD ADOPTDAD DAD F_PARENT PARENT AUNTUNCLE_OR_PARENT OTHER_REL OTHER_REL_P CONFUSED DONTKNOW "
 local mom_relations " BIOMOM STEPMOM ADOPTMOM MOM F_PARENT PARENT AUNTUNCLE_OR_PARENT OTHER_REL OTHER_REL_P CONFUSED DONTKNOW "
