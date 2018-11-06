@@ -10,7 +10,7 @@ global projcode "t:\GitHub\ChildHH"
 global sipp2008_code "$projcode/SIPP2008"
 global sipp2008_logs "$homedir/logs/SIPP/2008"
 global SIPPshared "$projdir/data/shared"
-global SIPP08keep "$stata_data/SIPP08_Processed"
+global SIPP08keep "$homedir/stata_data/SIPP08_Processed"
 
 
 
