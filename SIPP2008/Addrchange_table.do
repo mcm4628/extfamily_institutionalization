@@ -32,7 +32,7 @@ putexcel H3=("No Change") I3=("Change") J3=("Annual Rate")
 
 forvalues e=1/4 {
   local rw=(`e'-1)*19+4
-  tab adj_age addr_change [aweight=WPFINWGT] if par_educ==`e', matcell(ageeduc`e')
+  tab adj_age addr_change [aweight=WPFINWGT] if par_ed_first==`e', matcell(ageeduc`e')
   putexcel H`rw'=matrix(ageeduc`e')
   forvalues a=1/18 {
 	local arw=`rw'+`a'-1

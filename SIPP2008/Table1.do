@@ -22,7 +22,7 @@ local rellist "bioparent parent sibling  child spartner nonrel grandparent other
 
 collapse (count) `rellist', by (SSUID EPPPNUM SWAVE) fast
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_interviews.dta", keepusing(WPFINWGT my_race adj_age my_sex mom_educ dad_educ biomom_educ ref_person_educ)
+merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_interviews.dta", keepusing(WPFINWGT my_race adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure)
 
 keep if _merge==3
 
@@ -30,10 +30,7 @@ drop _merge
 
 gen weight=int(WPFINWGT*10000)
 
-gen par_educ=mom_educ
-replace par_educ=dad_educ if missing(par_educ)
-
-tab adj_age par_educ
+tab adj_age par_ed_first
 
 foreach v in `rellist'{
  tab `v' [fweight=weight]
@@ -86,7 +83,7 @@ tab `v'
 
 	*/
 
-tabout anynonuke anynonrel anygp anyother anyunknown par_educ [aweight=WPFINWGT] using "$logdir/Table1b.csv", replace ///
+tabout anynonuke anynonrel anygp anyother anyunknown par_ed_first [aweight=WPFINWGT] using "$logdir/Table1b.csv", replace ///
 cells(col) ///
 clab(_ _ _) ///
 layout(rb) ///
@@ -100,11 +97,15 @@ layout(rb) ///
 h1( | White | Black | Hispanic | Asian | Other | Total ) h2(nil) ///
 style(csv)
 
-tab my_race
-tab par_educ
+tab my_race, m
+tab par_ed_first, m
+tab mom_measure, m
 
 duplicates drop SSUID EPPPNUM, force
 
-tab my_race
+tab my_race, m
+tab par_ed_first, m
+tab mom_measure, m
+
 
 
