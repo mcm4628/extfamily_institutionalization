@@ -97,7 +97,7 @@ label define comp_change_reason   0 "No change"
 								  2 "First appearance (not age 0)"
 								  3 "Reappearance"
 								  4 "Disappearance"
-								  5 "Compare across a complete gap";
+								  5 "Compare across gap";
 								  
 label define comp_change          0 "No change"
                                   1 "Composition Change";								  
