@@ -32,8 +32,9 @@ by inwave SWAVE: gen ninwave=_n  // Number the people in household in each wave.
 egen ninwave1=max(ninwave)       // works because wave 1 has the largest sample. 
 
 * calculate the number of possible observations
-local inwave1 = `=ninwave1' 
-local possible_original_obs=`inwave1'*14
+local inwave1: di %7.0fc = `=ninwave1' 
+local possible_original_obs =`=ninwave1'*14
+local dpossible_original_obs: di %9.0fc = `possible_original_obs'
 
 * Calculate number of fully-observed intervals
 gen interval=1 if inwave==1 & innext==1
@@ -47,18 +48,22 @@ tab interval
 *group observations by whether they are a fully-observed interval
 sort interval                  
 by interval: gen norigint=_n // interval ==1 will be the larger group
+
+*calculate the number of fully observed intervals observed of original (wave 1)
+*respondents.
 egen numorigint=max(norigint)
-local number_original_intervals = `=numorigint'
-local prop_fully_observed=int(100*`number_original_intervals'/`possible_original_obs')
-local miss_orig=`possible_original_obs'-`number_original_intervals'
+local number_original_intervals: di %9.0fc = `=numorigint'
+local prop_fully_observed=int(100*`=numorigint'/`possible_original_obs')
+local miss_orig =`possible_original_obs'-`=numorigint'
+local dmiss_orig: di %7.0fc = `miss_orig'
 
 	putdocx paragraph
 	putdocx text ("Many SIPP respondents miss one or more interviews. Wave 1 ")
 	putdocx text ("collected data on `inwave1' original sample members. The maximum ")
 	putdocx text ("possible number of observed intervals for original sample ")
-	putdocx text ("members is `possible_original_obs' (`inwave1' times 14), ")  
-	putdocx text ("but we actually have data on `number_original_intervals'. ")
-	putdocx text ("We can categorize the `miss_orig' missing intervals into two ")
+	putdocx text ("members is `dpossible_original_obs' (`inwave1' times 14), ")  
+	putdocx text ("but we have data on only `number_original_intervals' (`prop_fully_observed'%). ")
+	putdocx text ("We can categorize the `dmiss_orig' missing intervals into two ")
 	putdocx text ("groups. In one group, the whole household goes missing ")
 	putdocx text ("because everyone in a household refused to be interviewed ")
 	putdocx text ("or was impossible to locate for one or move waves. ")
@@ -71,19 +76,15 @@ gen whole_goes_missing=1 if missing(comp_change)
 replace whole_goes_missing=0 if !missing(comp_change) // see one exception next line
 replace whole_goes_missing=1 if !missing(comp_change) & comp_change_reason==5
 
-* whole goes missing should equal 1 only if interval does not equal 1
-tab interval whole_goes_missing, m
-
 *group observations of original sample members by whether the whole household went missing next wave
 sort whole_goes_missing                  
 by whole_goes_missing: gen norigwgm=_N 
 egen numorigwgm=min(norigwgm)           // missing is the smaller group
-local wgm=numorigwgm
-local perwgm=100*`wgm'/`miss_orig'
-local fperwgm=round(`perwgm', .01)
+local wgm: di %7.0fc = `=numorigwgm'
+local perwgm: di %3.0f =100*`=numorigwgm'/`miss_orig'
 	
-	putdocx text ("This was the case for `wgm' (`fperwgm' %) of the missing intervals. ")
-	putdocx text ("In the second smaller group, only some of the people in the household go missing. ")
+	putdocx text ("This was the case for `wgm' (`perwgm' %) of the missing intervals. ")
+	putdocx text ("In the second, smaller group, only some of the people in the household go missing. ")
 	putdocx text ("This would happen if some household members moved out and ")
 	putdocx text ("could not be interviewed. It also happens by design as children ")
 	putdocx text ("less than age 15 are not followed when they no longer live with ")
@@ -97,14 +98,11 @@ local fperwgm=round(`perwgm', .01)
 *          And is missingness associated with household instability before
 *          We infer comp_change?
 ********************************************************************************
-	putdocx paragraph
-	putdocx text ("Missing data have the potential to downwardly bias our ") 
-	putdocx text ("results if missingness is associated with household ")
-	putdocx text ("instability and missing intervals are simply dropped from ")
-	putdocx text ("the analysis. ")
 
 * Start with individuals rather than intervals as the unit of analysis 
 * so that we can characterize 
+
+preserve
 
 use "$SIPP08keep/comp_change.dta", clear
 
@@ -128,18 +126,34 @@ label variable nobs "Number of observed waves"
 
 recode nummissing (0=0)(1/14=1), gen(anymissing)
 
-	putdocx text ("Supporting this intuition, we find that individuals with at ")
-	putdocx text ("least some missing data are more likely to have experienced ")
-	putdocx text ("composition changes in full-observed intervals than ")
-	putdocx text ("individuals with complete data")
-
-
-	
 * create new comp_change variable with only fully observed data
 
 forvalues w=1/14{
 	gen comp_change_before_infer`w'=comp_change`w' if comp_change`w'==0| comp_change_reason`w'==1
 }
+
+* Have to insert this paragraph here before reshaping*
+sort anymissing
+by anymissing: gen norigfull=_N 
+egen numorigfull=min(norigfull) // the group with no missing is smaller
+
+
+egen originals=count(original) // count all cases
+local foriginals: di %7.0fc = `=originals' 
+local fnumorigfull: di %7.0fc =`=numorigfull'
+local per_orig_fully_obs: di %2.0f = 100*`=numorigfull'/`=originals'
+
+	
+	putdocx paragraph
+	putdocx text ("------------------out of place ----------------------------")
+	putdocx paragraph
+	putdocx text ("There are substantial amounts of missing data. Of the `foriginals' ")
+	putdocx text ("individuals observed in the first wave, only ")
+	putdocx text ("`fnumorigfull' (`per_orig_fully_obs'%) are ")
+	putdocx text ("observed at every interview until wave 15. ")
+	putdocx paragraph
+	putdocx text ("------------------out of place ----------------------------")
+**************************************************************************
 
 * reshape data to long to be able to calculate rates 	
 keep SSUID EPPPNUM comp_change* comp_change_before_infer* comp_change_reason* anymissing
@@ -147,38 +161,109 @@ keep SSUID EPPPNUM comp_change* comp_change_before_infer* comp_change_reason* an
 reshape long comp_change comp_change_before_infer comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
 sort anymissing
-by anymissing: gen nanymissing_N
-local numwithmissing	
-egen rate_bymissing=mean(comp_change_before_infer) by anymissing
+by anymissing: gen nanymissing=_N
 
-local compchangeanymissing=rate_anymissing
-local compchangenomissing=rate_nomissing
+gen comp_change_before_infer_am=comp_change_before_infer if anymissing==1
+gen comp_change_before_infer_nm=comp_change_before_infer if anymissing==0
 
-	putdocx text("That is, the rate of household change for individuals  that ")
-	putdocx text("are missing at any wave is `compchangeanymissing' compared to ")
-	putdocx text("`compchangenomissing' for those with complete data. ") 
-	putdocx text("To reduce the bias due to missing data, we recover some of ")
-	putdocx text("the missing intervals, however, by inferring composition ")
-	putdocx text("change from the available data. For the first type of missing ")
-	putdocx text("data, where an entire household goes missing, we compare each ")
-	putdocx text("person’s household composition at their last appearance before ")
-	putdocx text("the gap in data to their first appearance after the gap. If ")
-	putdocx text("the households are the same, we code no composition change; ")
-	putdocx text("if they are different they are coded as having a composition ")
-	putdocx text("change. In the middle, the composition change variable is missing. ")
+egen rate_all=mean(comp_change_before_infer)
+egen rate_am=mean(comp_change_before_infer_am)
+egen rate_nm=mean(comp_change_before_infer_nm) 
+egen rate_ai=mean(comp_change)
 
-sort anymissing
-by anymissing: gen norigfull=_N 
-egen numorigfull=min(norigfull)
-local originals_fully_observed=numorigful
-local per_orig_fully_obs=100*`originals_fully_observed'/`inwave1'
-local fper_orig_fully_obs=round(`per_orig_fully_obs', .01)
+local compchangeall: di %6.3f = `=rate_all'
+local compchangeanymissing: di %6.3f = `=rate_am'
+local compchangenomissing: di %6.3f = `=rate_nm'
+local compchangeafterinfer: di %6.3f = `=rate_ai'
+
+	putdocx paragraph
+	putdocx text ("Missing data have the potential to downwardly bias our ") 
+	putdocx text ("results if missingness is associated with household ")
+	putdocx text ("instability and missing intervals are simply dropped from ")
+	putdocx text ("the analysis. ")
+	putdocx text ("Supporting this intuition, we find that individuals with at ")
+	putdocx text ("least some missing data are more likely to have experienced ")
+	putdocx text ("composition changes in fully-observed intervals than ")
+	putdocx text ("individuals with complete data. ")
+	putdocx text ("The rate of household change for individuals that ")
+	putdocx text ("are missing at any wave is `compchangeanymissing' compared to ")
+	putdocx text ("`compchangenomissing' for those with complete data. ")
 	
 	putdocx paragraph
-	putdocx text ("There are substantial amounts of missing data. Of the `inwave1' ")
-	putdocx text ("individuals observed in the first wave, only ")
-	putdocx text ("`originals_fully_observed' (`fper_orig_fully_obs'%) are ")
-	putdocx text ("observed at every interview until wave 15. ")
+	putdocx text ("To reduce the bias due to missing data, we recover some of ")
+	putdocx text ("the missing intervals by inferring composition change ")
+	putdocx text ("from the available data. For the first type of missing ")
+	putdocx text ("data, where an entire household goes missing, we compare each ")
+	putdocx text ("person’s household composition at their last appearance before ")
+	putdocx text ("the gap in data to their first appearance after the gap. If ")
+	putdocx text ("the households are the same, we code no composition change; ")
+	putdocx text ("if they are different they are coded as having a composition ")
+	putdocx text ("change. In the middle, the composition change variable remains missing.")
+
+
+	
+restore	
+	
+egen obsafterinfer=count(comp_change)
+local recover =`=obsafterinfer'-`=numorigint'
+local drecover: di %6.0fc = `recover'
+local perrecover: di %6.0f = 100*`recover'/`miss_orig'
+
+	
+	putdocx paragraph
+	putdocx text ("For the second type of missing data, where only some of the ")
+	putdocx text ("people in a household go missing, we infer a composition ")
+	putdocx text ("change for everyone in the household. That is, when a person ")
+	putdocx text ("transitions to missing and someone who was in that person's ")
+	putdocx text ("household appears in the data while they are missing, ")
+	putdocx text ("we code both the person who went missing and the person ")
+	putdocx text ("who remains in the data as having a composition change. ")
+	putdocx text ("Analogously, when a person (ego) reappears in the data after a ")
+	putdocx text ("stretch of missing interviews, ")
+	putdocx text ("we code a composition change for everyone in the household ")
+	putdocx text ("that appeared in the data while ego was missing. ")
+	putdocx text ("First appearances in the data after Wave 1 are automatically ")
+	putdocx text ("coded as a household change for the person who appeared, ")
+	putdocx text ("unless the person is less than one year old. We do not count ")
+	putdocx text ("being born as a composition change from the perspective of ")
+	putdocx text ("the infant, but it is a household change for everyone else ")
+	putdocx text ("the infant lives with. Last appearances in the data are not ")
+	putdocx text ("counted as household changes unless the people ego last lived ")
+	putdocx text ("with are observed in subsequent interviews. By inferring ")
+	putdocx text ("composition change in this way we are able to recover ")
+	putdocx text ("`drecover' (`perrecover' %) ")
+	putdocx text ("missing intervals and reduce the downward bias in our estimates. ")
+	putdocx text ("Using only fully_observed intervals the rate of composition ")
+	putdocx text ("change is `compchangeall' and after inferring where a partial ")
+	putdocx text ("household is observed the rate is `compchangeafterinfer'. ")
+
+
+	putdocx text ("Desipte our efforts to recover missing data, we believe that ")
+	putdocx text ("we still underestimate household instability. ")
+	putdocx text ("Composition change is still coded missing when a whole ")
+	putdocx text ("household disappears from the data and never reappears. ")
+	putdocx text ("If a household goes missing in Wave 3 and reappears in Wave 7,")
+	putdocx text ("composition change is coded missing for Waves 4-6 ")
+	putdocx text ("It seems likely that the missing periods have higher levels ")
+	putdocx text ("of instability than the periods we capture instability ")
+	putdocx text ("that occurs between interviews. Analysis weights might ")
+	putdocx text ("correct for some of this bias to the extent that household ")
+	putdocx text ("instability is correlated with factors used to generate the ")
+	putdocx text ("weights. Using the monthly household ")
+	
+do ".\SIPP2008\short_transitions.do"	
+
+egen rate_short=mean(compchange_ref)
+egen rate_wave=mean(compchange_wave)
+local compchangeshort: di %6.3f = `=rate_short'
+local rateratio : di %4.2f = `=rate_wave'/`=rate_short'
+	
+	putdocx text ("rosters for between wave 1 and wave 2, we determined that ")
+	putdocx text ("the rate of household change including household changes ")
+	putdocx text ("that occur between waves is `rateratio' the rate estimated ")
+	putdocx text ("by comparing household composition in the interview months. ")
+	putdocx text ("Thus, we believe that these are conservative estimates, but ")
+	putdocx text ("do not underestimate by much.")
 	
 	putdocx save "$logdir/missingreport.docx", $replace
 /*	

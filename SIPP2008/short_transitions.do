@@ -78,7 +78,7 @@ save "$tempdir/long_5months.dta", replace
 
  
 /*Generate a horizontal list of people in the household at each wave. Based on 
-"male_auxiliary_dataset.do" 
+"make_auxiliary_dataset.do" 
 */
 
 use "$tempdir/long_5months.dta", clear
@@ -95,7 +95,7 @@ egen maxpnum = max(pnum) /* max n of people in any household in any wave. */
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 *******************************************************************
-** Function: Generate a horizontal list of people in the household at each wave.
+** Section: Generate a horizontal list of people in the household at each wave.
 ********************************************************************
 * Create for_concat_person variables equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 * and for_concat_age_* variables equal to string value of TAGE-EPPPNUM
@@ -153,7 +153,7 @@ ta TAGE compchange_wave [aweight=WPFINWGT] if TAGE<=16 & ref==1 /*Waves*/
 
 
 
-end
+*end
 
 
 
