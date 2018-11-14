@@ -256,58 +256,17 @@ do ".\SIPP2008\short_transitions.do"
 egen rate_short=mean(compchange_ref)
 egen rate_wave=mean(compchange_wave)
 local compchangeshort: di %6.3f = `=rate_short'
-local rateratio : di %4.2f = `=rate_wave'/`=rate_short'
+local rateratio : di %4.2f = 3*`=rate_wave'/(12*`=rate_short')
 	
 	putdocx text ("rosters for between wave 1 and wave 2, we determined that ")
 	putdocx text ("the rate of household change including household changes ")
-	putdocx text ("that occur between waves is `rateratio' the rate estimated ")
+	putdocx text ("that occur between waves is `rateratio' times the rate estimated ")
 	putdocx text ("by comparing household composition in the interview months. ")
-	putdocx text ("Thus, we believe that these are conservative estimates, but ")
-	putdocx text ("do not underestimate by much.")
+	putdocx text ("Thus, we believe that these are slightly conservative estimates, but ")
+	putdocx text ("probably do not underestimate by much.")
 	
 	putdocx save "$logdir/missingreport.docx", $replace
 /*	
-	
-* What proportion of original sample members are observed 15 waves?
-egen propincomplete=mean(anymissing)
-local incomplete=int(100*propincomplete)	
-	
-	putdocx text ("Shifting from intervals to observations, we see that `incomplete' % individuals have some missing observations. ")
-
-*******************************************************************************
-* Section: Do those with missing observations have more instability than those 
-*          that don't?
-*******************************************************************************
-	putdocx paragraph
-	putdocx text ("Do those with missing observations have more instability than those that don't?"), bold
-keep SSUID EPPPNUM SHHADID* nobs anymissing comp_change* comp_change_reason* adj_age*
-
-reshape long comp_change comp_change_reason adj_age SHHADID, i(SSUID EPPPNUM) j(SWAVE)
-
-sort anymissing
-by anymissing: sum comp_change
-
-gen anymiss0_compchange=comp_change if anymissing==0
-gen anymiss1_compchange=comp_change if anymissing==1
-
-* Is perchange greater for those with anymissing?
-egen propchange_anymiss0=mean(anymiss0_compchange)
-local propchange_nomiss=round(propchange_anymiss0, .001)
-
-egen propchange_anymiss1=mean(anymiss1_compchange)
-local propchange_somemiss=round(propchange_anymiss1, .001)
-
-
-	// New paragraph
-	putdocx paragraph
-	putdocx text ("We find that the average proportion experiencing a composition change between waves is `propchange_nomiss', among those with no missing data, and ")
-	putdocx text ("`propchange_somemiss' among those with some missing data. ")
-	
-
-
-	
-	
-	Supporting this intuition, we find that individuals with at least some missing data are more likely to have experienced composition changes in fully-observed intervals than individuals with complete data (*** compared to ***). To reduce the bias due to missing data, we recover some of the missing intervals, however, by inferring composition change from the available data. For the first type of missing data, where an entire household goes missing, we compare each person’s household composition at their last appearance before the gap in data to their first appearance after the gap. If the households are the same, we code no composition 
 	
 *******************************************************************************
 * Section: Do we observe children < 15 transitioning alone or without adults?
@@ -437,8 +396,6 @@ tab comp_change gone_missing_withoutadult, m
 * ssc install putdocxcrosstab
 putdocxcrosstab comp_change gone_missing_withoutadult
 
-
-
 egen num_compchange=sum(comp_change)
 local compchanges=num_compchange
 
@@ -453,10 +410,7 @@ local impact=`percentbydesign'/2
 	putdocx text (" (`percentbydesign' percent) of the composition changes involve ")
 	putdocx text ("a child leaving without an adult. ")	
 	
-	
-	
-	
-	
+
 * Calculate number and proportion of observations fully_observed or inferred
 * We have more observations of comp_change than we have full intervals because
 * we use information on other household members to code ego as experiencing
@@ -478,89 +432,3 @@ local prop_diff = `prop_nmc' - `prop_fully_observed'
 
 
 
-	
-********************************************************************************
-* section: What proportion of original household members have complete data?
-********************************************************************************
-
-use "$tempdir/comp_change.dta", clear
-
-	putdocx paragraph
-	putdocx text ("What proportion of original household members have complete data?"), bold
-
-* original respondents have same value for SHHADID1
-gen original=1 if !missing(SHHADID1)
-
-gen nummissing=0
-gen ncompchange=0
-gen age=adj_age1
-
-label variable nummissing "Number of waves without an interview"
-
-forvalues a=1/15 {
-replace nummissing=nummissing+1 if missing(SHHADID`a')
-}
-
-gen nobs=15-nummissing
-label variable nobs "Number of observed waves"
-
-recode nummissing (0=0)(1/14=1), gen(anymissing)
-
-* What proportion of original sample members are observed 15 waves?
-egen propincomplete=mean(anymissing)
-local incomplete=int(100*propincomplete)
-
-	// New paragraph
-	putdocx paragraph
-	putdocx text ("Shifting from intervals to observations, we see that `incomplete' % individuals have some missing observations. ")
-
-*******************************************************************************
-* Section: Do those with missing observations have more instability than those 
-*          that don't?
-*******************************************************************************
-	putdocx paragraph
-	putdocx text ("Do those with missing observations have more instability than those that don't?"), bold
-keep SSUID EPPPNUM SHHADID* nobs anymissing comp_change* comp_change_reason* adj_age*
-
-reshape long comp_change comp_change_reason adj_age SHHADID, i(SSUID EPPPNUM) j(SWAVE)
-
-sort anymissing
-by anymissing: sum comp_change
-
-gen anymiss0_compchange=comp_change if anymissing==0
-gen anymiss1_compchange=comp_change if anymissing==1
-
-* Is perchange greater for those with anymissing?
-egen propchange_anymiss0=mean(anymiss0_compchange)
-local propchange_nomiss=round(propchange_anymiss0, .001)
-
-egen propchange_anymiss1=mean(anymiss1_compchange)
-local propchange_somemiss=round(propchange_anymiss1, .001)
-
-
-	// New paragraph
-	putdocx paragraph
-	putdocx text ("We find that the average proportion experiencing a composition change between waves is `propchange_nomiss', among those with no missing data, and ")
-	putdocx text ("`propchange_somemiss' among those with some missing data. ")
-
-
-
-
-	putdocx paragraph
-	putdocx text ("This analysis evaluates how much missing data are in the SIPP 2008 panel and ")
-	putdocx text ("how much missing data is recovered by our inference of comp change as ")
-	putdocx text ("described below. Missing intervals sometimes happen because a ")
-	putdocx text ("person (ego) moved out of a household and could not be located ")
-	putdocx text ("or interviewed at their new address. In this situation, ")
-	putdocx text ("we know that ego experienced a household composition change if someone ")
-	putdocx text ("in ego’s household at last observation appears in ego’s missing wave(s). ")
-	putdocx text ("Thus, we code this as a composition change even though ego is ")
-	putdocx text ("missing in the next wave and the interval is not fully-observed. ")
-	putdocx text ("Analogously, we code a composition change if someone in ego’s ")
-	putdocx text ("household just after ego’s gap in data appears during the gap. ")
-	putdocx text ("Also, if everyone in a household is missing in next wave, ")
-	putdocx text ("we compare each person’s household composition at their last ")
-	putdocx text ("appearance before the gap in data to their first appearance after the gap. ")
-	putdocx text ("If the households are different, all the individuals are coded as having a ")
-	putdocx text ("composition change at the time of the last observation before the gap; ")
-	putdocx text ("if they are the same, all are coded as not experiencing a composition change. ")
