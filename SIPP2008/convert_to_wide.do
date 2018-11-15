@@ -97,17 +97,18 @@ label define racealt  1 "NH white"
 forvalues wave = $first_wave/$final_wave {
     recode ERACE`wave' (1=1) (2=2) (3=4) (4=5), generate (race`wave')
     replace race`wave' = 3 if ((EORIGIN`wave' == 1) & (ERACE`wave' != 2)) /* non-black Hispanic */
-	recode ERACE`wave' (1=1)(2=2)(3=4)(4=5), generate(race2`wave')
-	replace race`wave' = 3 if EORIGIN`wave'==1 /*All Hispanic */
+	recode ERACE`wave' (1=1)(2=2)(3=4)(4=5), generate(racealt`wave')
+	replace racealt`wave' = 3 if EORIGIN`wave'==1 /*All Hispanic */
     label values race`wave' race
+	label values racealt`wave' racealt
 }
 
 * use the race value in the first observation.
 gen my_race = race$first_wave
-gen my_racealt = race2$first_wave
+gen my_racealt = racealt$first_wave
 forvalues wave = $second_wave/$final_wave {
     replace my_race = race`wave' if (missing(my_race))
-	replace my_racealt=race2`wave' if (missing(my_racealt))
+	replace my_racealt=racealt`wave' if (missing(my_racealt))
 }
 label values my_race race 
 label values my_racealt racealt

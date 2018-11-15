@@ -151,19 +151,32 @@ label values change_type change_type
 * Label relationships. 
 do "$sipp2008_code/simple_rel_label"
 
+***********************************************************************
+* Note that we compared our relationships to the relationships identified 
+* in the relationship matrix available in Wave 2 (see relationship_matrix.do) 
+* and found thatthe cases coded child_or_relative (31) or child_or_ 
+* nephewniece (30) were never children and always an other relatives. 
+* Likewise for auntuncle_or_parent (25). Thus, we code these as other relatives
+*
+* In addition, we found that nearly all (85%) the missing relationships (40) were
+* nonrelatives.
+**********************************************************************
+
+
 gen bioparent=1 if relationship==1
-gen parent=1 if inlist(relationship,1,4,7,19,20,21,30,31,38)
-gen sibling=1 if inlist(relationship, 17,33,34)
-gen child=1 if inlist(relationship,2,3,5,6,8,9,10,11,22,23,25,26)
+gen parent=1 if inlist(relationship,1,4,7,19,21)
+gen sibling=1 if inlist(relationship,17)
+gen child=1 if inlist(relationship,2,3,5,6,8,9,10,11,23)
 gen spartner=1 if inlist(relationship,12,18)
-gen nonrel=1 if relationship==37
+gen nonrel=1 if inlist(relationship,20,22,34,37,38,40)
+gen foster=1 if inlist(relationship,20,22,34,38)
 gen grandparent=1 if inlist(relationship,13,14,27)
-gen other_rel=1 if inlist(relationship, 15,16,24,28,29,32,35)
+gen other_rel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) //not parents, siblings, children, spouses, or grandparents
 gen unknown=1 if relationship==40 | missing(relationship)
-gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
+gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1
+gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, spouses
 
 gen adult_arrive=1 if change_type==1 & to_age >= $adult_age
-*Note that there was an error here: it was change_type==1 below, I changed it to 2 (Yiwen)
 gen adult_leave=1 if change_type==2 & to_age >= $adult_age
 
 *create variables for parent_arrive and parent_leave
