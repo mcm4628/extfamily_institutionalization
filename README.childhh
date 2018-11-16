@@ -1,22 +1,56 @@
-To get started with any ChildHH code:
-1.  cd to this directory
-2.  do setup_childhh_environment.do
+********************************************************************************
+//===== Children's Household Instability Project
+//===== Dataset: SIPP2008
+********************************************************************************
 
-setup_childhh_environment.do defines several macros that locate the project data and otherwise establish project norms.  
-It also executes a personalized setup do file, named setup_<username>.do.
+This README file has instructions on how to run the accompanying code to: 
+Part 1. Setup to be able to run the code
+Part 2. Download and prepare original data
+Part 3. Produce variables for analysis
+Part 4. Create tables and supplementary analyses 
 
-The personalized setup do file defines several macros required by the project code.
-The values of the macros are personalized, but the names of the macros must be the same for all users.
-See an example setup file, e.g. setup_Robert.do, to learn which macros must be defined. To run the code
-you will need to create your own personalized setup file named <username>.do, where <username> is replaced
-by your username on this computer running the code.
+Part 1. Setup to be able to run the code
 
+	To run the ChildHH data creation files, you need to have both mdesc and confirmdir packages installed. 
+	If you do not, type ssc install mdesc/confirmdir before attempting to run this code.
 
-The remaining do files in this directory provide a convenient way to ensure that results are logged and
-that random number generator state is preserved so that results are repeatable.
-See SIPP2008/do_all.do for an example of how to use the do_and_log.do file.
+	Edit setup_XXXX.do The personalized setup do file defines several macros required by the project code.
+	The values of the macros are personalized, but the names of the macros must be the same for all users.
+	See an example setup file, e.g. setup_XXXX.do, to learn which macros must be defined. To run the code
+	you will need to create your own personalized setup file named <username>.do, where <username> is replaced
+	by your username on this computer running the code.
 
-To run the ChildHH data creation files, you need to have both mdesc and confirmdir packages installed. 
-If you do not, type ssc install mdesc/confirmdir before attempting to run this code.
+Part 2. Download and prepare original data
 
-To run missing_analysis you need putdocxfreqtable installed. Install using ssc install as described just above.
+	The full files were obtained from NBER (http://www.nber.org/data/survey-of-income-and-program-participation-sipp-data.html). 
+	
+	The puw files are the Core data.
+	he putm files are the Topical Module files.
+	
+	The original zip files, the original do files to unpack them, and the do files 
+	modified to actually work are in XXXXXXX/data/NBER2008.  The FromNBER 
+	directory contains the originals.  The ModifiedForExecution contains the modified do files, 
+	the renamed dictionary files, and the logs from executing the do files to create the data files.
+
+Part 3. Produce variables for analysis
+
+	To get started with any ChildHH code:
+		1.  start stata
+		2.  cd to the directory that holds this file as well as setup_childhh_environment
+		3.  do setup_childhh_environment.do
+		4.  do do_childrens_household_core.do (find this file in the SIPP2008  
+
+	setup_childhh_environment.do defines several macros that locate the project data and otherwise establish project norms.  
+	It also executes a personalized setup do file, named setup_<username>.do.
+
+	The remaining do files in this directory provide a convenient way to ensure that results are logged and
+	that random number generator state is preserved so that results are repeatable.
+
+	Part 4. Create tables and supplementary analsyses
+	
+	To create table 1, run Table1.do. To create table 2, run Table2.do
+	The figures are based on data in the tables.
+	
+	To generate a report with information on missing data, run missing_analysis.do
+	To see our comparison of our transitively-derived relationships with relationships
+	reported in the Wave 2 relationships matrix, run relationship_matrix
