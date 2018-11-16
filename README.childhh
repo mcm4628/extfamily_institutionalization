@@ -27,10 +27,28 @@ Part 2. Download and prepare original data
 	The puw files are the Core data.
 	he putm files are the Topical Module files.
 	
-	The original zip files, the original do files to unpack them, and the do files 
-	modified to actually work are in XXXXXXX/data/NBER2008.  The FromNBER 
-	directory contains the originals.  The ModifiedForExecution contains the modified do files, 
-	the renamed dictionary files, and the logs from executing the do files to create the data files.
+        The original do files must be modified to match the environment in which they will be executed.
+	A couple other modofications may also be useful.
+	1. The original do file contains a hard-coded path to the data file.  This must be modified to
+		match your environment.  In the version current as of this writing, the macro requiring
+		modification is named dat_name.
+	2. The original do file uses the "saveold" command instead of "save".  You may wish to change
+		this to "save" to use the DTA format current for your version of Stata.  Saveold uses
+		a backward compatible format, version 13 as of this writing.
+	3. The original do file opens a log file but does not close it.  You may wish to add a
+		"log close" to the do file.
+
+	Also, you may find that the dictionary files are downloaded as "sippxxxx.dct.txt" rather than
+	"sippxxxx.dct".  If so, you should rename them to remove the ".txt".
+
+        You also need to unzip the data files before running the do files.
+
+
+	The original zip files, the original do files to unpack them, and the original dictionary filesi
+	are found in XXXXXXX/data/NBER2008/FromNBER.  The do files have ".orig" appended to their names.
+
+	XXXXXXX/data/NBER2008/ModifiedForExecution contains the modified do files, the renamed 
+	dictionary files, and the logs from executing the do files to create the data files.
 
 Part 3. Produce variables for analysis
 
