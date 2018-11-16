@@ -93,6 +93,8 @@ local perwgm: di %3.0f =100*`=numorigwgm'/`miss_orig'
 	putdocx text ("go live with his father he would not be included after he ")
 	putdocx text ("moved to his father's household. ")
 
+preserve
+
 ********************************************************************************
 * section: What proportion of original household members have complete data?
 *          And is missingness associated with household instability before
@@ -102,7 +104,6 @@ local perwgm: di %3.0f =100*`=numorigwgm'/`miss_orig'
 * Start with individuals rather than intervals as the unit of analysis 
 * so that we can characterize 
 
-preserve
 
 use "$SIPP08keep/comp_change.dta", clear
 
@@ -237,19 +238,19 @@ local perrecover: di %6.0f = 100*`recover'/`miss_orig'
 	putdocx text ("change is `compchangeall' and after inferring where a partial ")
 	putdocx text ("household is observed the rate is `compchangeafterinfer'. ")
 
-
-	putdocx text ("Desipte our efforts to recover missing data, we believe that ")
-	putdocx text ("we still underestimate household instability. ")
+	putdocx paragraph
+	putdocx text ("Despite our efforts to recover missing data, we believe that ")
+	putdocx text ("we underestimate household instability. ")
 	putdocx text ("Composition change is still coded missing when a whole ")
 	putdocx text ("household disappears from the data and never reappears. ")
-	putdocx text ("If a household goes missing in Wave 3 and reappears in Wave 7,")
-	putdocx text ("composition change is coded missing for Waves 4-6 ")
+	putdocx text ("If a household goes missing in Wave 3 and reappears in Wave 7, ")
+	putdocx text ("composition change is coded missing for Waves 4-6. ")
 	putdocx text ("It seems likely that the missing periods have higher levels ")
-	putdocx text ("of instability than the periods we capture instability ")
-	putdocx text ("that occurs between interviews. Analysis weights might ")
+	putdocx text ("of instability than the periods we capture. Analysis weights ")
 	putdocx text ("correct for some of this bias to the extent that household ")
 	putdocx text ("instability is correlated with factors used to generate the ")
-	putdocx text ("weights. Using the monthly household ")
+	putdocx text ("weights. Additionally, we miss instability that occurs between ")
+	putdocx text ("interviews. Using the monthly household rosters collected in Wave 2 ")
 	
 do ".\SIPP2008\short_transitions.do"	
 
@@ -258,7 +259,7 @@ egen rate_wave=mean(compchange_wave)
 local compchangeshort: di %6.3f = `=rate_short'
 local rateratio : di %4.2f = 3*`=rate_wave'/(12*`=rate_short')
 	
-	putdocx text ("rosters for between wave 1 and wave 2, we determined that ")
+	putdocx text ("for household changes between Wave 1 and Wave 2, we determined that ")
 	putdocx text ("the rate of household change including household changes ")
 	putdocx text ("that occur between waves is `rateratio' times the rate estimated ")
 	putdocx text ("by comparing household composition in the interview months. ")
