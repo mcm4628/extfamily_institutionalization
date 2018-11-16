@@ -22,7 +22,7 @@ putexcel E3=("No Change") F3=("Change") G3=("Annual Rate")
 
 forvalues r=1/5 {
   local rw=(`r'-1)*20+4
-  tab adj_age hh_change [aweight=WPFINWGT] if my_race==`r', matcell(agerace`r')
+  tab adj_age hh_change [aweight=WPFINWGT] if my_racealt==`r', matcell(agerace`r')
   putexcel E`rw'=matrix(agerace`r')
   forvalues a=1/18 {
 	local arw=`rw'+`a'-1
