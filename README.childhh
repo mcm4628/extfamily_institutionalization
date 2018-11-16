@@ -38,7 +38,7 @@ Part 3. Produce variables for analysis
 		1.  start stata
 		2.  cd to the directory that holds this file as well as setup_childhh_environment
 		3.  do setup_childhh_environment.do
-		4.  do do_childrens_household_core.do (find this file in the SIPP2008  
+		4.  do do_childrens_household_core.do (find this file in the sipp2008_code directory) 
 
 	setup_childhh_environment.do defines several macros that locate the project data and otherwise establish project norms.  
 	It also executes a personalized setup do file, named setup_<username>.do.
