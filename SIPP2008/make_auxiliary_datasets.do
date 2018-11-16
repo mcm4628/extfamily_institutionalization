@@ -242,19 +242,3 @@ save "$tempdir/person_pdemo", $replace
 * create a dataset of household reference persons.
 do "$childhh_base_code/SIPP2008/make_aux_refperson"
 
-* Create a dataset of partners of reference persons
-use "$tempdir/allwaves"
-keep SSUID EPPPNUM SHHADID ERRP SWAVE
-gen partner_is_married = 1 if (ERRP == 3) /* generate a variable indicating married */
-gen partner_is_unmarried = 1 if (ERRP == 10) /* generate a variable indicating cohabitating */
-keep if ((ERRP == 3) | (ERRP == 10))
-drop ERRP
-rename EPPPNUM partner_of_ref_person 
-
-
-duplicates drop
-save "$tempdir/partner_of_ref_person_long", $replace
-
-
-reshape wide partner_of_ref_person partner_is_married partner_is_unmarried, i(SSUID SHHADID) j(SWAVE)
-save "$tempdir/partner_of_ref_person_wide", $replace
