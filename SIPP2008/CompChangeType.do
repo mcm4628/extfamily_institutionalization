@@ -1,4 +1,4 @@
-use "$SIPP08keep/changebytype.dta", clear
+use "$SIPP08keep/HHchangeWithRelationships.dta", clear
 
 keep if adj_age < 18
 
