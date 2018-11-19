@@ -80,18 +80,18 @@ tab `v'
 	putdocx text ("but other relative does not include grandparent. ")
 	putdocx text ("Table can be found in Table1b.csv")
 	
-	putdocx save "$logdir/Table1a.docx", replace
+	putdocx save "$results/Table1a.docx", replace
 
 	*/
 
-tabout anynonuke anynonrel anygp anyother anyunknown par_ed_first [aweight=WPFINWGT] using "$logdir/Table1b.csv", replace ///
+tabout anynonuke anynonrel anygp anyother anyunknown par_ed_first [aweight=WPFINWGT] using "$results/Table1b.csv", replace ///
 cells(col) ///
 clab(_ _ _) ///
 layout(rb) ///
 h1( | < HS | High School | Some College | College Grad | Total ) h2(nil) h3(nil) ///
 style(csv)	
 	
-tabout anynonuke anynonrel anygp anyother anyunknown my_racealt [aweight=WPFINWGT] using "$logdir/Table1b.csv", append ///
+tabout anynonuke anynonrel anygp anyother anyunknown my_racealt [aweight=WPFINWGT] using "$results/Table1b.csv", append ///
 cells(col) ///
 clab(_ _ _) ///
 layout(rb) ///
