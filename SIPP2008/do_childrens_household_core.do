@@ -100,7 +100,7 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_hh_c
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changer_rels 
 
 ** Merges relationship of changers to ego back to comp_change
-do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_changebytype 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_HHchangeWithRelationships 
 
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe

@@ -23,7 +23,7 @@ keep SSUID EPPPNUM SWAVE comp_change hh_change addr_change
 * changer_rels includes no records for individuals who experienced no composition change in the wave
 * we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
-merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling adult_arrive adult_leave parent_arrive parent_leave change_type)
+merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relationship parent sibling grandparent nonrel other_rel foster allelse adult_arrive adult_leave parent_arrive parent_leave change_type)
 
 * be sure that all cases with a comp_change were found in changer_rels
 assert _merge==3 if comp_change==1
@@ -41,8 +41,13 @@ replace someoneleft=1 if change_type==2
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
+gen gp_change=1 if comp_change==1 & grandparent==1
+gen nonrel_change=1 if comp_change==1 & nonrel==1
+gen otherrel_change=1 if comp_change==1 & other_rel==1
+gen foster_change=1 if comp_change==1 & foster==1 		// tiny
+gen allelse_change=1 if comp_change==1 & allelse==1
 
-collapse (max) comp_change parent_change sib_change other_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave, by(SSUID EPPPNUM SWAVE)
+collapse (max) comp_change parent_change sib_change other_change gp_change nonrel_change otherrel_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave, by(SSUID EPPPNUM SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/hh_change.dta"
 
@@ -52,7 +57,7 @@ drop _merge
 * unable to infer comp_change. insample is generated at the end of create_hh_change.do
 keep if insample !=0
 
-local reltyp "parent sib other"
+local reltyp "parent sib other gp nonrel otherrel foster allelse"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{

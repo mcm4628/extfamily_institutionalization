@@ -51,4 +51,10 @@ keep if SWAVE==2
 merge 1:1 SSUID relto relfrom using "$tempdir/relationship_matrix"
 
 
+putexcel set "$results/compare_relationships.xlsx", sheet(checkrels) modify
+
+tab relationship erelat, matcell(checkrels)
+
+putexcel C3=matrix(checkrels)
+
 

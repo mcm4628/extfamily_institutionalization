@@ -266,7 +266,7 @@ local rateratio : di %4.2f = 3*`=rate_wave'/(12*`=rate_short')
 	putdocx text ("Thus, we believe that these are slightly conservative estimates, but ")
 	putdocx text ("probably do not underestimate by much.")
 	
-	putdocx save "$logdir/missingreport.docx", $replace
+	putdocx save "$results/missingreport.docx", $replace
 /*	
 	
 *******************************************************************************
