@@ -1,5 +1,6 @@
-* Creating a file describing children's household poverty status at the time of each SIPP interview.
-* To do this I need poverty thresholds divided by 12, household size, household income. Drop cases in Alaska and Hawaii
+* Creating a file describing children's household poverty status at the time of each SIPP interview
+* and transition rates into and out of poverty.
+* To do this I need poverty thresholds divided by 12, household size, household income. Need to drop cases in Alaska and Hawaii
 
 /* Federal Poverty Thresholds (https://aspe.hhs.gov/2008-hhs-poverty-guidelines)
 2008 - Wave 1
@@ -64,9 +65,10 @@
 *************************************************************
 * Read in poverty thresholds for households size 8 or smaller
 *************************************************************
-/*
+
 global incomedata "$SIPP2008/IncomeAndEarnings"
 
+/*
 import delimited using "$SIPP2008/povertyline", varnames(1)
 
 save "$SIPP2008/povertyline.dta", $replace
@@ -94,6 +96,7 @@ replace year=13 if swave > 13 & swave <=16
 
 merge m:1 hhsize year using "$SIPP2008/povertyline.dta"
 
+drop _merge
 ********************************************************************************
 * Create poverty thresholds for larger households
 ********************************************************************************
@@ -115,3 +118,57 @@ gen poverty=0 if income > monthpt
 replace poverty=1 if income <= monthpt
 
 tab poverty
+
+drop hhsize over8 v4 year
+
+reshape wide monthpt amount shhadid hhsize_full thearn thothinc tpearn income poverty, i(ssuid epppnum) j(swave)
+
+gen numpov=0
+gen numobs=0
+
+forvalues i=1/14{
+	gen transtype`i'=0
+	gen everpov`i'=0
+	gen evermis`i'=0
+}
+
+forvalues i=1/14{
+	local j=`i'+1
+	replace transtype`i'=1 if poverty`i'==0 & poverty`j'==0
+	replace transtype`i'=2 if poverty`i'==0 & poverty`j'==1
+	replace transtype`i'=3 if poverty`i'==1 & poverty`j'==0
+	replace transtype`i'=4 if poverty`i'==1 & poverty`j'==1
+	replace transtype`i'=5 if missing(poverty`i') & !missing(poverty`j')
+	replace transtype`i'=6 if !missing(poverty`i') & missing(poverty`j')
+	replace transtype`i'=. if missing(poverty`i') & missing(poverty`j')
+	
+	replace numpov=numpov+1 if poverty`i'==1
+	replace numobs=numobs+1 if !missing(poverty`i')
+	
+	replace everpov`i'=1 if poverty`i'==1
+	replace evermis`i'=1 if missing(poverty`i')
+}
+
+save "$tempdir/poverty_survival", $replace
+
+tab numpov
+tab numobs
+tab transtype1
+
+reshape long monthpt amount shhadid hhsize_full thearn thothinc tpearn income poverty transtype everpov evermis, i(ssuid epppnum) j(swave)
+
+#delimit ;
+
+label define transtype   1 "Not in poverty"
+						 2 "Into poverty"
+						 3 "Out of Poverty"
+						 4 "In poverty"
+						 5 "from missing"
+						 6 "to missing";										  								  
+#delimit cr
+
+label values transtype transtype
+
+tab transtype
+
+save "$tempdir/poverty_transitions", $replace
