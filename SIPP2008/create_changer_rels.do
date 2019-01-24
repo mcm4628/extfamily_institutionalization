@@ -176,12 +176,21 @@ gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1
 gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, spouses
 
-gen adult_arrive=1 if change_type==1 & to_age >= $adult_age
-gen adult_leave=1 if change_type==2 & to_age >= $adult_age
+gen adult_arrive=1 if change_type==1 & to_age >= 18
+gen adult_leave=1 if change_type==2 & to_age >= 18
 
 *create variables for parent_arrive and parent_leave
 gen parent_arrive=1 if change_type==1 & parent==1
 gen parent_leave=1 if change_type==2 & parent==1
+
+*create variables for otheradult30_arrive and otheradult30_leave
+gen otheradult30_arrive=1 if change_type==1 & parent !=1 & to_age >30
+gen otheradult30_leave=1 if change_type==2 & parent !=1 & to_age >30
+
+*create variables for otheradult_arrive and otheradult_leave
+gen otheradult_arrive=1 if change_type==1 & parent !=1 & to_age >=18
+gen otheradult_leave=1 if change_type==2 & parent !=1 & to_age >=18
+
 
 save "$tempdir/changer_rels", $replace
 
