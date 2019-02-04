@@ -9,7 +9,7 @@ Part 2. Download and prepare original data
 Part 3. Produce variables for analysis
 Part 4. Create tables and supplementary analyses 
 
-Part 1. Setup to be able to run the code
+Part 1. Setup to be able to run the code in stata (version 15)
 
 	To run the ChildHH data creation files, you need to have both mdesc and confirmdir packages installed. 
 	If you do not, type ssc install mdesc/confirmdir before attempting to run this code.
@@ -24,6 +24,9 @@ Part 2. Download and prepare original data
 
 	The full files were obtained from NBER (http://www.nber.org/data/survey-of-income-and-program-participation-sipp-data.html). 
 	
+	The 2008 Panel has 16 Waves. This project uses Waves 1 through 15. You'll need data (.zip or .z), stata code (.do), and dictionary (.dct)
+	Each wave has a core data file and a topical module file. 
+
 	The puw files are the Core data.
 	he putm files are the Topical Module files.
 	
@@ -34,9 +37,10 @@ Part 2. Download and prepare original data
 		modification is named dat_name.
 	2. The original do file uses the "saveold" command instead of "save".  You may wish to change
 		this to "save" to use the DTA format current for your version of Stata.  Saveold uses
-		a backward compatible format, version 13 as of this writing.
+		a backward compatible format, version 13 as of this writing. You'll also need to add "" around the file names. 
+		i.e. change saveold `dta_name' , replace  -->  save "`dta_name'" , replace
 	3. The original do file opens a log file but does not close it.  You may wish to add a
-		"log close" to the do file.
+		"log close" to the do file. 
 
 	Also, you may find that the dictionary files are downloaded as "sippxxxx.dct.txt" rather than
 	"sippxxxx.dct".  If so, you should rename them to remove the ".txt".
@@ -53,6 +57,10 @@ Part 3. Produce variables for analysis
 
 	setup_childhh_environment.do defines several macros that locate the project data and otherwise establish project norms.  
 	It also executes a personalized setup do file, named setup_<username>.do.
+
+	Note that you should not need to alter any files except your setup file. 
+	Keep path separators as "/" to be able to run in either a windows or Mac environment. 
+
 
 	The remaining do files in this directory provide a convenient way to ensure that results are logged and
 	that random number generator state is preserved so that results are repeatable.
