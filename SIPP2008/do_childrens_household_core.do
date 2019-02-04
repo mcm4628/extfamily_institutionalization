@@ -63,6 +63,9 @@ if `r(confirmdir)' {
 ********************************************************************************
 * Execute scripts to process data.
 ********************************************************************************
+** Extracts data from NBER download and formats it for our scripts
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" extract_and_format
+
 ** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_waves  
 
