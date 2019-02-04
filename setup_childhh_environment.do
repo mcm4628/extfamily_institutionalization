@@ -23,44 +23,7 @@ else {
     }
 }
 
+*global childhh_base_code "`c(pwd)'"
 
-global childhh_base_code "`c(pwd)'"
-
-
-
-* Project default is that we don't write over existing files.
-* Change this in your project setup file if you really want,
-* but for archiving replace is (generally) not allowed.
-global replace ""
-
-
-
-
-* It would be nice to check that the setup file exists.
 do setup_`c(username)'
 
-
-
-* We require that logdir and boxdir be set.
-* Maybe we'll require some others as well.
-*
-* We are transitioning to requiring a logdir for each project,
-* perhaps, but for now let's keep the overall logdir as well.
-if ("$logdir" == "") {
-    display as error "logdir macro not set."
-    exit
-}
-if ("$boxdir" == "") {
-    display as error "boxdir macro not set."
-    exit
-}
-
-
-* Files created from original data to be used by other project members or 
-* to support analyses in papers are put in the "shared" directory.
-* If a file is in the shared directory, there should be code that takes us from
-* an original data file to the shared data file. The name of the file with 
-* that code should be the same name as the shared data file.
-global SIPP2008 "$boxdir/SIPP/data/SIPP2008"
-global SIPP2014 "$boxdir/SIPP/data/SIPP2014"
-global sharedata "$boxdir/SIPP/data/shared"

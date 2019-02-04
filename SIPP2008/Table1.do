@@ -10,7 +10,7 @@ tab relationship [aweight=WPFINWGT]
 gen bioparent=1 if relationship==1
 gen parent=1 if inlist(relationship,1,4,7,19,21)
 gen sibling=1 if inlist(relationship, 17)
-gen child=1 if inlist(relationship,2,3,5,6,8,9,10,11,22,23,25,26)
+gen child=1 if inlist(relationship,2,3,5,6,8,9,10,11,22,23)
 gen spartner=1 if inlist(relationship,12,18)
 gen nonrel=1 if inlist(relationship,20,22,34,37,38,40)
 gen grandparent=1 if inlist(relationship,13,14,27)
@@ -19,7 +19,9 @@ gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, spouses
 
-local rellist "bioparent parent sibling  child spartner nonrel grandparent other_rel unknown nonnuke"
+gen extended_kin=1 if grandparent==1 | other_rel==1
+
+local rellist "bioparent parent sibling  child spartner nonrel grandparent other_rel extended_kin unknown nonnuke"
 
 collapse (count) `rellist', by (SSUID EPPPNUM SWAVE) fast
 
@@ -41,6 +43,7 @@ foreach v in `rellist'{
  recode nonrel (0=0)(1/20=1), gen(anynonrel)
  recode grandparent (0=0)(1/20=1), gen(anygp)
  recode other_rel (0=0)(1/20=1), gen(anyother)
+ recode extended_kin (0=0)(1/20=1), gen(anyextended)
  recode unknown (0=0)(1/20=1), gen(anyunknown)
 
 label variable anynonuke "non-nuclear kin or non-relative"
@@ -48,13 +51,14 @@ label variable anynonrel "non-relative"
 label variable anygp "grandparent"
 label variable anyother "non-nuclear non-grandparent kin"
 label variable anyunknown "unknown relation"
+label variable anyextended "any extended kin"
 
 #delimit ;
 label define yesno  0 "no"
                     1 "yes";
 #delimit cr 
 
-local anyrel "anynonuke anynonrel anygp anyother anyunknown"
+local anyrel "anynonuke anynonrel anygp anyother anyextended anyunknown"
 
 label variable my_racealt "Race-Ethnicity"
 
@@ -84,21 +88,22 @@ tab `v'
 
 	*/
 
-tabout anynonuke anynonrel anygp anyother anyunknown par_ed_first [aweight=WPFINWGT] using "$results/Table1b.csv", replace ///
+tabout anynonuke anynonrel anygp anyother anyextended anyunknown my_racealt [aweight=WPFINWGT] using "$results/Table1b.csv", replace ///
+cells(col) ///
+clab(_ _ _) ///
+layout(rb) ///
+h1( | White | Black | Hispanic | Asian | Other | Total ) h2(nil) ///
+style(csv)
+	
+tabout anynonuke anynonrel anygp anyother anyextended anyunknown par_ed_first [aweight=WPFINWGT] using "$results/Table1b.csv", append ///
 cells(col) ///
 clab(_ _ _) ///
 layout(rb) ///
 h1( | < HS | High School | Some College | College Grad | Total ) h2(nil) h3(nil) ///
 style(csv)	
 	
-tabout anynonuke anynonrel anygp anyother anyunknown my_racealt [aweight=WPFINWGT] using "$results/Table1b.csv", append ///
-cells(col) ///
-clab(_ _ _) ///
-layout(rb) ///
-h1( | White | Black | Hispanic | Asian | Other | Total ) h2(nil) ///
-style(csv)
 
-tab my_race, m
+tab my_racealt, m
 tab par_ed_first, m
 tab mom_measure, m
 

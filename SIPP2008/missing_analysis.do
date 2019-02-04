@@ -283,9 +283,9 @@ local perrecover: di %3.0f = 100*`recover'/`miss_orig'
 do ".\SIPP2008\short_transitions.do"	
 
 egen rate_short=mean(compchange_ref)
-egen rate_wave=mean(compchange_wave)
+egen rate_wave=mean(compchange_wave) if ref==1
 local compchangeshort: di %6.3f = `=rate_short'
-local rateratio : di %4.2f = 3*`=rate_wave'/(12*`=rate_short')
+local rateratio : di %4.2f = 12*`=rate_short'/(3*`=rate_wave')
 	
 	putdocx text ("for household changes between Wave 1 and Wave 2, we determined that ")
 	putdocx text ("the rate of household change including household changes ")

@@ -29,7 +29,7 @@ save "$tempdir/long_5months.dta", replace
 
 
 /*Excluding household that were only interviewed in wave 1- only if the entire original household 
-was not intervied again in wave 2*/
+was not interviewed again in wave 2*/
 use "$tempdir/ref1.dta", clear
 keep SSUID 
 duplicates drop
