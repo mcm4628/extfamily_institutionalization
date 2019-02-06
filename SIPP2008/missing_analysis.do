@@ -8,7 +8,7 @@
 
 	putdocx begin
 
-* Read in data
+* Read in data 
 use "$SIPP08keep/hh_change.dta", clear
 
 keep if original==1
@@ -265,8 +265,47 @@ local rateratio : di %4.2f = 3*`=rate_wave'/(12*`=rate_short')
 	putdocx text ("by comparing household composition in the interview months. ")
 	putdocx text ("Thus, we believe that these are slightly conservative estimates, but ")
 	putdocx text ("probably do not underestimate by much.")
+
+		putdocx save "$results/missingreport.docx", $replace
 	
-	putdocx save "$results/missingreport.docx", $replace
+*******************************************************************************
+* Section: Missing data for children
+*******************************************************************************	
+	
+use "$SIPP08keep/hh_change.dta", clear
+
+* a rough data reduction
+keep if everchild==1 & adj_age < 30
+	
+keep SSUID EPPPNUM SHHADID SWAVE adj_age comp_change addr_change comp_change_reason original agewave1
+	
+reshape wide SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
+
+gen firstwave=original
+gen agefirstobs=agewave1 if original==1
+gen nmiss=0
+gen obspossible=0
+	
+forvalues wave=1/15{
+	replace firstwave=`wave' if firstwave==0 & !missing(SHHADID`wave')
+	replace agefirstobs=adj_age`wave' if missing(agefirstobs) & firstwave==`wave'
+	replace nmiss=nmiss+1 if !missing(agefirstobs) & missing(SHHADID`wave')
+	replace obspossible=obspossible+1 if !missing(agefirstobs)
+}
+
+gen propmissing=nmiss/obspossible
+
+
+keep if agefirstobs < 18
+
+tab original
+tab firstwave if original==0
+tab agefirstobs if original==0 
+
+sum propmissing
+
+	
+	
 /*	
 	
 *******************************************************************************
