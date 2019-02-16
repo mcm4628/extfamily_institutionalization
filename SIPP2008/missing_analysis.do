@@ -14,6 +14,8 @@ use "$SIPP08keep/hh_change.dta", clear
 keep if original==1
 drop if SWAVE==15
 
+gen original_child=1 if agewave1 < 18 & original==1
+
 ********************************************************************************
 * Section: Focusing on original sample members, what proportion of the potential
 *          observations are fully observed? Of those intervals that are missing,
@@ -27,42 +29,45 @@ drop if SWAVE==15
 ********************************************************************************
 
 * Get _N in Wave 1
-sort inwave SWAVE
-by inwave SWAVE: gen ninwave=_n  // Number the people in household in each wave. 
-egen ninwave1=max(ninwave)       // works because wave 1 has the largest sample. 
+egen originals=count(inwave) if SWAVE==1 
+egen okids=count(inwave) if SWAVE==1 & original_child==1
+egen originalkids=max(okids)
 
 * calculate the number of possible observations
-local inwave1: di %7.0fc = `=ninwave1' 
-local possible_original_obs =`=ninwave1'*14
+local inwave1: di %7.0fc = `=originals'
+local childinwave1: di %7.0fc = `=originalkids'
+local possible_original_obs = `=originals'*14
+local possible_origkid_obs = `=originalkids'*14
 local dpossible_original_obs: di %9.0fc = `possible_original_obs'
 
-* Calculate number of fully-observed intervals
-gen interval=1 if inwave==1 & innext==1
-replace interval=0 if inwave==0 | innext==0
-replace interval=0 if missing(inwave) | missing(innext)
-
-tab inwave innext, m
-
-tab interval
-
-*group observations by whether they are a fully-observed interval
-sort interval                  
-by interval: gen norigint=_n // interval ==1 will be the larger group
+gen interval=1 if inwave==1 & innext==1   // number of fully-obwerved intervals
 
 *calculate the number of fully observed intervals observed of original (wave 1)
 *respondents.
-egen numorigint=max(norigint)
+egen numorigint=count(interval)
+egen nkorigint=count(interval) if original_child==1
+egen nkidorigint=max(nkorigint)
 local number_original_intervals: di %9.0fc = `=numorigint'
+local number_origkid_intervals: di %9.0fc = `=nkidorigint'
 local prop_fully_observed=int(100*`=numorigint'/`possible_original_obs')
+local prop_fully_obskids=int(100*`=nkidorigint'/`possible_origkid_obs')
 local miss_orig =`possible_original_obs'-`=numorigint'
+local miss_origkid =`possible_origkid_obs'-`=nkidorigint'
+
 local dmiss_orig: di %7.0fc = `miss_orig'
+local dmiss_origkid: di %7.0fc = `miss_origkid'
 
 	putdocx paragraph
 	putdocx text ("Many SIPP respondents miss one or more interviews. Wave 1 ")
-	putdocx text ("collected data on `inwave1' original sample members. The maximum ")
+	putdocx text ("collected data on `inwave1' original sample members ")
+	putdocx text ("(`childinwave1' children). The maximum ")
 	putdocx text ("possible number of observed intervals for original sample ")
 	putdocx text ("members is `dpossible_original_obs' (`inwave1' times 14), ")  
 	putdocx text ("but we have data on only `number_original_intervals' (`prop_fully_observed'%). ")
+	putdocx text ("Among original children, we have data on a similar proportion ")
+	putdocx text ("(`prop_fully_obskids' %) of potential intervals. ")
+
+	putdocx paragraph
 	putdocx text ("We can categorize the `dmiss_orig' missing intervals into two ")
 	putdocx text ("groups. In one group, the whole household goes missing ")
 	putdocx text ("because everyone in a household refused to be interviewed ")
@@ -77,12 +82,15 @@ replace whole_goes_missing=0 if !missing(comp_change) // see one exception next 
 replace whole_goes_missing=1 if !missing(comp_change) & comp_change_reason==5
 
 *group observations of original sample members by whether the whole household went missing next wave
-sort whole_goes_missing                  
-by whole_goes_missing: gen norigwgm=_N 
-egen numorigwgm=min(norigwgm)           // missing is the smaller group
+egen norigwgm=count(original) if whole_goes_missing==1
+egen numorigwgm=max(norigwgm)
+egen norigwgm_kid=count(original) if whole_goes_missing & original_child==1
+egen numorigwgm_kid=max(norigwgm_kid)
 local wgm: di %7.0fc = `=numorigwgm'
 local perwgm: di %3.0f =100*`=numorigwgm'/`miss_orig'
-	
+local wgm_kid: di %7.0fc = `=numorigwgm_kid'
+local perwgm_kid: di %3.0f = 100*`=numorigwgm_kid'/`miss_origkid'
+
 	putdocx text ("This was the case for `wgm' (`perwgm' %) of the missing intervals. ")
 	putdocx text ("In the second, smaller group, only some of the people in the household go missing. ")
 	putdocx text ("This would happen if some household members moved out and ")
@@ -91,7 +99,11 @@ local perwgm: di %3.0f =100*`=numorigwgm'/`miss_orig'
 	putdocx text ("a SIPP member 15 years old or over. For example, if a child were ")
 	putdocx text ("originally observed in his mother's household and he went to ")
 	putdocx text ("go live with his father he would not be included after he ")
-	putdocx text ("moved to his father's household. ")
+	putdocx text ("moved to his father's household. Despite the difference in treatment, ")
+	putdocx text ("the proportion of missing observations that are in the first group ") 
+	putdocx text ("is similar for original children (`perwgm_kid' %) as it is for the whole sample. ")
+	putdocx text ("`wgm_kid' (`perwgm_kid') % of the missing intervals are missing ")
+	putdocx text ("because the whole household went missing. ")
 
 preserve
 
@@ -104,11 +116,11 @@ preserve
 * Start with individuals rather than intervals as the unit of analysis 
 * so that we can characterize 
 
-
 use "$SIPP08keep/comp_change.dta", clear
 
 * original respondents have same value for SHHADID1
 gen original=1 if !missing(SHHADID1)
+gen original_child=1 if original==1 & adj_age1 < 18
 
 keep if original==1
 
@@ -157,7 +169,7 @@ local per_orig_fully_obs: di %2.0f = 100*`=numorigfull'/`=originals'
 **************************************************************************
 
 * reshape data to long to be able to calculate rates 	
-keep SSUID EPPPNUM comp_change* comp_change_before_infer* comp_change_reason* anymissing
+keep SSUID EPPPNUM comp_change* comp_change_before_infer* comp_change_reason* anymissing original_child
 
 reshape long comp_change comp_change_before_infer comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
 
@@ -166,16 +178,31 @@ by anymissing: gen nanymissing=_N
 
 gen comp_change_before_infer_am=comp_change_before_infer if anymissing==1
 gen comp_change_before_infer_nm=comp_change_before_infer if anymissing==0
+gen cc_before_infer_am_kid=comp_change_before_infer if anymissing==1 & original_child==1
+gen cc_before_infer_nm_kid=comp_change_before_infer if anymissing==0 & original_child==1
+gen cc_before_infer_kid=comp_change_before_infer if original_child==1
+gen cc_kid=comp_change if original_child==1
 
 egen rate_all=mean(comp_change_before_infer)
 egen rate_am=mean(comp_change_before_infer_am)
 egen rate_nm=mean(comp_change_before_infer_nm) 
 egen rate_ai=mean(comp_change)
+egen rate_kid=mean(cc_before_infer_kid)
+egen rate_am_kid=mean(cc_before_infer_am_kid)
+egen rate_nm_kid=mean(cc_before_infer_nm_kid)
+egen rate_ai_kid=mean(cc_kid)
+
+sum rate*
 
 local compchangeall: di %6.3f = `=rate_all'
+local cckid: di %6.3f = `=rate_kid'
 local compchangeanymissing: di %6.3f = `=rate_am'
 local compchangenomissing: di %6.3f = `=rate_nm'
-local compchangeafterinfer: di %6.3f = `=rate_ai'
+local ccanymisskid: di %6.3f = `=rate_am_kid'
+local ccnomisskid: di %6.3f = `=rate_nm_kid'
+local ccaikid: di %6.3f = `=rate_ai_kid'
+local compchangeafterinfer: di%6.3f = `=rate_ai'
+
 
 	putdocx paragraph
 	putdocx text ("Missing data have the potential to downwardly bias our ") 
@@ -189,6 +216,9 @@ local compchangeafterinfer: di %6.3f = `=rate_ai'
 	putdocx text ("The rate of household change for individuals that ")
 	putdocx text ("are missing at any wave is `compchangeanymissing' compared to ")
 	putdocx text ("`compchangenomissing' for those with complete data. ")
+	putdocx text ("Similarly, for children the rate of household composition change ")
+	putdocx text ("for children with any missing waves is `ccanymisskid' ")
+	putdocx text ("compared to `ccnomisskid' for those with no missing waves.")
 	
 	putdocx paragraph
 	putdocx text ("To reduce the bias due to missing data, we recover some of ")
@@ -200,16 +230,13 @@ local compchangeafterinfer: di %6.3f = `=rate_ai'
 	putdocx text ("the households are the same, we code no composition change; ")
 	putdocx text ("if they are different they are coded as having a composition ")
 	putdocx text ("change. In the middle, the composition change variable remains missing.")
-
-
 	
 restore	
 	
 egen obsafterinfer=count(comp_change)
 local recover =`=obsafterinfer'-`=numorigint'
 local drecover: di %6.0fc = `recover'
-local perrecover: di %6.0f = 100*`recover'/`miss_orig'
-
+local perrecover: di %3.0f = 100*`recover'/`miss_orig'
 	
 	putdocx paragraph
 	putdocx text ("For the second type of missing data, where only some of the ")
@@ -235,8 +262,9 @@ local perrecover: di %6.0f = 100*`recover'/`miss_orig'
 	putdocx text ("`drecover' (`perrecover' %) ")
 	putdocx text ("missing intervals and reduce the downward bias in our estimates. ")
 	putdocx text ("Using only fully_observed intervals the rate of composition ")
-	putdocx text ("change is `compchangeall' and after inferring where a partial ")
-	putdocx text ("household is observed the rate is `compchangeafterinfer'. ")
+	putdocx text ("change is `compchangeall' and `compchangeafterinfer' after inferring. ")
+	putdocx text ("For children, the estimated rate of change is `cckid' before ")
+	putdocx text ("inferring and `ccaikid' after.")
 
 	putdocx paragraph
 	putdocx text ("Despite our efforts to recover missing data, we believe that ")
