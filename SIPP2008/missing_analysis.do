@@ -192,6 +192,14 @@ egen rate_am_kid=mean(cc_before_infer_am_kid)
 egen rate_nm_kid=mean(cc_before_infer_nm_kid)
 egen rate_ai_kid=mean(cc_kid)
 
+label variable rate_all "rate of household instability before inference of missing data"
+label variable rate_am "hh instability before inference, any missing data"
+label variable rate_nm "hh instability before inference, no missing data"
+label variable rate_ai "hh instability before inference, no missing data"
+label variable rate_kid "hh instability before inference, age < 18"
+label variable rate_am_kid "hh instability before inference, any missing data, age < 18"
+label variable rate_nm_kid "hh instability before inference, no missing data, age < 18"
+
 sum rate*
 
 local compchangeall: di %6.3f = `=rate_all'
@@ -202,7 +210,6 @@ local ccanymisskid: di %6.3f = `=rate_am_kid'
 local ccnomisskid: di %6.3f = `=rate_nm_kid'
 local ccaikid: di %6.3f = `=rate_ai_kid'
 local compchangeafterinfer: di%6.3f = `=rate_ai'
-
 
 	putdocx paragraph
 	putdocx text ("Missing data have the potential to downwardly bias our ") 
@@ -262,7 +269,7 @@ local perrecover: di %3.0f = 100*`recover'/`miss_orig'
 	putdocx text ("`drecover' (`perrecover' %) ")
 	putdocx text ("missing intervals and reduce the downward bias in our estimates. ")
 	putdocx text ("Using only fully_observed intervals the rate of composition ")
-	putdocx text ("change is `compchangeall' and `compchangeafterinfer' after inferring. ")
+	putdocx text ("change is `compchangeall' compared to `compchangeafterinfer' after inferring. ")
 	putdocx text ("For children, the estimated rate of change is `cckid' before ")
 	putdocx text ("inferring and `ccaikid' after.")
 
@@ -285,7 +292,7 @@ do ".\SIPP2008\short_transitions.do"
 egen rate_short=mean(compchange_ref)
 egen rate_wave=mean(compchange_wave) if ref==1
 local compchangeshort: di %6.3f = `=rate_short'
-local rateratio : di %4.2f = 12*`=rate_short'/(3*`=rate_wave')
+local rateratio : di %4.2f = 4*`=rate_short'/(`=rate_wave')
 	
 	putdocx text ("for household changes between Wave 1 and Wave 2, we determined that ")
 	putdocx text ("the rate of household change including household changes ")
@@ -295,44 +302,6 @@ local rateratio : di %4.2f = 12*`=rate_short'/(3*`=rate_wave')
 	putdocx text ("probably do not underestimate by much.")
 
 		putdocx save "$results/missingreport.docx", $replace
-	
-*******************************************************************************
-* Section: Missing data for children
-*******************************************************************************	
-	
-use "$SIPP08keep/hh_change.dta", clear
-
-* a rough data reduction
-keep if everchild==1 & adj_age < 30
-	
-keep SSUID EPPPNUM SHHADID SWAVE adj_age comp_change addr_change comp_change_reason original agewave1
-	
-reshape wide SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(SWAVE)
-
-gen firstwave=original
-gen agefirstobs=agewave1 if original==1
-gen nmiss=0
-gen obspossible=0
-	
-forvalues wave=1/15{
-	replace firstwave=`wave' if firstwave==0 & !missing(SHHADID`wave')
-	replace agefirstobs=adj_age`wave' if missing(agefirstobs) & firstwave==`wave'
-	replace nmiss=nmiss+1 if !missing(agefirstobs) & missing(SHHADID`wave')
-	replace obspossible=obspossible+1 if !missing(agefirstobs)
-}
-
-gen propmissing=nmiss/obspossible
-
-
-keep if agefirstobs < 18
-
-tab original
-tab firstwave if original==0
-tab agefirstobs if original==0 
-
-sum propmissing
-
-	
 	
 /*	
 	
@@ -358,8 +327,9 @@ sum propmissing
 	putdocx text ("involve children disappearing alone/with no adults. ")
 
 ********************************************************************	
-* Create a file with an observation for every person observed in the 
+* Create a file with an observation for ever person observed in the 
 * data the next wave to be merged onto this wave.
+********************************************************************
 use "$tempdir/person_wide_adjusted_ages", clear
 
 keep SSUID EPPPNUM SHHADID* ERRP* adj_age* shhadid_members*
