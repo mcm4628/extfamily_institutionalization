@@ -57,10 +57,14 @@ forvalues wave = $penultimate_wave (-1) $first_wave {
     * Decrement the age if we've already used it three times.
     replace expected_age_bkwd = expected_age_bkwd - 1 if (num_curr_age > 3)
     replace num_curr_age = 1 if (num_curr_age > 3)
+	
+	replace expected_age_bkwd=0 if expected_age_bkwd < 0
 
     gen expected_age_bkwd`wave' = expected_age_bkwd
 }
 drop num_curr_age expected_age_bkwd
+
+sum expected_age_bkwd*
 
 ********************************************************************************
 * Section: Check backwards and forwards projections against what is coded
@@ -89,19 +93,25 @@ tab anyproblem
 * Section: adjust age to projection if backwards and forwards projection are within 1
 ********************************************************************************
 
+gen check=0
+gen fill=0
+
 gen adj_age$first_wave = TAGE$first_wave
 forvalues wave = $second_wave/$final_wave {
 
 * fix age when it is out of line with backwards and forwards projections
     gen adj_age`wave' = TAGE`wave'
     replace adj_age`wave' = expected_age_fwd`wave' if ((!missing(TAGE`wave')) & (fwd_match`wave' == 0) & (bkwd_match`wave' == 0) & (abs(expected_age_fwd`wave' - expected_age_bkwd`wave') <= 1))
+	replace check=1 if ((!missing(TAGE`wave')) & (fwd_match`wave' == 0) & (bkwd_match`wave' == 0) & (abs(expected_age_fwd`wave' - expected_age_bkwd`wave') <= 1))
 	
-* fix age when it is missing. Take forward projection first. If no forward projection, then take backward projection.	
+* fix age when it is missing. Take forward projection first. If no forward projection, then take backward projection. 
+	replace fill=1 if missing(adj_age`wave') & !missing(expected_age_fwd`wave')
 	replace adj_age`wave'= expected_age_fwd`wave' if missing(adj_age`wave') & !missing(expected_age_fwd`wave')
+	replace fill=2 if missing(adj_age`wave') & !missing(expected_age_bkwd`wave')
 	replace adj_age`wave'=expected_age_bkwd`wave' if missing(adj_age`wave') & !missing(expected_age_bkwd`wave')
+
 }
 
-* The plan will be to replace adjusted ages when adj_age is missing and expected_age_fwd/expected_age_bkwd are not.
 
 ********************************************************************************
 * Section: Check backwards and forwards projections against adjusted age
@@ -149,7 +159,6 @@ drop monotonic
 drop num_adjbkwd_matches num_adjfwd_matches 
 drop anyproblem
 drop any_adj_problem
-drop TAGE*
 
 
 * Create dummies for whether in this interview to be able to create an indicator for whether in interview next wave
@@ -166,14 +175,18 @@ forvalues w=1/$penultimate_wave {
 
 save "$tempdir/person_wide_adjusted_ages", $replace
 
-keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_racealt my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race my_racealt my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure check fill TAGE*
 
 save "$tempdir/demo_wide.dta", $replace
 
-reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ, i(SSUID EPPPNUM) j(SWAVE)
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE, i(SSUID EPPPNUM) j(SWAVE)
 
 label variable adj_age "Adjusted Age"
 label variable innext "Is this person interviewed in next wave?"
+
+tab adj_age check
+
+tab adj_age fill
 
 * now includes all observations, even when missing interview. ERRP is missing when no interview.
 tab ERRP,m 
