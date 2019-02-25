@@ -82,6 +82,50 @@ replace otheradult30_leave=0 if missing(otheradult30_leave) & !missing(comp_chan
 replace otheradult_arrive=0 if missing(otheradult_arrive) & !missing(comp_change)
 replace otheradult_leave=0 if missing(otheradult_leave) & !missing(comp_change)
 
+label variable comp_change "Household composition changed bewteen this wave and the next"
+label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
+label variable sib_change "Started or stopped living with a (full/half/step) sibling entered or left household"
+label variable other_change "Started or stopped living with non-parent, non-sibling"
+label variable gp_change "Started or stopped living with a grandparent"
+label variable foster_change "Started or stopped living with a foster sibling/parent"
+label variable allelse_change "Started or stopped living with a spouse or child"
+label variable adult_arrive "Started living with an adult"
+label variable adult_leave "Stopped living with an adult"
+label variable someonearrived "Started living with someone"
+label variable someoneleft "Stopped living with someone"
+label variable parent_arrive "Started living with a (step/bio/adoptive) parent (or parent's partner)"
+label variable parent_leave "Stopped living with a (step/bio/adoptive) parent (or parent's partner)"
+label variable otheradult30_arrive "Started living with an adult over age 30"
+label variable otheradult30_leave "Stopped living with an adult over age 30"
+label variable otheradult_arrive "Started living with a non-parent adult"
+label variable otheradult_leave "Stopped living with a non-parent adult"
+label variable adj_age "Cleaned age variable"
+label variable original "Was in the sample at Wave 1"
+label variable agewave1 "Age in wave 1"
+label variable my_race "Race-Ethnicity of individual reported at Wave 1"
+label variable my_sex "Sex of person as reported at Wave 1"
+label variable mom_measure "Measure of mother's characteristics reflects biological, other mother, or father"
+label variable biomom_ed_first "Education level of biological mother as reported at first observation together"
+label variable mom_ed_first "Education level of (any) mother as reported at first observation together"
+label variable dad_ed_first "Education level of (any) father as reported at first observation together"
+label variable par_ed_first "Education level of parent (priority order: biomom, other mom, dad)"
+label variable hh_change "Is there a change in household composition or address between this wave and the next?"
+label variable inwave "Is this person observed in this wave?"
+label variable insample "Is this observation included in lifetable analysis?"
+
+label define yesno   0 "No" 1 "Yes"
+label define insample 0 "Not in sample" 1 "In this wave and the next" 2 "Inferred Composition Change" 3 "Only Address Change"
+label define momeasure 0 "Never lived with parent" 1 "Biological Mother" 2 "Other Mother" 3 "Father"
+
+local changevars "comp_change parent_change sib_change other_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave innext hh_change inwave"
+
+foreach v in `changevars' {
+	label values `v' yesno
+}
+
+label values insample insample
+label values mom_measure momeasure
+
 save "$SIPP08keep/HHchangeWithRelationships.dta", $replace
 
 

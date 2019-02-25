@@ -146,7 +146,8 @@ replace insample=1 if inwave==1 & innext==1
 * you are living with now appear in "next" wave while ego is missing.
 * hh_change can =0 if not in next wave but in a subsequent one and everyone ego 
 * is with in this wave is in the household in the next appearence
-replace insample=2 if insample==0 & !missing(hh_change)
+replace insample=2 if insample==0 & !missing(comp_change)
+replace insample=3 if insample==0 & !missing(hh_change)
 
 	label var comp_change_reason "Codes for whether comp_change is observed in adjascent waves or inferred"
     label values comp_change_reason comp_change_reason
