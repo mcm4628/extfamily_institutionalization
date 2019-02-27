@@ -190,10 +190,49 @@ rename EPPPNUM epppnum
 
 save "$tempdir/hhtype6.dta", $replace
 
+//#5 create household type for wave 9
+***create hhtype*********
+use "$SIPP08keep/HHComp_asis.dta", clear
+
+//keep sample to wave6
+keep if SWAVE==9
+keep if adj_age<=15
+//****sample size 19153***//
+
+keep SSUID EPPPNUM SHHADID relationship adj_age to_age
+sort SSUID EPPPNUM
+by SSUID EPPPNUM: gen n=_n
+
+//****give the relationship backwards to children***//
+gen parent=1 if inlist(relationship,1,4,7,19,21)
+gen otheradult30=. 
+recode otheradult30 .=1 if parent==.  & to_age>30
+gen otheradult=.
+recode otheradult .=1 if parent==.  & to_age>=18
+gen child=1 if to_age<=16
+reshape wide to_age relationship parent child otheradult30 otheradult, i(SSUID EPPPNUM) j(n)
+
+//****count number of each type of people in hh****//
+egen parentsw9=anycount(parent*), v(1)
+egen otheradults30w9=anycount(otheradult30*), v(1)
+egen otheradultsw9=anycount(otheradult*), v(1)
+egen childrenw9=anycount(child*), v(1)
+gen num_childw9=childrenw9+1
+recode otheradults30w9 (2/max=1), gen (anyotheradults30w9)
+recode otheradultsw9 (2/max=1), gen (anyotheradultsw9)
+tab parentsw9
+recode parentsw9 3=2
+rename SSUID ssuid
+rename EPPPNUM epppnum 
+
+save "$tempdir/hhtype9.dta", $replace
+
 *merge hhtype with food_hhchange69*
 use "$tempdir/food_hhchange69.dta", clear
 merge 1:1 ssuid epppnum using "$tempdir/hhtype6.dta", keepusing (parents anyotheradults30 anyotheradults num_child) gen(merge5)
 //***not matched=938(from master=378;from using=560);matched=18593***//
+merge 1:1 ssuid epppnum using "$tempdir/hhtype9.dta", keepusing (parentsw9 anyotheradults30w9 anyotheradultsw9 num_childw9) gen(merge6)
+
 save "$tempdir/foodinsecurity.dta", $replace
 
 
