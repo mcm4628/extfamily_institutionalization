@@ -270,9 +270,10 @@ forvalues r=1/5 {
 * By Parental Educ
 *******************************************************************************
 
+putexcel set "$results/CompChangeType.xlsx", sheet(ByPedRaw) modify
 putexcel A1="Table 3C. Composition Change by Parental Education"
 putexcel A2=("Age") B2=("Parent") E2=("Sibling") H2=("Other") K2=("Grandparent") N2=("Nonrelative") Q2=("Other Rel") T2=("All Composition Changes")
-putexcel set "$results/CompChangeType.xlsx", sheet(ByPedRaw) modify
+
 
 * Parents
 putexcel B3=("No Change") C3=("Change") D3=("Annual Rate")
