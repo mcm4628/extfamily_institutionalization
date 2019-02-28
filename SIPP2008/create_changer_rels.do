@@ -179,6 +179,12 @@ gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, sp
 gen adult_arrive=1 if change_type==1 & to_age >= 18
 gen adult_leave=1 if change_type==2 & to_age >= 18
 
+gen yadult_arrive=1 if change_type==1 & to_age >= 18 & to_age < 30
+gen yadult_leave=1 if change_type==2 & to_age >= 18 & to_age < 30
+
+gen adult30_arrive=1 if change_type==1 & to_age >= 30
+gen adult30_leave=1 if change_type==2 & to_age >= 30
+
 *create variables for parent_arrive and parent_leave
 gen parent_arrive=1 if change_type==1 & parent==1
 gen parent_leave=1 if change_type==2 & parent==1
@@ -191,6 +197,9 @@ gen otheradult30_leave=1 if change_type==2 & parent !=1 & to_age >30
 gen otheradult_arrive=1 if change_type==1 & parent !=1 & to_age >=18
 gen otheradult_leave=1 if change_type==2 & parent !=1 & to_age >=18
 
+*create variable for non-parent young adult 
+gen otheryadult_arrive=1 if change_type==1 & to_age >= 18 & to_age < 30
+gen otheryadult_leave=1 if change_type==2 & to_age >= 18 & to_age < 30
 
 save "$tempdir/changer_rels", $replace
 

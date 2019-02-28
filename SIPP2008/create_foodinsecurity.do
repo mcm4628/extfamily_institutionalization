@@ -102,10 +102,14 @@ save "$tempdir/food69.dta", $replace
 use "$SIPP08keep/HHchangeWithRelationships.dta", clear
 keep if SWAVE==6|SWAVE==7|SWAVE==8
 keep SSUID EPPPNUM SWAVE adj_age comp_change parent_change adult_arrive adult_leave ///
-parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave addr_change my_sex hh_change
+parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
+otheradult_leave addr_change my_sex hh_change adult30_arrive adult30_leave ///
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave
 
 reshape wide adj_age comp_change parent_change adult_arrive adult_leave ///
-parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave addr_change ///
+parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
+otheradult_leave addr_change adult30_arrive adult30_leave ///
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave ///
 my_sex hh_change, i(SSUID EPPPNUM) j(SWAVE)
 
 ***calculate number of changes experienced between wave 6&9***
@@ -127,13 +131,20 @@ recode numchange69 (2/max=1), gen (anychange69)
 recode nmis_compchange69 (2/max=1), gen (anymischange69)
 egen parent_change=anymatch (parent_change*), v(1)
 egen adult_arrive=anymatch (adult_arrive*), v(1)
+egen yadult_leave=anymatch (yadult_leave*), v(1)
+egen yadult_arrive=anymatch (yadult_arrive*), v(1)
 egen adult_leave=anymatch (adult_leave*), v(1)
+egen adult30_arrive=anymatch (adult30_arrive*), v(1)
+egen adult30_leave=anymatch (adult30_leave*), v(1)
 egen parent_arrive=anymatch (parent_arrive*), v(1)
+
 egen parent_leave=anymatch (parent_leave*), v(1)
 egen otheradult30_arrive=anymatch (otheradult30_arrive*), v(1)
 egen otheradult30_leave=anymatch (otheradult30_leave*), v(1)
 egen otheradult_arrive=anymatch (otheradult_arrive*), v(1)
 egen otheradult_leave=anymatch (otheradult_leave*), v(1)
+egen otheryadult_arrive=anymatch (otheryadult_arrive*), v(1)
+egen otheryadult_leave=anymatch (otheryadult_leave*), v(1)
 egen addr_change=anymatch (addr_change*), v(1)
 egen hh_change=anymatch (hh_change*), v(1)
 
@@ -141,7 +152,28 @@ egen hh_change=anymatch (hh_change*), v(1)
 rename SSUID ssuid
 rename EPPPNUM epppnum
 keep ssuid epppnum adj_age6 my_sex6 anychange69 anymischange69 parent_change ///
-adult_arrive adult_leave parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave addr_change hh_change
+adult_arrive adult_leave parent_arrive parent_leave otheradult30_arrive ///
+otheradult30_leave otheradult_arrive otheradult_leave addr_change hh_change ///
+adult30_arrive adult30_leave yadult_arrive yadult_leave otheryadult_arrive ///
+otheryadult_leave
+
+gen adult_change=1 if adult_arrive==1 | adult_leave==1
+replace adult_change=0 if missing(adult_change)
+
+gen yadult_change=1 if yadult_arrive==1 | yadult_leave==1
+replace yadult_change=0 if missing(yadult_change)
+
+gen adult30_change=1 if adult30_arrive==1 | adult30_leave==1
+replace adult30_change=0 if missing(adult30_change)
+
+gen otheradult_change=1 if otheradult_arrive==1 | otheradult_leave==1
+replace otheradult_change=0 if missing(otheradult_change)
+
+gen otheryadult_change=1 if otheryadult_arrive==1 | otheryadult_leave==1
+replace otheryadult_change=0 if missing(otheryadult_change)
+
+gen otheradult30_change=1 if otheradult30_arrive==1 | otheradult30_leave==1
+replace otheradult30_change=0 if missing(otheradult30_change)
 
 ***merge with food69.dta***
 merge 1:1 ssuid epppnum using "$tempdir/food69.dta", gen(merge4)
@@ -157,28 +189,45 @@ save "$tempdir/food_hhchange69.dta", $replace
 ***create hhtype*********
 use "$SIPP08keep/HHComp_asis.dta", clear
 
-//keep sample to wave6
+**keep sample to wave6
 keep if SWAVE==6
 keep if adj_age<=15
-//****sample size 19153***//
+****sample size 19153***//
 
-keep SSUID EPPPNUM SHHADID relationship adj_age to_age
+keep SSUID EPPPNUM SHHADID relationship adj_age to_age to_sex
 sort SSUID EPPPNUM
 by SSUID EPPPNUM: gen n=_n
 
-//****give the relationship backwards to children***//
+****give the relationship backwards to children***
 gen parent=1 if inlist(relationship,1,4,7,19,21)
+gen grandparent=1 if inlist(relationship,13,14,27)
+gen grandmother=1 if inlist(relationship,13,14,27) & to_sex==2
+gen other_rel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) 
+gen other_femrel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) & to_sex==2 
+gen unknown=1 if relationship==40 | missing(relationship)
+
 gen otheradult30=. 
 recode otheradult30 .=1 if parent==.  & to_age>30
+gen otherfemadult30=1 if otheradult30==1 & to_sex==2
+gen othermaladult30=1 if otheradult30==1 & to_sex==1
+
 gen otheradult=.
 recode otheradult .=1 if parent==.  & to_age>=18
+gen otherfemadult =1 if otheradult==1 & to_sex==2
+gen othermaladult =1 if otheradult==1 & to_sex==1
 gen child=1 if to_age<=16
-reshape wide to_age relationship parent child otheradult30 otheradult, i(SSUID EPPPNUM) j(n)
 
-//****count number of each type of people in hh****//
+reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown, i(SSUID EPPPNUM) j(n)
+
+****count number of each type of people in hh****
 egen parents=anycount(parent*), v(1)
 egen otheradults30=anycount(otheradult30*), v(1)
+egen otherfemadult30=anycount(otherfemadult30*), v(1)
+egen othermaladult30=anycount(othermaladult30*), v(1)
+egen grandmother=anycount(grandmother*), v(1)
 egen otheradults=anycount(otheradult*), v(1)
+egen otherfemadults=anycount(otherfemadult*), v(1)
+egen othermaladults=anycount(othermaladult*), v(1)
 egen children=anycount(child*), v(1)
 gen num_child=children+1
 recode otheradults30 (2/max=1), gen (anyotheradults30)
@@ -187,6 +236,11 @@ tab parents
 recode parents 3=2
 rename SSUID ssuid
 rename EPPPNUM epppnum 
+
+recode otherfemadult30 (0=0)(1/3=1), gen(anyofem30)
+recode othermaladult30 (0=0)(1/3=1), gen(anyomal30)
+recode otherfemadults (0=0)(1/9=1), gen(anyofem18)
+recode othermaladults (0=0)(1/9=1), gen(anyomal18)
 
 save "$tempdir/hhtype6.dta", $replace
 
