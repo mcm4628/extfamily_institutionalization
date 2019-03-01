@@ -104,12 +104,12 @@ keep if SWAVE==6|SWAVE==7|SWAVE==8
 keep SSUID EPPPNUM SWAVE adj_age comp_change parent_change adult_arrive adult_leave ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
 otheradult_leave addr_change my_sex hh_change adult30_arrive adult30_leave ///
-yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive adultsib_leave
 
 reshape wide adj_age comp_change parent_change adult_arrive adult_leave ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
 otheradult_leave addr_change adult30_arrive adult30_leave ///
-yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave ///
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave  adultsib_arrive adultsib_leave ///
 my_sex hh_change, i(SSUID EPPPNUM) j(SWAVE)
 
 ***calculate number of changes experienced between wave 6&9***
@@ -131,13 +131,12 @@ recode numchange69 (2/max=1), gen (anychange69)
 recode nmis_compchange69 (2/max=1), gen (anymischange69)
 egen parent_change=anymatch (parent_change*), v(1)
 egen adult_arrive=anymatch (adult_arrive*), v(1)
+egen adult_leave=anymatch (adult_leave*), v(1)
 egen yadult_leave=anymatch (yadult_leave*), v(1)
 egen yadult_arrive=anymatch (yadult_arrive*), v(1)
-egen adult_leave=anymatch (adult_leave*), v(1)
 egen adult30_arrive=anymatch (adult30_arrive*), v(1)
 egen adult30_leave=anymatch (adult30_leave*), v(1)
 egen parent_arrive=anymatch (parent_arrive*), v(1)
-
 egen parent_leave=anymatch (parent_leave*), v(1)
 egen otheradult30_arrive=anymatch (otheradult30_arrive*), v(1)
 egen otheradult30_leave=anymatch (otheradult30_leave*), v(1)
@@ -145,6 +144,8 @@ egen otheradult_arrive=anymatch (otheradult_arrive*), v(1)
 egen otheradult_leave=anymatch (otheradult_leave*), v(1)
 egen otheryadult_arrive=anymatch (otheryadult_arrive*), v(1)
 egen otheryadult_leave=anymatch (otheryadult_leave*), v(1)
+egen adultsib_arrive=anymatch (adultsib_arrive*), v(1)
+egen adultsib_leave=anymatch (adultsib_leave*), v(1)
 egen addr_change=anymatch (addr_change*), v(1)
 egen hh_change=anymatch (hh_change*), v(1)
 
@@ -155,7 +156,7 @@ keep ssuid epppnum adj_age6 my_sex6 anychange69 anymischange69 parent_change ///
 adult_arrive adult_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave addr_change hh_change ///
 adult30_arrive adult30_leave yadult_arrive yadult_leave otheryadult_arrive ///
-otheryadult_leave
+otheryadult_leave adultsib_arrive adultsib_leave
 
 gen adult_change=1 if adult_arrive==1 | adult_leave==1
 replace adult_change=0 if missing(adult_change)
@@ -174,6 +175,9 @@ replace otheryadult_change=0 if missing(otheryadult_change)
 
 gen otheradult30_change=1 if otheradult30_arrive==1 | otheradult30_leave==1
 replace otheradult30_change=0 if missing(otheradult30_change)
+
+gen adultsib_change=1 if adultsib_arrive==1 | adultsib_leave==1
+replace adultsib_change=0 if missing(adultsib_change)
 
 ***merge with food69.dta***
 merge 1:1 ssuid epppnum using "$tempdir/food69.dta", gen(merge4)

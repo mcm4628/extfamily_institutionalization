@@ -27,7 +27,8 @@ merge 1:m SSUID EPPPNUM SWAVE using "$tempdir/changer_rels", keepusing(relations
 parent sibling grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave change_type ///
-yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave)
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive ///
+adultsib_leave)
 
 * be sure that all cases with a comp_change were found in changer_rels
 assert _merge==3 if comp_change==1
@@ -56,7 +57,7 @@ nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
 otheradult_arrive otheradult_leave yadult_arrive yadult_leave otheryadult_arrive ///
-otheryadult_leave, by(SSUID EPPPNUM SWAVE)
+otheryadult_leave adultsib_arrive adultsib_leave, by(SSUID EPPPNUM SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/hh_change.dta"
 
@@ -98,6 +99,9 @@ replace otheradult_leave=0 if missing(otheradult_leave) & !missing(comp_change)
 
 replace otheryadult_arrive=0 if missing(otheryadult_arrive) & !missing(comp_change)
 replace otheryadult_leave=0 if missing(otheryadult_leave) & !missing(comp_change)
+
+replace adultsib_arrive=0 if missing(adultsib_arrive) & !missing(comp_change)
+replace adultsib_leave=0 if missing(adultsib_leave) & !missing(comp_change)
 
 label variable comp_change "Household composition changed bewteen this wave and the next"
 label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
