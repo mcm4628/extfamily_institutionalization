@@ -411,6 +411,8 @@ gen annualinc9= thtotinc9*12
 gen byte pov6 = annualinc6 < povguide6 if ~mi(povguide6) & ~mi(annualinc6) /*generate poverty indicator 1=in poverty*/
 gen byte pov9 = annualinc9 < povguide9 if ~mi(povguide9) & ~mi(annualinc9) /*generate poverty indicator 1=in poverty*/
 
+gen byte nearpov6 = annualinc6 < 1.5*povguide6 if ~mi(povguide6) & ~mi(annualinc6) /*generate poverty indicator 1= below 1.5 times poverty line */
+gen byte nearpov9 = annualinc9 < 1.5*povguide9 if ~mi(povguide9) & ~mi(annualinc9) /*generate poverty indicator 1= below 1.5 times poverty line */
 
 keep if foodins6 !=. & foodins9 !=.
 
@@ -456,6 +458,9 @@ la var pov9 "Poverty status at wave 9"
 la def pov 0 ">=100% FPL" 1 "<100% FPL"
 la val pov6 pov
 la val pov9 pov
+la def nearpov 0 ">=150% FPL" 1 "<150% FPL"
+la val nearpov6 nearpov
+la val nearpov9 nearpov
 
 save "$tempdir/foodinsecurity.dta", $replace
 
