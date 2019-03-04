@@ -3,7 +3,7 @@ global SIPP2008 "$homedir/Box Sync/SIPP/data/SIPP2008"
 
 * This is the base directory with the setup files.
 * It is the directory you should change into before executing any files
-global childhh_base_code "$homedir/github/ChildHH/"
+global childhh_base_code "C:\users\kelly\github\childhh"
 
 * This is the location of the do files.  
 global sipp2008_code "$childhh_base_code/SIPP2008"
