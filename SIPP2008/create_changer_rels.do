@@ -198,8 +198,8 @@ gen otheradult_arrive=1 if change_type==1 & parent !=1 & to_age >=18
 gen otheradult_leave=1 if change_type==2 & parent !=1 & to_age >=18
 
 *create variable for non-parent young adult 
-gen otheryadult_arrive=1 if change_type==1 & to_age >= 18 & to_age < 30
-gen otheryadult_leave=1 if change_type==2 & to_age >= 18 & to_age < 30
+gen otheryadult_arrive=1 if change_type==1 & parent !=1 & to_age >= 18 & to_age < 30
+gen otheryadult_leave=1 if change_type==2 & parent !=1 & to_age >= 18 & to_age < 30
 
 gen adultsib_arrive=1 if change_type==1 & sibling==1 & to_age >= 18
 gen adultsib_leave=1 if change_type==2 & sibling==1 & to_age >= 18
