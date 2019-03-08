@@ -17,3 +17,5 @@ global sipp2004_code "/Users/inbarweiss/ChildHH/SIPP2004"
 global sipp2004_logs "/Users/inbarweiss/Documents/sipp files/logs2004"
 
 global childhh_base_code "/Users/inbarweiss/ChildHH"
+
+global SIPP08keep "/Users/inbarweiss/Documents/sipp files/WorkingFiles2008"
