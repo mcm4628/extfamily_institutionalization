@@ -202,7 +202,8 @@ macro drop i_vars j_vars
 save "$tempdir/ssuid_shhadid_wide", $replace
 
 //================================================================================//
-//== Purpose: Create a dataset with education, immigration status, and age for merging 
+//== Purpose: Create a dataset with education, immigration status (nativity, place of birth
+//== and duration in the US), and age for merging.
 //== Logic: Rename EPPPNUM to later merge onto person number of mother (EPNMOM) 
 //==        and father (EPNDAD) to get parents' educ and immigration status in the analysis dataset.
 //================================================================================//
@@ -213,8 +214,8 @@ local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
 
 
-keep `i_vars' `j_vars' EEDUCATE EBORNUS TAGE
-sort `i_vars' `j_vars' EEDUCATE EBORNUS TAGE
+keep `i_vars' `j_vars' EEDUCATE EBORNUS TMOVEUS TBRSTATE TAGE
+sort `i_vars' `j_vars' EEDUCATE EBORNUS TMOVEUS TBRSTATE TAGE
 
 
 ** Label recoded education.
