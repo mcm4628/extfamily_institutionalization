@@ -237,6 +237,8 @@ drop EEDUCATE EBORNUS
 * ego's record
 rename EPPPNUM pdemo_epppnum
 rename TAGE page /* page for "parent age" */
+rename TMOVEUS pmoveus /* pmoveus for "parent move to us" */
+rename TBRSTATE pbpl /*pbpl for "parent birthplace"*/
 
 save "$tempdir/person_pdemo", $replace
 
