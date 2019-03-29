@@ -1,0 +1,45 @@
+Household Instability and Children's Educational Performance
+
+by Yiwen Wang
+and
+R. Kelly Raley
+
+Population Research Center & Department of Sociology
+University of Texas -- Austin
+
+
+Abstract
+
+
+Acknowledgement: This research was supported by grants P2CHD042849, Population Research Center, awarded to the Population Research Center at The University of Texas at Austin and R03HD090425, Children s Family and Household Experiences (Raley PI) by the Eunice Kennedy Shriver National Institute of Child Health and Human Development.  The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
+
+Parental divorce is associated with an increased risk of high school dropout and lower levels of educational attainment. Although some of this association is likely related to the fact that divorce leads to reduced resources available to children, some may be because family instability contributes to stress and disrupts household discipline and routine. Other forms of household instability, such as the birth of a sibling, having a grandparent move in, or residential moves might also be sources of stress and disruption. If so, they may also be associatd with associated with children's educational outcomes.
+
+The goal of this study is to investigate whether household instability is associated with children's educational performance. We are interested in whether all forms of household instability are equally associated with children's educational performance, parental instability is especially relevant.
+** Could add more about conceptual framework.
+
+Background
+
+In the United States families matter for children's development and well being. Society sees biological parents as the ones primarily responsible for child care and upbringing. Generally, we expect children to live with their biological parents and deviations from the arrangement make it less likely that children will benefit from their parents' resources. Many studies have shown a connection between parental divorce, declines in the amount or resources available to children in terms of both time and money, and lower educational attainment. Parental divorce may matter for child well being not only because of the reduced resources available to children, but also because the process of divorce contributes to stress and disrupts household routines. 
+
+Family instability, arising from parental divorce and new relationship formation, is associated with poorer educational outcomes for children. Family Stress Theory explains this association by arguing that family transitions create stress and disrupt routines. This can make parenting more difficult and can hinder children's ability to do well in school. Many studies have provided evidence to support this theory, often by linking the number of maternal marital or cohabiting relationship transitions to child development. Studies of family instability usually count a transition into a two-parent family the same as a transition out, despite the fact that the experiences of these transitions is likely very different. When a child gains a stepparent, the household will typically experience a gain in resources, more strongly resemble the ideal typical family. A transition (back) into a single parent family is likely to involve a reduction in resources. The only consistency is that both transitions might involve some stress and conflict, not just among the adults but also adults and children
+
+Most research finds little evidence, however, that transitions out of a two-parent family are worse for child outcomes than transitions in, providing a lot of support for the idea that family stability and routine is important. A few studies, however, find some differences between the effects instability due to divorce relative remarriage. The lack of consistency across studies is related to the fact that a relatively small proportion of children experience multiple disruptions. 
+
+A closer evaluation of household composition changes can provide insights about the underlying dynamics of household resource and household routine changes as well as their possible influences on child outcomes. Although prior research has established that parental instability has a profound impact on child well-being (Fomby and Cherlin 2007), few studies have examined to what extent instability caused by people other than parents matters. It s clear that household instability remains an unaccounted factor in children s developmental contexts (Perkins 2017). Whether all changes in household compositions are equally important or whether certain types of changes are more important to children s well-being than others remains unknown. To address this gap, this study assesses whether household instability is associated with academic performance among U.S. households with children. Specifically, we analyze whether household instability is associated with children's risk of repeating and grade and their interest in school, as well as parent's educational expectations. Our measure of household instability considers everyone, not just parents. 
+
+Study design
+Data and Method
+This study uses nationally representative data from the 2008 panel of the Survey of Income and Program Participation (SIPP). SIPP interviews respondents every four months for four years. Each interview includes a repeated set of core questions and changing modules of topical questions. Our analysis is based on data from wave 4 (conducted in late 2009) and wave 10 (conducted two years later) because information on children's educational performance is collected in these two waves. The sample is limited to XXXX  children who were under 18 years old at Wave 10.
+
+Measures
+Our first measure of educational performance is whether the child repeated a grade. The primary caretaker for each child (or proxy) is asked whether the child has repeated any grades or been held back for any reason. The same question was asked in Waves 4 and 10 and we expected that all children who had a repeated a grade in Wave 4 would have still repeated a grade in Wave 10. This is not the case. ***add information about percentages ***
+The second measure is parental educational expectations for the child. The primary caretaker is asked how far she (or he) would like the child to go in school. The five potential responses range from leaving school before high school graduation to getting some education beyond college. This question is followed by a question about how far she expects the child to go in school. The third measure is based on the primary caretakers response to a question about whether a statement that [child] is interested in school work is not true, sometimes true, or often true. [There's another question about whether the child works hard at school, and there are questions about getting suspended or expelled. There are also measures of parenting stress.]
+
+Our primary indpendent variables measure household instability between Wave 4 and Wave 10. A set of four measures indicate whether any 1)parent 2) sibling or 3) other household member entered or left the household or 4) whether the child changed address. These indicators are not mutually exclusive, although we investigated models with mutually exclusive measures. That is, we had indicators of whether one experienced a parent change and a sibling change, a parent change only, a parent change with an other change, etc. The pattern of results suggested that these four indicators capture the relevant variation. In addition, we investigated more detailed measures of household changes, separating out sibling births (i.e. a sibling aged 0 enters the household) from adult siblings leaving the household and other sibling changes.
+
+Another set of independent variables describe household structure, whether there are two, one, or no parents, whether any other adults are in the household, and number of children in the household. 
+
+Our models include controls for child age, sex, race, parental education, and household poverty status.
+
+
