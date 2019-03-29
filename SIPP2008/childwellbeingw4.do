@@ -1,15 +1,27 @@
-use "$SIPP2008/TM4/childwellbeing.dta"
+use "$SIPP2008/FullFile/sippp08putm4.dta", clear
 destring epppnum, replace
-
+keep ssuid swave shhadid epppnum /// 
+ ehltstat erepgrad ///health status and repeating grades
+ efarscho edadfar ethinksc ///parent expectations
+ etvrules etimestv ehoustv ///parent control-tv rules
+ ehardcar ebother egivuplf eangrycl ///parenting emotions
+ efuntime edadfun epraise edadprai ///emotional support-praise & fun times
+ eeatbkf edadbrkf eeatdinn edaddinn ///parent-child activities undertaken
+ eouting etotread eparread edadread ///parent-child activities undertaken
+ elivapat ecounton etrustpe ///
+ elikesch eintschl /// interest in school
+ estrtage ehighgra ecurrerl egrdeatt echgschl etimchan ///grades related
+ egrdrpt1 egrdrpt2 egrdrpt3 egrdrpt4 egrdrpt5 //grades repeated
+ 
 save "$SIPP2008/TM4/childwellbeing.dta", replace
 
 
 ***create hhtype*********
 use "$SIPP08keep/HHComp_asis.dta", clear
 
-**keep sample to wave6
+**keep sample to wave4
 keep if SWAVE==4
-keep if adj_age<=15
+keep if adj_age<=14
 ****sample size 19153***//
 
 keep SSUID EPPPNUM SHHADID relationship adj_age to_age to_sex
@@ -58,7 +70,7 @@ recode othermaladult30 (0=0)(1/3=1), gen(anyomal30)
 recode otherfemadults (0=0)(1/9=1), gen(anyofem18)
 recode othermaladults (0=0)(1/9=1), gen(anyomal18)
 
-merge 1:1 SSUID EPPPNUM using "$tempdir/person_wide.dta", keepusing (par_ed_first my_racealt)
+merge 1:1 SSUID EPPPNUM using "$tempdir/person_wide.dta", keepusing (par_ed_first my_racealt THTOTINC4 EHHNUMPP4) /*run convert_to_wide.do first*/
 
 keep if _merge==3
 

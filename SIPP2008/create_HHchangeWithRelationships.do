@@ -28,7 +28,7 @@ parent sibling grandparent nonrel other_rel foster allelse adult_arrive adult_le
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave change_type ///
 yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive ///
-adultsib_leave)
+adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive) 
 
 * be sure that all cases with a comp_change were found in changer_rels
 assert _merge==3 if comp_change==1
@@ -46,18 +46,19 @@ replace someoneleft=1 if change_type==2
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
+gen nonparent_change=1 if comp_change==1 & parent!=1
 gen gp_change=1 if comp_change==1 & grandparent==1
 gen nonrel_change=1 if comp_change==1 & nonrel==1
 gen otherrel_change=1 if comp_change==1 & other_rel==1
 gen foster_change=1 if comp_change==1 & foster==1 		// tiny
 gen allelse_change=1 if comp_change==1 & allelse==1
 
-collapse (max) comp_change parent_change sib_change other_change gp_change ///
+collapse (max) comp_change parent_change sib_change other_change nonparent_change gp_change ///
 nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
 otheradult_arrive otheradult_leave yadult_arrive yadult_leave otheryadult_arrive ///
-otheryadult_leave adultsib_arrive adultsib_leave, by(SSUID EPPPNUM SWAVE)
+otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID EPPPNUM SWAVE)
 
 merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/hh_change.dta"
 
@@ -67,7 +68,7 @@ drop _merge
 * unable to infer comp_change. insample is generated at the end of create_hh_change.do
 keep if insample !=0
 
-local reltyp "parent sib other gp nonrel otherrel foster allelse"
+local reltyp "parent sib other nonparent gp nonrel otherrel foster allelse"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{
@@ -103,10 +104,16 @@ replace otheryadult_leave=0 if missing(otheryadult_leave) & !missing(comp_change
 replace adultsib_arrive=0 if missing(adultsib_arrive) & !missing(comp_change)
 replace adultsib_leave=0 if missing(adultsib_leave) & !missing(comp_change)
 
+replace otheradult2_arrive=0 if missing(otheradult2_arrive) & !missing(comp_change)
+replace otheradult2_leave=0 if missing(otheradult2_leave) & !missing(comp_change)
+
+replace infant_arrive=0 if missing(infant_arrive) & !missing(comp_change)
+
 label variable comp_change "Household composition changed bewteen this wave and the next"
 label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
 label variable sib_change "Started or stopped living with a (full/half/step) sibling entered or left household"
 label variable other_change "Started or stopped living with non-parent, non-sibling"
+label variable nonparent_change "Started or stopped living with non-parent"
 label variable gp_change "Started or stopped living with a grandparent"
 label variable foster_change "Started or stopped living with a foster sibling/parent"
 label variable allelse_change "Started or stopped living with a spouse or child"
@@ -124,6 +131,8 @@ label variable otheradult30_arrive "Started living with an adult over age 30"
 label variable otheradult30_leave "Stopped living with an adult over age 30"
 label variable otheradult_arrive "Started living with a non-parent adult"
 label variable otheradult_leave "Stopped living with a non-parent adult"
+label variable otheradult2_arrive "Started living with a non-parent non-sibling adult"
+label variable otheradult2_leave "Stopped living with a non-parent non-sibling adult"
 label variable otheryadult_arrive "Started living with a non-parent young adult (18-29)"
 label variable otheryadult_leave "Stopped living with a non-parent youn adult (18-29)"
 label variable adj_age "Cleaned age variable"
@@ -139,12 +148,13 @@ label variable par_ed_first "Education level of parent (priority order: biomom, 
 label variable hh_change "Is there a change in household composition or address between this wave and the next?"
 label variable inwave "Is this person observed in this wave?"
 label variable insample "Is this observation included in lifetable analysis?"
+label variable infant_arrive "Infant arriving"
 
 label define yesno   0 "No" 1 "Yes"
 label define insample 0 "Not in sample" 1 "In this wave and the next" 2 "Inferred Composition Change" 3 "Only Address Change"
 label define momeasure 0 "Never lived with parent" 1 "Biological Mother" 2 "Other Mother" 3 "Father"
 
-local changevars "comp_change parent_change sib_change other_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave innext hh_change inwave"
+local changevars "comp_change parent_change sib_change other_change nonparent_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave otheradult2_arrive otheradult2_leave infant_arrive innext hh_change inwave"
 
 foreach v in `changevars' {
 	label values `v' yesno

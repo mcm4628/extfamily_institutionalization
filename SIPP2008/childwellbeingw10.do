@@ -1,21 +1,54 @@
-use "$SIPP2008/TM10/childwellbeingw10.dta"
+use "$SIPP2008/FullFile/sippp08putm10.dta", clear
 destring epppnum, replace
 
+keep ssuid swave shhadid epppnum /// 
+ ehltstat erepgrad ///health status and repeating grades
+ efarscho edadfar ethinksc ///parent expectations
+ etvrules etimestv ehoustv ///parent control-tv rules
+ ehardcar ebother egivuplf eangrycl ///parenting emotions
+ efuntime edadfun epraise edadprai ///emotional support-praise & fun times
+ eeatbkf edadbrkf eeatdinn edaddinn ///parent-child activities undertaken
+ eouting etotread eparread edadread ///parent-child activities undertaken
+ elivapat ecounton etrustpe ///
+ elikesch eintschl /// interest in school
+ estrtage ehighgra ecurrerl egrdeatt echgschl etimchan ///grades related
+ egrdrpt1 egrdrpt2 egrdrpt3 egrdrpt4 egrdrpt5 //grades repeated
+
 rename ehltstat ehltstatw10
-rename elivapat elivapatw10
+rename erepgrad erepgradw10
+rename efarscho efarschow10
+rename edadfar edadfarw10
+rename ethinksc ethinkscw10
 rename etvrules etvrulesw10
 rename etimestv etimestvw10
 rename ehoustv ehoustvw10
+rename ehardcar ehardcarw10
+rename ebother ebotherw10
+rename egivuplf egivuplfw10
+rename eangrycl eangryclw10
+rename efuntime efuntimew10
+rename edadfun edadfunw10
+rename epraise epraisew10
+rename edadprai edadpraiw10
 rename eeatbkf eeatbkfw10
 rename eeatdinn eeatdinnw10
 rename edadbrkf edadbrkfw10
 rename edaddinn edaddinnw10
-rename efarscho efarschow10
-rename edadfar edadfarw10
-rename ethinksc ethinkscw10
-rename erepgrad erepgradw10
+rename eouting eoutingw10
+rename etotread etotreadw10
+rename eparread eparreadw10
+rename edadread edadreadw10
+rename elivapat elivapatw10
 rename ecounton ecountonw10
 rename etrustpe etrustpew10
+rename elikesch elikeschw10
+rename eintschl eintschlw10
+
+foreach v in estrtage ehighgra ecurrerl egrdeatt echgschl etimchan egrdrpt1 egrdrpt2 egrdrpt3 egrdrpt4 egrdrpt5 {
+rename `v' `v'w10
+}
+
+
 
 save "$SIPP2008/TM10/childwellbeing.dta", replace
 
@@ -23,9 +56,9 @@ save "$SIPP2008/TM10/childwellbeing.dta", replace
 ***create hhtype*********
 use "$SIPP08keep/HHComp_asis.dta", clear
 
-**keep sample to wave6
+**keep sample to wave10
 keep if SWAVE==10
-keep if adj_age<=17
+keep if adj_age<=16
 ****sample size 19153***//
 
 keep SSUID EPPPNUM SHHADID relationship adj_age to_age to_sex
@@ -75,7 +108,7 @@ recode othermaladult30w10 (0=0)(1/3=1), gen(anyomal30w10)
 recode otherfemadultsw10 (0=0)(1/9=1), gen(anyofem18w10)
 recode othermaladultsw10 (0=0)(1/9=1), gen(anyomal18w10)
 
-merge 1:1 SSUID EPPPNUM using "$tempdir/person_wide.dta", keepusing (par_ed_first my_racealt)
+merge 1:1 SSUID EPPPNUM using "$tempdir/person_wide.dta", keepusing (par_ed_first my_racealt THTOTINC10 EHHNUMPP10)
 
 keep if _merge==3
 

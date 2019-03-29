@@ -204,6 +204,13 @@ gen otheryadult_leave=1 if change_type==2 & parent !=1 & to_age >= 18 & to_age <
 gen adultsib_arrive=1 if change_type==1 & sibling==1 & to_age >= 18
 gen adultsib_leave=1 if change_type==2 & sibling==1 & to_age >= 18
 
+*create variable for non-parent non sibling adult
+gen otheradult2_arrive=1 if change_type==1 & parent !=1 & sibling !=1 & to_age >=18
+gen otheradult2_leave=1 if change_type==2 & parent !=1 & sibling !=1 & to_age >=18
+
+*create variable for infant born
+gen infant_arrive=1 if change_type==1 & sibling==1 & to_age <=0
+
 save "$tempdir/changer_rels", $replace
 
 
