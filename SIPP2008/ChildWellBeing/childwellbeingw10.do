@@ -48,18 +48,17 @@ foreach v in estrtage ehighgra ecurrerl egrdeatt echgschl etimchan egrdrpt1 egrd
 rename `v' `v'w10
 }
 
-
-
-save "$SIPP2008/TM10/childwellbeing.dta", replace
+save "$SIPP2008/FullFile/TM10/childwellbeing.dta", replace
 
 
 ***create hhtype*********
 use "$SIPP08keep/HHComp_asis.dta", clear
+* Note that this file has one record per person in indivdual's household.
+
 
 **keep sample to wave10
 keep if SWAVE==10
-keep if adj_age<=16
-****sample size 19153***//
+keep if adj_age<=17
 
 keep SSUID EPPPNUM SHHADID relationship adj_age to_age to_sex
 sort SSUID EPPPNUM
@@ -85,6 +84,8 @@ gen othermaladult =1 if otheradult==1 & to_sex==1
 gen child=1 if to_age<=16
 
 reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown, i(SSUID EPPPNUM) j(n)
+
+sum adj_age
 
 ****count number of each type of people in hh****
 egen parentsw10=anycount(parent*), v(1)
@@ -117,13 +118,9 @@ drop _merge
 rename SSUID ssuid
 rename EPPPNUM epppnum 
 
-merge 1:1 ssuid epppnum using "$SIPP2008/TM10/childwellbeing.dta"
+merge 1:1 ssuid epppnum using "$SIPP2008/FullFile/TM10/childwellbeing.dta"
 keep if _merge==3
 drop _merge
 
 save "$tempdir/cwb10.dta", $replace
 
-tab ehltstatw10 parentsw10, col
-tab erepgradw10 parentsw10, col
-tab efarschow10 parentsw10, col
-tab etvrulesw10 parentsw10, col

@@ -4,7 +4,13 @@ log using "cwb410.log",replace
 use "$tempdir/cwb_hhchange410.dta", clear
 * # Merge with child well being files
 merge 1:1 ssuid epppnum using "$tempdir/cwb4.dta", gen(merge4)
+
+keep if merge4==3
+
 merge 1:1 ssuid epppnum using "$tempdir/cwb10.dta", gen(merge10)
+
+keep if merge10==1 | merge10==3
+* restrict the sample to those age 15 or less in Wave 4
 
 local cwbw4 "ehltstat erepgrad efarscho ethinksc etvrules etimestv ehoustv ehardcar ebother egivuplf eangrycl efuntime epraise eeatbkf eeatdinn eouting eparread elivapat ecounton etrustpe estrtage ehighgra ecurrerl egrdeatt echgschl etimchan"
 
@@ -24,10 +30,11 @@ replace `v'=. if `v' < 0
 
 foreach v in `cwbw10' {
 replace `v'=. if `v' < 0
-tab `v'
 }
 
+********************************************************************************
 ********create poverty status***********
+********************************************************************************
 capture program drop povertyguide
 program def povertyguide
 
@@ -128,28 +135,30 @@ gen annualinc10= THTOTINC10*12
 gen byte pov4 = annualinc4 < povguide4 if ~mi(povguide4) & ~mi(annualinc10) /*generate poverty indicator 1=in poverty*/
 gen byte pov10 = annualinc10 < povguide10 if ~mi(povguide4) & ~mi(annualinc10) /*generate poverty indicator 1=in poverty*/
 
+gen rpov4=annualinc4/povguide4
+gen cpov4=0 if rpov4 <= .5
+replace cpov4=1 if rpov4 > .5 & rpov4 <= 1
+replace cpov4=2 if rpov4 > 1 & rpov4 <= 2
+replace cpov4=3 if rpov4 > 2
 
-****tv rules index-combine 3 measures:1=having certain rules****
-recode etvrules 2=0
-recode etimestv 2=0
-recode ehoustv 2=0
-egen tvrules= rowtotal(etvrules etimestv ehoustv),missing
+gen rpov10=annualinc10/povguide10
+gen cpov10=0 if rpov10 < .5
+replace cpov10=1 if rpov10 > .5 & rpov10 <= 1
+replace cpov10=2 if rpov10 > 1 & rpov10 <= 2
+replace cpov10=3 if rpov10 > 2
 
-recode etvrulesw10 2=0
-recode etimestvw10 2=0
-recode ehoustvw10 2=0
-egen tvrulesw10= rowtotal(etvrulesw10 etimestvw10 ehoustvw10),missing
 
-****code sibling change into 4 types*******
-gen sibchange4=.
-recode sibchange4 .=1 if sib_change==0 //no change
-recode sibchange4 .=2 if infant_arrive==1 & adultsib_leave==0 //infant born
-recode sibchange4 .=3 if adultsib_leave==1 //adult sibling leaving- note 13 cases experienced both infant arrive and adult sibchange were coded into this category
-recode sibchange4 .=4 if sib_change==1 & infant_arrive==0 & adultsib_leave==0 //other sib change
+*********************************************************************************
+* Recode Child well being measures
+*********************************************************************************
 
-*code parental eductaional expectation outcome//1=wanting college or more
-recode efarschow10 (1/3=0) (4/5=1), gen (eduexp10)
-recode efarscho (1/3=0) (4/5=1), gen (eduexp4)
+*code parental eductaional hopes outcome//1=wanting college or more
+recode efarschow10 (1/3=0) (4/5=1), gen (eduhope10)
+recode efarscho (1/3=0) (4/5=1), gen (eduhope4)
+
+*code parental eductaional expectation outcome//1=thinks college or more
+recode ethinkscw10 (1/3=0) (4/5=1), gen (eduexp10)
+recode ethinksc (1/3=0) (4/5=1), gen (eduexp4)
 
 *code health into a binary outcome 1=good*
 recode ehltstatw10 (2/3=1) (4/5=0), gen(health10)
@@ -162,12 +171,119 @@ recode eintschlw10 (-1=.) (1/2=0) (3=1), gen (eintschlw10r)
 *code repreating grades 1=yes******
 recode erepgradw10 2=0 
 recode erepgrad 2=0
-tab erepgrad erepgradw10
+
 gen dcase=1 if erepgrad==1 & erepgradw10==0 //tag those who reported yes at wave4 but no at wave10
+
+*********************************************************************************
+* Recode measures of household change
+*********************************************************************************
+
+****code sibling change into 4 types*******
+gen sibchange4=.
+recode sibchange4 .=1 if sib_change==0 //no change
+recode sibchange4 .=2 if infant_arrive==1 //infant born note 13 cases experienced both infant arrive and adult sibchange were coded into this category
+recode sibchange4 .=3 if adultsib_leave==1 & infant_arrive==0 //adult sibling leaving 
+recode sibchange4 .=4 if sib_change==1 & infant_arrive==0 & adultsib_leave==0 //other sib change
+
+* interaction between other change and address change
+gen otheraddr=0 if other_change==0 & addr_change==0
+replace otheraddr=1 if other_change==1 & addr_change==0
+replace otheraddr=2 if other_change==0 & addr_change==1
+replace otheraddr=3 if other_change==1 & addr_change==1
+
+*********************************************************************************
+* Recode potential mediator
+*********************************************************************************
+
+****tv rules index-combine 3 measures:1=having certain rules****
+recode etvrules 2=0
+recode etimestv 2=0
+recode ehoustv 2=0
+egen tvrules= rowtotal(etvrules etimestv ehoustv),missing
+
+recode etvrulesw10 2=0
+recode etimestvw10 2=0
+recode ehoustvw10 2=0
+egen tvrulesw10= rowtotal(etvrulesw10 etimestvw10 ehoustvw10),missing
+
+
+
+*********************************************************************************
+* Descriptive analysis
+*********************************************************************************
+
+* Are those who are in topical module 10 different from TM 4 sample?
+
+sort merge10
+by merge10: sum adj_age4
+
+tab par_ed_first merge10, nofreq col
+tab my_racealt merge10, nofreq col
+tab my_sex4 merge10, nofreq col
+
+tab parentsw10 merge10, nofreq col
+tab anyotheradultsw10 merge10, nofreq col
+tab pov10 merge10, nofreq col
+tab parent_change merge10, nofreq col
+tab sib_change merge10, nofreq col
+tab other_change merge10, nofreq col
+tab addr_change merge10, nofreq col
+
+keep if merge10==3
+
+tab efarschow10
+tab ethinkscw10
+
+tab erepgradw10 if adj_age4 >= 6
+tab elikeschw10 if adj_age4 >= 6
+
+gen agesq=adj_age4*adj_age4
+* agesq did not improve model fit
+
 global model adj_age4 i.par_ed_first i.my_racealt my_sex4 
 
+local ivs "adj_age4 i.par_ed_first i.my_racealt my_sex4 i.cpov10 b2.parentsw10 anyotheradultsw10 num_childw10 parent_change i.sibchange4 other_change addr_change"
 
+*foreach var in `ivs' {
+* ologit ethinkscw10 `var', cluster(ssuid)
+* ologit ethinkscw10 ethinksc `var', cluster(ssuid)
+*}
+
+*ologit ethinkscw10 ethinksc $model, cluster(ssuid) 
+*ologit ethinkscw10 ethinksc $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10, cluster(ssuid)
+*ologit ethinkscw10 ethinksc $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10 parent_change i.sibchange4 other_change addr_change, cluster(ssuid) 
+
+*foreach var in `ivs' {
+* ologit elikeschw10 `var' if elikeschw10 > 0 & adj_age4 > 6, cluster(ssuid)
+* ologit elikeschw10 elikesch `var' if elikeschw10 > 0 & adj_age4 > 6, cluster(ssuid)
+*}
+
+*ologit elikeschw10 elikesch $model if elikeschw10 > 0 & adj_age4 > 6, cluster(ssuid)
+*ologit elikeschw10 elikesch $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10 if elikeschw10 > 0 & adj_age4 > 6, cluster(ssuid)
+*ologit elikeschw10 elikesch $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10 parent_change i.sibchange4 other_change addr_change if elikeschw10 > 0 & adj_age4 > 6, cluster(ssuid)
+
+*foreach var in `ivs' {
+* ologit eintschlw10 `var' if eintschlw10 > 0 & adj_age > 6, cluster(ssuid)
+* ologit eintschlw10 eintschl `var' if eintschlw10 > 0 & adj_age > 6, cluster(ssuid)
+*}
+
+*ologit eintschlw10 eintschl $model if eintschlw10 > 0 & adj_age > 6, cluster(ssuid) 
+*ologit eintschlw10 eintschl $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10 if eintschlw10 > 0 & adj_age > 6, cluster(ssuid)
+*ologit eintschlw10 eintschl $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10 parent_change i.sibchange4 other_change addr_change if eintschlw10 > 0 & adj_age > 6, cluster(ssuid)
+
+foreach var in `ivs' {
+ logistic erepgradw10 `var' if  adj_age4 > 6, cluster(ssuid)
+ logistic erepgradw10 erepgrad `var' if  adj_age4 > 6, cluster(ssuid)
+}
+
+logistic erepgradw10 erepgrad $model if  adj_age4 > 6, cluster(ssuid) 
+logistic erepgradw10 erepgrad $model i.cpov10 b2.parentsw10 anyotheradultsw10 num_childw10 if  adj_age4 > 6, cluster(ssuid)
+logistic erepgradw10 erepgrad $model i.cpov10 b2.parentsw10 anyotheradultsw10 num_childw10 parent_change i.sibchange4 i.otheraddr if  adj_age4 > 6 & my_racealt==2, cluster(ssuid)
+
+/*
 ***build models****
+
+
 eststo clear
 eststo: quietly logit eduexp10 eduexp4 $model, cluster(ssuid)
 eststo: quietly logit eduexp10 eduexp4 $model pov10 b2.parentsw10 anyotheradultsw10 num_childw10, cluster(ssuid) // household structure //

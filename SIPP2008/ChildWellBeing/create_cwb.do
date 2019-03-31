@@ -128,13 +128,8 @@ replace adultsib_change=0 if missing(adultsib_change)
 gen otheradult2_change=1 if otheradult2_arrive==1 | otheradult2_leave==1
 replace otheradult2_change=0 if missing(otheradult2_change)
 
-keep if adj_age4<=14
+keep if adj_age4<=15
 
 save "$tempdir/cwb_hhchange410.dta", $replace
-
-* # Merge with child well being files
-
-merge 1:1 ssuid epppnum using "$tempdir/cwb4.dta", gen(merge4)
-merge 1:1 ssuid epppnum using "$tempdir/cwb10.dta", gen(merge10)
 
 
