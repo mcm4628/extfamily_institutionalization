@@ -14,10 +14,15 @@ keep ssuid epppnum tmoveus tbrstate
 save "$SIPP2008/wave2_migration_extract", $replace
 
 * Core questions:
-forvalues wave=1/16{
+forvalues wave=1/15{
 	clear
 	use "$SIPP2008/FullFile/sippl08puw`wave'"
-	keep tftotinc thtotinc tfipsst ebornus ems eorigin epndad epnmom epnspous erace errp esex etypdad etypmom tage uentmain ulftmain ehhnumpp eoutcome rhchange rhnf thtotinc eentaid eppintvw epppnum lgtkey tmovrflg rhcalyr shhadid srefmon srotaton ssuseq swave wpfinwgt eeducate ssuid
+	keep tftotinc thtotinc tfipsst ebornus ems eorigin epndad epnmom epnspous ///
+	erace errp esex etypdad etypmom tage uentmain ulftmain ehhnumpp eoutcome ///
+	rhchange rhnf thtotinc eentaid eppintvw epppnum lgtkey tmovrflg rhcalyr ///
+	shhadid srefmon srotaton ssuseq swave wpfinwgt eeducate ssuid renroll ///
+	eenrlm eenlevel
+	
 	merge m:1 ssuid epppnum using "$SIPP2008/wave2_migration_extract"
 	drop if _merge==2
 	drop _merge
