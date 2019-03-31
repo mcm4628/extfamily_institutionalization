@@ -76,12 +76,23 @@ label var biodad_birthplace "Place of birth of coresident biological father if p
 label var biodad_yrmigration "year of immigration of coresident biological father if present"
 
 ********************************************************************************
+* Own Educational Attainment
+********************************************************************************
+
+recode EEDUCATE (31/38 = 1)  (39 = 2)  (40/43 = 3)  (44/47 = 4), gen (educ)
+label values educ educ
+
+gen dropout=0
+replace dropout=1 if RENROLL==3 & educ < 2
+
+********************************************************************************
 * Section: Make the dataset wide by wave (15 waves).
 ********************************************************************************
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ dad_birthplace dad_yrmigartion biodad_birthplace biodad_yrmigration biomom_birthplace biomom_yrmigration mom_birthplace mom_yrmigartion"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ dad_birthplace dad_yrmigartion biodad_birthplace biodad_yrmigration biomom_birthplace biomom_yrmigration mom_birthplace mom_yrmigartion* educ dropout"
+
 local extra_vars "overall_max_shhadid_members"
 
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
