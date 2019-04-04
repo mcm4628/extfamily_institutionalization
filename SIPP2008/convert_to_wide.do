@@ -1,6 +1,6 @@
 //==============================================================================
 //===== Children's Household Instability Project                                                    
-//===== Dataset: SIPP2008                                                                               
+//===== Dataset: SIPP2008                                                                              
 //===== Purpose: Create a wide database by person (SSUID EPPPNUM) including variables describing parental characteristics, race and sex. 
 //===== Logic: This file generates variables indicating the first and last wave numbers in which this person is encountered.
 //=====        Also, generates a single value for race and sex even though for some people reports vary across waves.
@@ -35,18 +35,18 @@ drop pdemo_epppnum
 rename educ mom_educ
 rename immigrant mom_immigrant
 rename page mom_age
-rename TBRSTATE mom_birthplace
-rename TMOVEUS mom_yrmigartion
+rename pbpl mom_birthplace
+rename pmoveus mom_yrmigartion
 gen biomom_age=mom_age if ETYPMOM==1
 gen biomom_educ=mom_educ if ETYPMOM==1
 gen biomom_birthplace=mom_birthplace if ETYPMOM==1
-gen biomom_yrmigration=mom_yrmigartion if ETYPMOM==1
+gen biomom_yrmigration=mom_yrmigration if ETYPMOM==1
 
 label var mom_educ "Mother's (bio, step, adopt) educational level (this wave)"
 label var mom_immigrant "Mother's (bio, step, adopt) immigration status (this wave)"
 label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var mom_birthplace "Mother's (bio, step, adoptive) place of birth"
-label var mom_yrmigartion "Mother's (bio, step, adoptive) year of immigration"
+label var mom_yrmigration "Mother's (bio, step, adoptive) year of immigration"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
 label var biomom_educ "Education of coresident biological mother if present"
 label var biomom_birthplace "Place of birth of coresident biological mother if present"
@@ -61,12 +61,13 @@ drop pdemo_epppnum
 rename educ dad_educ
 rename immigrant dad_immigrant
 rename page dad_age
-rename TBRSTATE dad_birthplace
-rename TMOVEUS dad_yrmigartion
+rename pbpl dad_birthplace
+rename pmoveus dad_yrmigartion
+
  
 gen biodad_age=dad_age if ETYPDAD==1
 gen biodad_birthplace=dad_birthplace if ETYPDAD==1
-gen biodad_yrmigration=dad_yrmigartion if ETYPDAD==1
+gen biodad_yrmigration=dad_yrmigration if ETYPDAD==1
 
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
 label var dad_immigrant "Father's (bio, step, adopt) immigration status (this wave)"
@@ -91,7 +92,7 @@ replace dropout=1 if RENROLL==3 & educ < 2
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ dad_birthplace dad_yrmigartion biodad_birthplace biodad_yrmigration biomom_birthplace biomom_yrmigration mom_birthplace mom_yrmigartion* educ dropout"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN EBORNUS THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ dad_birthplace dad_yrmigration biodad_birthplace biodad_yrmigration biomom_birthplace biomom_yrmigration mom_birthplace mom_yrmigration educ dropout"
 
 local extra_vars "overall_max_shhadid_members"
 
