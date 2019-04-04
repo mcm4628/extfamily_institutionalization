@@ -145,14 +145,6 @@ replace num_child=1 if missing(num_child)
 replace addr_change=2 if missing(addr_change)
 
 ********************************************************************************
-* description of outcome variables
-********************************************************************************
-
-tab elikeschw10 
-tab eintschlw10 
-tab erepgradw10 
-
-********************************************************************************
 * Setting up for multi-variate models. 
 *******************************************************************************
 
@@ -165,6 +157,17 @@ local basevar "adj_age4 i.par_ed_first i.my_racealt my_sex4 b3.cpov4"
 local compvar "b2.parents i.anynnadultw10 num_child b3.cpov10"
 local changevar "parent_change i.sibchange3 other_change i.addr_change"
 
+local dvar "elikeschw10 eintschlw10 erepgradw10"
+********************************************************************************
+* description of outcome variables
+********************************************************************************
+
+foreach var in `dvar' {
+	tab parent_change `var' if ~missing(`var') & `var' >= 0, row
+	tab sib_change `var' if ~missing(`var') & `var' >= 0, row
+	tab other_change `var' if ~missing(`var') & `var' >= 0, row
+	tab addr_change `var' if ~missing(`var') & `var' >= 0, row
+}
 ********************************************************************************
 * Models
 *******************************************************************************

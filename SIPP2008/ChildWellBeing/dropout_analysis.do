@@ -78,6 +78,11 @@ foreach var in `tabvar'{
  tab `var'
 }
 
+tab parent_change dropoutnw, row
+tab sib_change dropoutnw, row
+tab other_change dropoutnw, row
+tab addr_change dropoutnw, row
+
 eststo clear
 eststo: quietly logit dropoutnw `basevar' `changevar', cluster(SSUID) 
 eststo: quietly logit dropoutnw `basevar' `compvar', cluster(SSUID)

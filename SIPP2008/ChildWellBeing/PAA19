@@ -30,16 +30,192 @@ A closer evaluation of household composition changes can provide insights about 
 
 Study design
 Data and Method
-This study uses nationally representative data from the 2008 panel of the Survey of Income and Program Participation (SIPP). SIPP interviews respondents every four months for four years. Each interview includes a repeated set of core questions and changing modules of topical questions. Our analysis is based on data from wave 4 (conducted in late 2009) and wave 10 (conducted two years later) because information on children's educational performance is collected in these two waves. The sample is limited to XXXX  children who were under 18 years old at Wave 10.
+This study uses nationally representative data from the 2008 panel of the Survey of Income and Program Participation (SIPP). SIPP interviews respondents every four months for four years. Each interview includes a repeated set of core questions and changing modules of topical questions. Much of our analysis is based on data from wave 4 (conducted in late 2009) and wave 10 (conducted two years later) because information on children's educational performance is collected in these two waves. Analyses using data from Waves 4 and 10 are limited to 8265 children age 7 to 15 in Wave 4 who are also observed in Wave 10. In addition, we use data from the core interviews in all waves to measure high school drop out.  The sample for the analysis of high school dropout is limited to XXXX cases who were age 15-17 at any point during the SIPP panel and who were observed at least three waves.
 
 Measures
 Our first measure of educational performance is whether the child repeated a grade. The primary caretaker for each child (or proxy) is asked whether the child has repeated any grades or been held back for any reason. The same question was asked in Waves 4 and 10 and we expected that all children who had a repeated a grade in Wave 4 would have still repeated a grade in Wave 10. This is not the case. ***add information about percentages ***
-The second measure is parental educational expectations for the child. The primary caretaker is asked how far she (or he) would like the child to go in school. The five potential responses range from leaving school before high school graduation to getting some education beyond college. This question is followed by a question about how far she expects the child to go in school. The third measure is based on the primary caretakers response to a question about whether a statement that [child] is interested in school work is not true, sometimes true, or often true. [There's another question about whether the child works hard at school, and there are questions about getting suspended or expelled. There are also measures of parenting stress.]
 
-Our primary indpendent variables measure household instability between Wave 4 and Wave 10. A set of four measures indicate whether any 1)parent 2) sibling or 3) other household member entered or left the household or 4) whether the child changed address. These indicators are not mutually exclusive, although we investigated models with mutually exclusive measures. That is, we had indicators of whether one experienced a parent change and a sibling change, a parent change only, a parent change with an other change, etc. The pattern of results suggested that these four indicators capture the relevant variation. In addition, we investigated more detailed measures of household changes, separating out sibling births (i.e. a sibling aged 0 enters the household) from adult siblings leaving the household and other sibling changes.
+The second measure of educational performance is high school dropout. This outcome is determines from two variables on the core survey: current enrollment and educational attainment. We code individuals who are no longer enrolled but do not have a high school degree as drop outs. Unlike the measure of grade repeating, the measure of dropping out is available in every SIPP interview, or every four months for individuals observed in every wave.
 
-Another set of independent variables describe household structure, whether there are two, one, or no parents, whether any other adults are in the household, and number of children in the household. 
+In addition, investigate two measures of children's attitudes toward school. The first is based on the primary caretakers response to a question about whether a statement that [child] is interested in school work is not true, sometimes true, or often true. The second is based on a question of whether the child like school. These are available only in Waves 4 and 10. These variables provide some insight into why household instability is associated with grade repeating and dropping out. 
 
-Our models include controls for child age, sex, race, parental education, and household poverty status.
+Our primary independent variables measure household instability. For analyses of grade repeating and attitudes toward school, the household instability measures indicate experiences between Wave 4 and Wave 10. A set of four measures indicate whether any 1)parent 2) sibling or 3) other household member entered or left the household or 4) whether the child changed address. These indicators are not mutually exclusive, although we investigated models with mutually exclusive measures. That is, we had indicators of whether one experienced a parent change and a sibling change, a parent change only, a parent change with an other change, etc. The pattern of results suggested that these four indicators capture the relevant variation. In addition, we investigated more detailed measures of household changes, separating out sibling births (i.e. a sibling aged 0 enters the household) from adult siblings leaving the household and other sibling changes. For our analysis of high school dropout, we use measures of household instability between one wave and the wave previous to predict high school droppout before the following wave. This approach is appropriate if we believe that household instability has immediate effects on dropping out and it might. [But we should consider more cumulative measures of household instability after PAA].
+
+Another set of independent variables describe household structure, whether there are two, one, or no parents, whether any other adults are in the household, and number of children in the household. Our models include controls for child age, sex, race, parental education, and household poverty status.
+
+Table 1 presents information on the independent variables for the two analytical samples. Table 2 presents distributions on the outcome variables overall and by each of the household instability measures.
 
 
+
+
+
+Table 1. Independent variables (Repeat Grade Sample)				
+		     Wave4-10 Sample		Dropout Analysis
+		     	      Mean		Mean
+Age 			      11.0		16.0
+Number of Children	       2.3		 2.0
+				
+				Percent		
+Parent's Education				
+	Less than HS	      13.7		12.9
+	HS Grad	  	      22.3	      	21.7
+	Some College	      36.8		36.0
+	College Grad	      27.2		24.0
+	Unknown		       5.4		 5.4
+				
+Race-Ethnicity				
+	Non-Hispanic White	57.4		57.3
+	Non-Hispanic Black	14.0		14.6
+	Hispanic		19.5		19.1
+	Asian			4.1		 3.6
+	Other			5.0		 5.4
+				
+Female				48.6		48.7
+				
+Number of Parents at Wave 10				
+ 	None	     	  	 4.4		 8.2
+	One			25.9		27.6
+	Two			69.7		64.3
+				
+Any non-nuclear adults in the Household
+    		       	        14.9		16.4
+				
+In PovertyStatus Wave 10				
+	Deep poverty		 9.0		 7.4
+	Poor			11.5		10.5
+	Near Poor		23.3		22.2
+	Not Poor		56.3		59.9
+				
+Household Change between Waves 4 and Wave 6				
+	Parent Change	         8.5		 2.6
+	Sibling Change		14.7		 4.2
+	Other Change		15.5		 5.4
+	Address Change		20.7		 5.7
+				
+Individuals			8216		7372
+Person-waves				       37906
+Note that these descritives include some individuals not included in the multivariate analysis because they are missing on the dependent variable or because they are observed in only one wave and thus aren't included in the event-history analysis. Future drafts will refine this.
+
+Table 2. Dependent variables by Household Instability													
+	 	   	 Repeated Grade Likes School		Interested in School Work	Dropout	
+			 No	Yes	No	Some	Yes	 No	Some	Yes		No	Yes
+Total			 93.6	 6.4	4.2	22.3	73.5	4.6	27.9	67.5		97.8	2.2
+										
+Sibling Change		 91.9	 8.1	5.6	22.9	71.5	6.5	29.0	64.5		96.2	3.8
+												
+Non-nuclear Change	 88.6	11.4	6.1	23.4	70.5	6.2	29.1	64.7		95.8	4.2
+												
+Parent Change		 91.2	 8.8	5.8	21.3	73.5	7.5	27.7	64.7		95.8	4.2
+												
+Address Change		 90.5	 9.5	5.3	22.9	71.9	4.6	27.9	67.5		95.9	4.1
+
+Table 3. Logisitic Regression Results from Models Predicting "Repeated Grade"			
+	 	   	      Model 1	Model 2	 Model 3
+Household Change			
+Parent Change		       0.0592		 0.0279
+Sibling Change (none)			
+ Infant Arrive		      -0.183		-0.201
+ Other Sib Change	       0.0474		 0.0569
+Non-nuclear Change	       0.499***		 0.564***
+Address Change		       0.270*		 0.280*
+			
+Household Structure			
+Number of Parents (two)			
+None		  		      -0.0311	-0.292
+One				      -0.121	-0.159
+			
+Any non-nuclear adult		       0.177	-0.0810
+Number of Children		      -0.0751	-0.0912
+Poverty Wave 10 (Not Poor)			
+Deep Poverty			       0.441	 0.368
+Poor		                       0.201	 0.187
+Near Poor		 	       0.083	 0.039
+N			     8231	8231	8231			
+="* p<0.05	 ** p<0.01	 *** p<0.001"
+
+All models control for whether had repeated grade in wave 4, age, parental education, race-ethnicity, poverty status wave 4. Model 3 controls also for poverty status in Wave 10.
+
+Table 4. Discrete Time Event History Models Predicting "Drop Out"			
+      	 	       Model 1	     Model 2    Model 3
+Household Change
+Parent Change		 0.246			 0.180
+Sibling Change (none)			
+ Infant Arrive		-0.502			-0.571
+ Other Sib Change	 0.353*	      		 0.357*
+ Non-nuclear Change	 0.431**      		 0.273*
+Address Change (No Move)			
+Moved	       	   	 0.312*			 0.247
+Unknown			-0.631			-0.913
+			
+Household Structure			
+Number of Parents (two)			
+None		  	 1.395***	 	 1.314***
+One			-0.0289			-0.0578
+			
+Any non-nuclear adult 	 0.138			 0.118
+Number of Children	 0.0384			 0.0335
+Poverty Wave 10 (Not Poor)			
+Deep Poverty		 0.465***		 0.448**
+Poor			 0.340**		 0.339**
+Near Poor		 0.144			 0.142
+			
+N	37878		
+All models control for age, parental education, and race-ethnicity.
+
+
+Table 5. Ordered Logisitic Regression Results from Models Predicting "Likes School"			
+	 	 	Model 1	  Model 2	Model 3
+Household Change			
+Parent Change		 0.0707			 0.0970
+			
+Sibling Change (none)			
+ Infant Arrive		 0.0251			 0.0383
+ Other Sib Change	-0.0919			-0.103
+			
+ Non-nuclear Change	-0.121			-0.0357
+			
+Address Change		-0.057			-0.0386
+			
+Household Structure			
+Number of Parents (two)			
+None		  		   -0.160	-0.142
+One				   -0.180*	-0.175*
+			
+Any non-nuclear adult		   -0.233*	-0.219*
+			
+Number of Children		   -0.0124	-0.0111
+			
+Poverty Wave 10 (Not Poor)			
+Deep Poverty			   -0.310*	-0.314*
+Poor				   -0.126	-0.131
+Near Poor			   -0.090	-0.094
+N			8216	8216	        8216
+t statistics in parentheses			
+="* p<0.05	 ** p<0.01	 *** p<0.001"	
+
+Table 6. Ordered Logisitic Regression Results from Models Predicting "Interested in School Work"			
+	 	 	Model 1	 Model 2	Model 3
+Household Change			
+Parent Change		-0.000			 0.0230
+Sibling Change (none)			
+ Infant Arrive		 0.186			 0.187
+ Other Sib Change	-0.209*			-0.220*
+ Non-nuclear Change	-0.0669			 0.000284
+Address Change		-0.105			-0.0943
+			
+Household Structure			
+Number of Parents (two)			
+None		  		  -0.18		-0.108
+One				  -0.125	-0.113
+			
+Any non-nuclear adult		  -0.202*	-0.195*
+			
+Number of Children		   0.0140	0.0141
+			
+Poverty Wave 10 (Not Poor)			
+Deep Poverty			  -0.255*      -0.256*
+Poor				  -0.101	-0.108
+Near Poor			  -0.0262	-0.0313
+N			8216	 8216		8216
+t statistics in parentheses			
+="* p<0.05	 ** p<0.01	 *** p<0.001"	
