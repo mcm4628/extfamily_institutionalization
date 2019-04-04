@@ -1,28 +1,33 @@
 * Create measures of household change between wave 4 and wave 10
 
 use "$SIPP08keep/HHchangeWithRelationships.dta", clear
+* Note that this data file has one record per individual
 
-keep if SWAVE==4|SWAVE==5|SWAVE==6|SWAVE==7|SWAVE==8|SWAVE==9
+keep if SWAVE==4|SWAVE==5|SWAVE==6|SWAVE==7|SWAVE==8|SWAVE==9|SWAVE==10
 keep SSUID EPPPNUM SWAVE adj_age comp_change parent_change sib_change other_change nonparent_change adult_arrive adult_leave ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
 otheradult_leave addr_change my_sex hh_change adult30_arrive adult30_leave ///
-yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive ///
+otheradult2_leave infant_arrive inwave innext
 
 reshape wide adj_age comp_change parent_change sib_change other_change nonparent_change adult_arrive adult_leave ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive ///
 otheradult_leave addr_change adult30_arrive adult30_leave ///
-yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive ///
-my_sex hh_change, i(SSUID EPPPNUM) j(SWAVE)
+yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive ///
+otheradult2_leave infant_arrive ///
+my_sex hh_change inwave innext, i(SSUID EPPPNUM) j(SWAVE)
 
 ***calculate number of changes experienced between wave 4&10***
 gen nmis_compchange410=0 
 gen numchange410=0
 
+gen numobs410=0
+
 forvalues i=4/9 {
 	replace nmis_compchange410=nmis_compchange410+1 if missing(comp_change`i')
 	replace numchange410=numchange410+1 if comp_change`i'==1
+	replace numobs410=numobs410+1 if inwave`i'==1
 }
-
 
 gen nmis_compchange710=0 
 gen numchange710=0
@@ -31,7 +36,6 @@ forvalues i=7/9 {
 	replace nmis_compchange710=nmis_compchange710+1 if missing(comp_change`i')
 	replace numchange710=numchange710+1 if comp_change`i'==1
 }
-
 
 ***create indicators of whether experienced any specific type of change 
 recode numchange410 (2/max=1), gen (anychange410)
@@ -102,7 +106,8 @@ anychange710 anymischange710 parent_changet sib_changet other_changet nonparent_
 adult_arrivet adult_leavet parent_arrivet parent_leavet otheradult30_arrivet ///
 otheradult30_leavet otheradult_arrivet otheradult_leavet otheradult2_arrivet otheradult2_leavet addr_changet hh_changet ///
 adult30_arrivet adult30_leavet yadult_arrivet yadult_leavet otheryadult_arrivet ///
-otheryadult_leavet adultsib_arrivet adultsib_leavet otheradult2_arrivet otheradult2_leavet infant_arrivet
+otheryadult_leavet adultsib_arrivet adultsib_leavet otheradult2_arrivet otheradult2_leavet infant_arrivet ///
+inwave* innext9 numobs410
 
 gen adult_change=1 if adult_arrive==1 | adult_leave==1
 replace adult_change=0 if missing(adult_change)

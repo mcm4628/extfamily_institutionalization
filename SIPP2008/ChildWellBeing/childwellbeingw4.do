@@ -35,6 +35,7 @@ gen grandmother=1 if inlist(relationship,13,14,27) & to_sex==2
 gen other_rel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) 
 gen other_femrel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) & to_sex==2 
 gen unknown=1 if relationship==40 | missing(relationship)
+gen childorpartner=1 if inlist(relationship,12,18,23)
 
 gen otheradult30=. 
 recode otheradult30 .=1 if parent==.  & to_age>30
@@ -45,9 +46,13 @@ gen otheradult=.
 recode otheradult .=1 if parent==.  & to_age>=18
 gen otherfemadult =1 if otheradult==1 & to_sex==2
 gen othermaladult =1 if otheradult==1 & to_sex==1
+
+gen nonnukeadult=.
+recode nonnukeadult .=1 if parent==. & relationship != 17 & relationship != 33 & to_age >=18
+
 gen child=1 if to_age<=16
 
-reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown, i(SSUID EPPPNUM) j(n)
+reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown nonnukeadult childorpartner, i(SSUID EPPPNUM) j(n)
 
 ****count number of each type of people in hh****
 egen parents=anycount(parent*), v(1)
@@ -59,16 +64,22 @@ egen otheradults=anycount(otheradult*), v(1)
 egen otherfemadults=anycount(otherfemadult*), v(1)
 egen othermaladults=anycount(othermaladult*), v(1)
 egen children=anycount(child*), v(1)
+egen nnadult=anycount(nonnukeadult*), v(1)
+egen ownfamily=anycount(childorpartner*), v(1)
+
 gen num_child=children+1
 recode otheradults30 (2/max=1), gen (anyotheradults30)
 recode otheradults (2/max=1), gen (anyotheradults)
 tab parents
 recode parents 3=2
+recode nnadult (2/max=1), gen(anynnadult)
 
 recode otherfemadult30 (0=0)(1/3=1), gen(anyofem30)
 recode othermaladult30 (0=0)(1/3=1), gen(anyomal30)
 recode otherfemadults (0=0)(1/9=1), gen(anyofem18)
 recode othermaladults (0=0)(1/9=1), gen(anyomal18)
+recode ownfamily (0=0)(1/9=1), gen(anyown)
+
 
 merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide.dta", keepusing (par_ed_first my_racealt THTOTINC4 EHHNUMPP4 dropout4 educ4) /*run convert_to_wide.do first*/
 

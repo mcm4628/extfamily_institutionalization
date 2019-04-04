@@ -71,11 +71,15 @@ gen grandmother=1 if inlist(relationship,13,14,27) & to_sex==2
 gen other_rel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) 
 gen other_femrel=1 if inlist(relationship, 15,16,24,25,26,28,29,30,31,33,32,35,36) & to_sex==2 
 gen unknown=1 if relationship==40 | missing(relationship)
+gen childorpartner=1 if inlist(relationship,12,18,23)
 
 gen otheradult30=. 
 recode otheradult30 .=1 if parent==.  & to_age>30
 gen otherfemadult30=1 if otheradult30==1 & to_sex==2
 gen othermaladult30=1 if otheradult30==1 & to_sex==1
+
+gen nonnukeadult=.
+recode nonnukeadult .=1 if parent==. & relationship != 17 & relationship != 33 & to_age >=18
 
 gen otheradult=.
 recode otheradult .=1 if parent==.  & to_age>=18
@@ -83,7 +87,7 @@ gen otherfemadult =1 if otheradult==1 & to_sex==2
 gen othermaladult =1 if otheradult==1 & to_sex==1
 gen child=1 if to_age<=16
 
-reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown, i(SSUID EPPPNUM) j(n)
+reshape wide to_age to_sex relationship parent grandparent grandmother other_rel other_femrel child otheradult30 otherfemadult30 othermaladult30 otheradult otherfemadult othermaladult unknown nonnukeadult childorpartner, i(SSUID EPPPNUM) j(n)
 
 sum adj_age
 
@@ -97,6 +101,8 @@ egen otheradultsw10=anycount(otheradult*), v(1)
 egen otherfemadultsw10=anycount(otherfemadult*), v(1)
 egen othermaladultsw10=anycount(othermaladult*), v(1)
 egen childrenw10=anycount(child*), v(1)
+egen nnadultw10=anycount(nonnukeadult*), v(1)
+egen ownfamilyw10=anycount(childorpartner*), v(1)
 gen num_childw10=childrenw10+1
 recode otheradults30w10 (2/max=1), gen (anyotheradults30w10)
 recode otheradultsw10 (2/max=1), gen (anyotheradultsw10)
@@ -108,6 +114,8 @@ recode otherfemadult30w10 (0=0)(1/3=1), gen(anyofem30w10)
 recode othermaladult30w10 (0=0)(1/3=1), gen(anyomal30w10)
 recode otherfemadultsw10 (0=0)(1/9=1), gen(anyofem18w10)
 recode othermaladultsw10 (0=0)(1/9=1), gen(anyomal18w10)
+recode nnadultw10 (2/max=1), gen(anynnadultw10)
+recode ownfamilyw10 (0=0)(1/9=1), gen(anyownw10)
 
 merge 1:1 SSUID EPPPNUM using "$tempdir/person_wide.dta", keepusing (par_ed_first my_racealt THTOTINC10 EHHNUMPP10)
 
