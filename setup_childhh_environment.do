@@ -14,7 +14,7 @@ if ("`c(os)'" == "Windows") {
     macro drop _temp_drive _temp_dir`
 }
 else {
-    if ("`c(os)'" == "MacOSX") {
+    if ("`c(os)'" == "MacOSX") | ("`c(os)'" == "Unix") {
         global homedir : env HOME
     }
     else {
