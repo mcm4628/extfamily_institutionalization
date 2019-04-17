@@ -3,7 +3,7 @@ use "$tempdir/poverty_survival", clear
 rename ssuid SSUID
 rename epppnum EPPPNUM 
 
-merge 1:1 SSUID EPPPNUM using "$tempdir/demo_wide"
+merge 1:1 SSUID EPPPNUM using "$SIPP08keep/demo_wide"
 
 keep if adj_age1 < 15
 

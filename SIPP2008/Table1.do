@@ -25,7 +25,7 @@ local rellist "bioparent parent sibling  child spartner nonrel grandparent other
 
 collapse (count) `rellist', by (SSUID EPPPNUM SWAVE) fast
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_interviews.dta", keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure)
+merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/demo_long_interviews.dta", keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure)
 
 keep if _merge==3
 

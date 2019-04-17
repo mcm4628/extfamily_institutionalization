@@ -36,7 +36,7 @@ save "$tempdir/everyoneobservednextwave", $replace
 * Add to_age to pairs data 
 use "$tempdir/relationship_pairs_bywave", clear
 rename relto EPPPNUM
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all", keepusing(adj_age)
+merge m:1 SSUID EPPPNUM SWAVE using "$SIPP08keep/demo_long_all", keepusing(adj_age)
 
 keep if _merge==3
 
