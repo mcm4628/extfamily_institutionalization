@@ -36,7 +36,7 @@ rename educ mom_educ
 rename immigrant mom_immigrant
 rename page mom_age
 rename pbpl mom_birthplace
-rename pmoveus mom_yrmigartion
+rename pmoveus mom_yrmigration
 gen biomom_age=mom_age if ETYPMOM==1
 gen biomom_educ=mom_educ if ETYPMOM==1
 gen biomom_birthplace=mom_birthplace if ETYPMOM==1
@@ -62,8 +62,7 @@ rename educ dad_educ
 rename immigrant dad_immigrant
 rename page dad_age
 rename pbpl dad_birthplace
-rename pmoveus dad_yrmigartion
-
+rename pmoveus dad_yrmigration
  
 gen biodad_age=dad_age if ETYPDAD==1
 gen biodad_birthplace=dad_birthplace if ETYPDAD==1
