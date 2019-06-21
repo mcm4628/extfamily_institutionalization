@@ -6,7 +6,7 @@
 //=====================================================================//
 
 ** Import first wave. 
-use "$SIPP2008/wave${first_wave}_extract", clear 
+use "$SIPP08keep/wave${first_wave}_extract", clear 
 
 ** Keep only observations in the reference month. 
 keep if SREFMON == ${refmon}
