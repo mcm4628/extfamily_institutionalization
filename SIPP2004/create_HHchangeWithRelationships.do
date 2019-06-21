@@ -1,6 +1,6 @@
 //====================================================================//
 //===== Children's Household Instability Project                    
-//===== Dataset: SIPP2004                                           
+//===== Dataset: SIPP2008                                           
 //===== Purpose: This code merges a file with information on the relationship
 //                 of household members who arrive or leave in the next wave                
 //               to comp_change hh_change and addr_change. And then collapses
