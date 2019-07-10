@@ -9,14 +9,14 @@ individuals in the household ages 15 or older.
 */
 
 clear 
-use "$SIPP2004/FullFile/p04putm2"
+use "$SIPP2004tm/sippp04putm2"
 keep ssuid epppnum tmoveus tbrstate 
 save "$SIPP2004/wave2_migration_extract", $replace
 
 * Core questions:
 forvalues wave=1/12{
 	clear
-	use "$SIPP2004/FullFile/l04puw`wave'"
+	use "$SIPP2004core/sippl04puw`wave'"
 	keep tftotinc thtotinc tfipsst ebornus ems eorigin epndad epnmom epnspous ///
 	erace errp esex etypdad etypmom tage uentmain ulftmain ehhnumpp eoutcome ///
 	rhchange rhnf thtotinc eentaid eppintvw epppnum lgtkey tmovrflg rhcalyr ///
