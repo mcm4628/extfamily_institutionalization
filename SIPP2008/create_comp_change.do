@@ -183,6 +183,11 @@ forvalues wave = $first_wave/$penultimate_wave {
 **         For details about string manipulations and other fancy Stata use, see 
 **=         "Some notes in implementation" in earlier comments in this file.
 ********************************************************************************
+// first a quick loop to fill in missing values of max_shhadid_members*
+
+forvalues wave=$first_wave/$final_wave {
+    egen max_shhadid_members`wave'= max(mx_shhadid_members`wave')
+}
 
 forvalues wave = $first_wave/$penultimate_wave {
     local next_wave = `wave' + 1

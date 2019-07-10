@@ -62,7 +62,7 @@ replace shhadid_members = " " + shhadid_members + " "
 ********************************************************************
 sort SWAVE
 gen n_shhadid_members = wordcount(shhadid_members)
-by SWAVE:  egen max_shhadid_members = max(n_shhadid_members)
+by SWAVE:  egen mx_shhadid_members = max(n_shhadid_members)
 egen overall_max_shhadid_members = max(n_shhadid_members)
 drop n_shhadid_members
 
