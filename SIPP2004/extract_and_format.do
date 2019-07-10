@@ -32,5 +32,5 @@ forvalues wave=1/12{
 	destring lgtkey, replace
 	rename *, upper
 
-	save "$SIPP2004/wave`wave'_extract", $replace
+	save "$SIPP04keep/wave`wave'_extract", $replace
 }

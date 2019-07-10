@@ -1,6 +1,6 @@
 //==============================================================================
 //===== Children's Household Instability Project
-//===== Dataset: SIPP2004
+//===== Dataset: SIPP2008
 //===== Purpose:  Link individuals identified as entering, leaving, or staying in
 //===== a person's (ego's) household to their relationship to ego.
 //==============================================================================

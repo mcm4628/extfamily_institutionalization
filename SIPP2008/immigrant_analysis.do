@@ -9,9 +9,10 @@ use "$SIPP04keep/HHComp_asis", clear
 g panel=2004
 save "$SIPP04keep/HHComp_asis", replace
 
+use "$SIPP04keep/HHComp_asis", clear
 append using "$SIPP08keep/HHComp_asis"
 
-keep if adj_age < $adult_age
+keep if adj_age < 19
 keep if my_racealt==3
 
 /* parents' duration on the US- year of the wave minus year of arrival.
@@ -83,9 +84,22 @@ local rellist "bioparent otherparent sibling nonrel grandparent other_rel unknow
 foreach var of varlist bioparent otherparent sibling grandparent other_rel nonrel unknown {
 replace `var'=0 if `var'==.
 }
-collapse (sum)`rellist', by (SSUID EPPPNUM SWAVE panel duration_cat WPFINWGT) fast
-tabstat bioparent otherparent sibling nonrel grandparent other_rel unknown [aweight=WPFINWGT], by(duration_cat) 
+collapse (sum)`rellist' [aweight=WPFINWGT], by (SSUID EPPPNUM SWAVE panel duration_cat) fast
+tabstat bioparent otherparent sibling nonrel grandparent other_rel unknown, by(duration_cat) 
+
+graph bar bioparent otherparent sibling grandparent other_rel nonrel, over(duration_cat) stack ///
+bar(1, color(gs14)) bar(2, color(gs12)) bar(3, color(gs10)) bar(4, color(gs8)) bar(5, color(gs6)) bar(6, color(gs4)) ///
+ylabel(0 (0.5) 4.5, val) subtitle(, fcolor(white) lcolor(white)) graphregion(fcolor(white)) note("") ///
+ytitle("Number of household members") ///
+legend(size(vsmall) label(1 "Biological parents") label(2 "Non-biological parents") label(3 "Siblings") label(4 "Grandparents") label(5 "Other relatives") label(6 "Non-relatives"))
+
 end
+/*With colors*/
+graph bar bioparent otherparent sibling grandparent other_rel nonrel, over(duration_cat) stack ///
+bar(1, color(ebblue)) bar(2, color(edkblue)) bar(3, color(eltgreen)) bar(4, color(erose)) bar(5, color(emidblue)) bar(6, color(gs4)) ///
+ylabel(0 (0.5) 4.5, val) subtitle(, fcolor(white) lcolor(white)) graphregion(fcolor(white)) note("") ///
+ytitle("Number of household members") ///
+legend(size(vsmall) label(1 "Biological parents") label(2 "Non-biological parents") label(3 "Siblings") label(4 "Grandparents") label(5 "Other relatives") label(6 "Non-relatives"))
 
 
 
@@ -100,18 +114,18 @@ save "$SIPP08keep/hh_change.dta", replace
 use "$SIPP04keep/hh_change", clear
 g panel=2004
 save "$SIPP04keep/hh_change", replace
-*/
+
 
 use "$SIPP04keep/hh_change", clear
 append using "$SIPP08keep/hh_change.dta"
 g size=1 
 collapse (sum)size, by(SSUID SHHADID panel SWAVE)
 save "$tempdir/hh_size", replace
-
+*/
 use "$SIPP04keep/hh_change", clear
 append using "$SIPP08keep/hh_change.dta"
 merge m:1 SSUID SHHADID panel SWAVE using "$tempdir/hh_size"
-keep if adj_age < $adult_age
+keep if adj_age < 19
 keep if my_racealt==3
 
 /* parents' duration on the US- year of the wave minus year of arrival.
@@ -179,6 +193,30 @@ replace only_addr=. if addr_change==.
 g both_changes= (comp_change==1 & addr_change==1)
 replace both_changes=. if comp_change==. | addr_change==.
 
+keep if parent_duration<21
+collapse (mean) only_comp only_addr both_changes [aweight=WPFINWGT], by(parent_duration)
+g non_changes=1-both_changes-only_addr-only_comp 
+g both_new= non_change+only_comp+only_addr+both_changes
+g address_new=non_change+only_comp+only_addr
+g comp_new= non_change+only_comp
+
+twoway (area both_new parent_duration, color(gs4)) ///
+	(area address_new parent_duration, color(gs7)) (area comp_new parent_duration, color(gs10)) ///
+	(area non_changes parent_duration, color(gs13)), ///
+	xlabel(1 (2) 19 20 21, valuelabel angle(50) ) ylabel(0.75 (0.05) 1, nogrid val) ///
+	text(0.99 4.5 "{bf:Simultaneous changes}") text(0.96 9 "{bf:Only address change}") text(0.92 13.5 "{bf:Only composition change}") text(0.85 18 "{bf:No change}") /// 
+	xtitle("Parental duration in the US") ytitle("Proportion of person waves") ///
+	subtitle(, fcolor(white) lcolor(white)) legend(off) graphregion(fcolor(white)) note("")
+
+*With colors	
+twoway (area both_new parent_duration, color(emerald)) ///
+	(area address_new parent_duration, color(maroon)) (area comp_new parent_duration, color(erose)) ///
+	(area non_changes parent_duration, color(gs13)), ///
+	xlabel(1 (2) 19 20 21, valuelabel angle(50) ) ylabel(0.75 (0.05) 1, nogrid val) ///
+	text(0.99 4.5 "{bf:Simultaneous changes}") text(0.96 9 "{bf:Only address change}") text(0.92 13.5 "{bf:Only composition change}") text(0.85 18 "{bf:No change}") /// 
+	xtitle("Parental duration in the US") ytitle("Proportion of person waves") ///
+	subtitle(, fcolor(white) lcolor(white)) legend(off) graphregion(fcolor(white)) note("")
+
 tabstat only_comp [aweight=WPFINWGT], by(duration_cat)
 tabstat only_addr [aweight=WPFINWGT], by(duration_cat)
 tabstat both_changes [aweight=WPFINWGT], by(duration_cat)
@@ -186,9 +224,25 @@ tabstat only_comp [aweight=WPFINWGT], by(parent_duration)
 tabstat only_addr [aweight=WPFINWGT], by(parent_duration)
 tabstat both_changes [aweight=WPFINWGT], by(parent_duration)
 
+/* Second version-annual changes, instead of 4 months
+keep if parent_duration<20
+egen id=group(SSUID EPPPNUM panel)
+collapse (max) only_comp only_addr both_changes [aweight=WPFINWGT], by(id parent_duration)
+collapse (mean) only_comp only_addr both_changes, by(parent_duration)
+g non_changes=1-both_changes-only_addr-only_comp 
+g both_new= non_change+only_comp+only_addr+both_changes
+g address_new=non_change+only_comp+only_addr
+g comp_new= non_change+only_comp
 
- 
+twoway (area both_new parent_duration, color(gs4)) ///
+	(area address_new parent_duration, color(gs7)) (area comp_new parent_duration, color(gs10)) ///
+	(area non_changes parent_duration, color(gs13)), ///
+	xlabel(1 (2) 19) ylabel(0.5 (0.1) 1, nogrid val) ///
+	text(0.99 4 "{bf:Simultaneous changes}") text(0.9 9 "{bf:Only address change}") text(0.8 13.5 "{bf:Only composition change}") text(0.7 17 "{bf:No change}") /// 
+	xtitle("Parental duration in the US") ytitle("Proportion of children") ///
+	subtitle(, fcolor(white) lcolor(white)) legend(off) graphregion(fcolor(white)) note("")
 
+*/
 
 
 
