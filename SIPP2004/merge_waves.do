@@ -1,7 +1,7 @@
 //====================================================================//
 //===== Children's Household Instability Project                    
 //===== Dataset: SIPP2004                                           
-//===== Purpose: This code append all waves of SIPP2004 original data into a long form dataset. 
+//===== Purpose: This code append all waves of SIPP2008 original data into a long form dataset. 
 //               It keeps only observations in the reference month (4).  
 //=====================================================================//
 

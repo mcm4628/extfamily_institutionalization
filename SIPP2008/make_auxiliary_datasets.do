@@ -62,7 +62,7 @@ replace shhadid_members = " " + shhadid_members + " "
 ********************************************************************
 sort SWAVE
 gen n_shhadid_members = wordcount(shhadid_members)
-by SWAVE:  egen max_shhadid_members = max(n_shhadid_members)
+by SWAVE:  egen mx_shhadid_members = max(n_shhadid_members)
 egen overall_max_shhadid_members = max(n_shhadid_members)
 drop n_shhadid_members
 
@@ -123,13 +123,13 @@ replace ssuid_members = " " + ssuid_members + " "
 * Compute max number of members by wave and overall.
 sort SWAVE
 gen n_ssuid_members = wordcount(ssuid_members)
-by SWAVE:  egen max_ssuid_members = max(n_ssuid_members)
+by SWAVE:  egen mx_ssuid_members = max(n_ssuid_members)
 egen overall_max_ssuid_members = max(n_ssuid_members)
 drop n_ssuid_members
 
 compress 
 
-reshape wide ssuid_members max_ssuid_members, i(`i_vars') j(`j_vars')
+reshape wide ssuid_members mx_ssuid_members, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
@@ -189,13 +189,13 @@ replace ssuid_shhadid = " " + ssuid_shhadid + " "
 
 sort SWAVE
 gen n_ssuid_shhadid = wordcount(ssuid_shhadid)
-by SWAVE:  egen max_ssuid_shhadid = max(n_ssuid_shhadid)
+by SWAVE:  egen mx_ssuid_shhadid = max(n_ssuid_shhadid)
 egen overall_max_ssuid_shhadid = max(n_ssuid_shhadid)
 drop n_ssuid_shhadid
 
 compress 
 
-reshape wide ssuid_shhadid max_ssuid_shhadid, i(`i_vars') j(`j_vars')
+reshape wide ssuid_shhadid mx_ssuid_shhadid, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
