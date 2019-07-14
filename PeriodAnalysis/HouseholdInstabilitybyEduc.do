@@ -3,7 +3,7 @@
 
 * SIPP 2001
 clear
-use "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2001\hh_change.dta" 
+use "$SIPP01keep\hh_change.dta" 
 
 * Sample
 keep if age<=18
@@ -26,7 +26,7 @@ bys my_race: tab SWAVE mom_educ [aw=WPFINWGT], sum(addr_change)
 
 * SIPP 2004
 clear
-use "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2004\hh_change.dta" 
+use "$SIPP04keep\hh_change.dta"
 
 * Sample
 keep if age<=18
@@ -50,7 +50,7 @@ bys my_race: tab SWAVE mom_educ [aw=WPFINWGT], sum(addr_change)
 
 * SIPP 2008
 clear
-use "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2008\hh_change.dta" 
+use "$SIPP08keep\hh_change.dta"
 
 * Sample
 keep if age<=18
@@ -72,11 +72,11 @@ bys my_race: tab SWAVE mom_educ [aw=WPFINWGT], sum(addr_change)
 
 ******************************* By type of change*********************************
 clear
-use "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2001\HHchangeWithRelationships.dta"
+use "$SIPP01keep\HHchangeWithRelationships.dta"
 gen year=2001
-append using "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2004\HHchangeWithRelationships.dta"
+append using "$SIPP04keep\HHchangeWithRelationships.dta"
 replace year=2004 if year==.
-append using "C:\Users\Carolina Aragao\Box\sipp files\WorkingFiles2008\HHchangeWithRelationships.dta"
+append using "$SIPP08keep\HHchangeWithRelationships.dta"
 replace year=2008 if year==.
 
 
@@ -130,9 +130,20 @@ replace mom_educ2=3 if mom_educ==4
 
 label def mom_educ2 1 "hsol" 2 "ltcol" 3 "coll" 
 
+* Creating moving avareges
+egen id= group(SSUID EPPPNUM)
+tsset id swave
+
+tssmooth ma parent = parent_change, window(2 1 2) 
+tssmooth ma sib = sib_change, window(2 1 2) 
+tssmooth ma gp = gp_change, window(2 1 2) 
+tssmooth ma otherrel = otherrel_change, window(2 1 2) 
+tssmooth ma nonrel = nonrel_change, window(2 1 2) 
+
 
 * Sample
-keep if TAGE<=18
+keep if TAGE<=18 
+
 
 * Tabs
 tab SWAVE mom_educ  [aw=WPFINWGT], sum(parent_change) means
@@ -144,27 +155,27 @@ tab SWAVE mom_educ  [aw=WPFINWGT], sum(nonrel_change) means
 * Graphs
 
 * Parent Channge
-quietly anova parent_change wave##mom_educ2
+quietly anova parent wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Parent Change)
 
 *Sibling
-quietly anova sib_change wave##mom_educ2
+quietly anova sib wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Sibling Change)
 
 *Grandparents
-quietly anova gp_change wave##mom_educ2
+quietly anova gp wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Mean Change)
 
 *Other relative
-quietly anova otherrel_change wave##mom_educ2
+quietly anova otherrel wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Mean Change)
 
 * Non-relative
-quietly anova nonrel_change wave##mom_educ2
+quietly anova nonrel wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Mean Change)
 
