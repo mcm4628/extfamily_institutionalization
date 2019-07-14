@@ -73,7 +73,7 @@ replace dropout=1 if RENROLL==3 & educ < 2
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "SWAVE"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age shhadid_members max_shhadid_members ref_person ref_person_sex ref_person_educ educ dropout"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age shhadid_members mx_shhadid_members ref_person ref_person_sex ref_person_educ educ dropout"
 
 local extra_vars "overall_max_shhadid_members"
 
