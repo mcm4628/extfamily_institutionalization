@@ -179,4 +179,73 @@ quietly anova nonrel wave##mom_educ2
 quietly margins wave##mom_educ2
 marginsplot, noci ytitle(Mean Change)
 
-clear
+
+* Moving Averages 2
+local i_vars "SSUID EPPPNUM"
+local j_vars "wave"
+local wide_vars "SSUID EPPPNUM wave TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change"
+
+keep SSUID EPPPNUM wave TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change
+
+reshape wide TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change, i(`i_vars') j(`j_vars')
+
+
+* Moving Avarages
+
+* Parent change
+forvalues n =1/33 {
+    gen parent_changem`n' = (parent_change`n-1' + parent_change`n' + parent_change`n+1')/3
+    
+}
+
+*Sibling change
+forvalues n =1/33 {
+    gen sib_changem`n' = (sib_change`n-1' + sib_change`n' + sib_change`n+1')/3
+    
+}
+
+*Grandparents change
+forvalues n =1/33 {
+    gen gp_changem`n' = (gp_change`n-1' + gp_change`n' + gp_change`n+1')/3
+    
+}
+
+*Other relative change
+forvalues n =1/33 {
+    gen otherrel_changem`n' = (otherrel_change`n-1' + otherrel_change`n' + otherrel_change`n+1')/3
+    
+}
+
+*Non-relative change
+forvalues n =1/33 {
+    gen nonrel_changem`n' = (nonrel_change`n-1' + nonrel_change`n' + nonrel_change`n+1')/3
+    
+}
+
+reshape long TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change parent_changem sib_changem other_changem nonparent_changem gp_changem nonrel_changem otherrel_changem, i(SSUID EPPPNUM) j(wave)
+
+
+* Parent Channge
+quietly anova parent_changem wave##mom_educ2
+quietly margins wave##mom_educ2
+marginsplot, noci ytitle(Parent Change)
+
+*Sibling
+quietly anova sib_changem wave##mom_educ2
+quietly margins wave##mom_educ2
+marginsplot, noci ytitle(Sibling Change)
+
+*Grandparents
+quietly anova gp_changem wave##mom_educ2
+quietly margins wave##mom_educ2
+marginsplot, noci ytitle(Granparent Change)
+
+*Other relative
+quietly anova otherrel_changem wave##mom_educ2
+quietly margins wave##mom_educ2
+marginsplot, noci ytitle(Other relative Change)
+
+* Non-relative
+quietly anova nonrel_changem wave##mom_educ2
+quietly margins wave##mom_educ2
+marginsplot, noci ytitle(Non-relative Change)
