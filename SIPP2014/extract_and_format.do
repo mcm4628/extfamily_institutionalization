@@ -3,26 +3,58 @@
 * from Census using data ferrett (with capitalized variable names, for example)
 
 
-
+* 2014 is too heavy - so we have to create extracts one by one
 * Core questions:
-forvalues wave=1/3{
+
+* Wave 1
 	clear
 	set maxvar 32000
-	use "$SIPP2014/pu2014w`wave'"
-	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
-	erace erelrp esex rchtyp1 tage renterreason  rhnumperwt2  ///
-	rfamnumwt2 thtotinc eresidenceid einttype pnum rrel_pnum tmover  ///
-	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid  ///
+	use "$SIPP2014/pu2014w1"
+	keep tftotinc thtotinc tst_intv ems eorigin EPNPAR1 EPNPAR2 epnspouse ///
+	erace erelrp esex EPAR1TYP EPAR2TYP  tage  RHNUMPERWT2  ///
+	RFAMREFWT2 thtotinc eresidenceid einttype pnum  ///
+	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid rged ///
 	renroll eedgrade 
 	
 	
-	destring ERESIDENCEID, replace
-	destring PNUM, replace
-	destring RREL_PNUM, replace
+	destring pnum, replace
 	rename *, upper
 
-	save "$SIPP14keep/wave`wave'_extract", $replace
-}
+	save "$SIPP14keep/wave1_extract", $replace
+
+* Wave 2
+	clear
+	set maxvar 32000
+	use "$SIPP2014/pu2014w2"
+	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
+	erace erelrp esex epar1typ epar2typ  tage renterreason  rhnumperwt2 ///
+	rfamrefwt2 thtotinc eresidenceid einttype pnum tmover  ///
+	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid rged ///
+	renroll eedgrade 
+	
+	
+	destring pnum, replace
+	rename *, upper
+
+	save "$SIPP14keep/wave2_extract", $replace
+
+* Wave 3
+	clear
+	set maxvar 32000
+	use "$SIPP2014/pu2014w3"
+	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
+	erace erelrp esex epar1typ epar2typ  tage renterreason  rhnumperwt2 ///
+	rfamrefwt2 thtotinc eresidenceid einttype pnum tmover  ///
+	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid rged ///
+	renroll eedgrade 
+	
+	
+	destring eresidenceid, replace
+	destring pnum, replace
+	rename *, upper
+
+	save "$SIPP14keep/wave3_extract", $replace
+
 
 /* List of variables missing/different:
 1. tfipsst -  
@@ -42,10 +74,10 @@ forvalues wave=1/3{
                                  2. No
 					 
 3. etypdad & etypmom - 
-					Way child is related to respondent
-			        rchtyp1: 1. Biological
-					         2. Step
-                             3. Adopted
+					Type of relationship to parent 1 & 2
+			        EPAR1TYP EPAR2TYP: 	1. Biological
+										2. Step
+										3. Adopted
 
 4. uentmain -   Reason entered household (Wave 2 & 3 only)
 				renterreason: 0. Not Answered

@@ -161,6 +161,7 @@ local maxan = `=maxanum'
 ********************************************************************
 
 * Create for_concat* variable equal to string value of address's SHHADID for for_contact_*[an] and missing otherwise
+destring SHHADID, replace
 forvalues an = 1/`maxan' {
     gen for_concat_address`an' = string(SHHADID) if (anum == `an')
 }

@@ -9,12 +9,12 @@
 use "$SIPP14keep/wave${first_wave}_extract", clear 
 
 ** Keep only observations in the reference month. 
-keep if SREFMON == ${refmon}
+keep if MONTHCODE == ${refmon}
 
 ** Append the first wave with waves from the second to last, also keep only observations from the reference month. 
 forvalues wave = $second_wave/$final_wave {
-    append using "$SIPP01keep/wave`wave'_extract"
-    keep if SREFMON == ${refmon} 
+    append using "$SIPP14keep/wave`wave'_extract"
+    keep if MONTHCODE == ${refmon} 
 }
 
 // Appending only worked when I inserted the full folder address - it didin't recognized the global

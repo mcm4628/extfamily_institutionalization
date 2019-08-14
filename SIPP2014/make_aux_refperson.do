@@ -6,7 +6,7 @@ drop ERELRP
 
 recode EEDUC (31/38 = 1)  (39 = 2)  (40/42 = 3)  (43/46 = 4), gen (educ)
 
-rename EPPPNUM ref_person
+rename PNUM ref_person
 rename ESEX ref_person_sex
 rename educ ref_person_educ
 
