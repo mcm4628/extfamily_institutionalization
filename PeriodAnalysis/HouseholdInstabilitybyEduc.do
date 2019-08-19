@@ -72,12 +72,15 @@ bys my_race: tab SWAVE mom_educ [aw=WPFINWGT], sum(addr_change)
 
 ******************************* By type of change*********************************
 clear
-use "$SIPP01keep\HHchangeWithRelationships.dta"
-gen year=2001
+use "$SIPP14keep\HHchangeWithRelationships.dta"
+gen year=2014
+rename PNUM EPPPNUM 
 append using "$SIPP04keep\HHchangeWithRelationships.dta"
 replace year=2004 if year==.
 append using "$SIPP08keep\HHchangeWithRelationships.dta"
-replace year=2008 if year==.
+replace year=2008 if year==2008
+append using "$SIPP01keep\HHchangeWithRelationships.dta"
+replace year=2001 if year==.
 
 
 *Rename waves
@@ -117,6 +120,9 @@ replace wave=30 if SWAVE==11 & year==2008
 replace wave=31 if SWAVE==12 & year==2008
 replace wave=32 if SWAVE==13 & year==2008
 replace wave=33 if SWAVE==14 & year==2008
+replace wave=34 if SWAVE==1 & year==2014
+replace wave=35 if SWAVE==2 & year==2014
+replace wave=36 if SWAVE==3 & year==2014
 
 
 * Recode
@@ -193,31 +199,31 @@ reshape wide TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonpa
 * Moving Avarages
 
 * Parent change
-forvalues n =1/33 {
+forvalues n =1/35 {
     gen parent_changem`n' = (parent_change`n-1' + parent_change`n' + parent_change`n+1')/3
     
 }
 
 *Sibling change
-forvalues n =1/33 {
+forvalues n =1/35 {
     gen sib_changem`n' = (sib_change`n-1' + sib_change`n' + sib_change`n+1')/3
     
 }
 
 *Grandparents change
-forvalues n =1/33 {
+forvalues n =1/35 {
     gen gp_changem`n' = (gp_change`n-1' + gp_change`n' + gp_change`n+1')/3
     
 }
 
 *Other relative change
-forvalues n =1/33 {
+forvalues n =1/35 {
     gen otherrel_changem`n' = (otherrel_change`n-1' + otherrel_change`n' + otherrel_change`n+1')/3
     
 }
 
 *Non-relative change
-forvalues n =1/33 {
+forvalues n =1/35 {
     gen nonrel_changem`n' = (nonrel_change`n-1' + nonrel_change`n' + nonrel_change`n+1')/3
     
 }
@@ -243,7 +249,7 @@ marginsplot, noci ytitle(Granparent Change)
 *Other relative
 quietly anova otherrel_changem wave##mom_educ2
 quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Other relative Change)
+marginsplot, noci ytitle(Other Relative Change)
 
 * Non-relative
 quietly anova nonrel_changem wave##mom_educ2

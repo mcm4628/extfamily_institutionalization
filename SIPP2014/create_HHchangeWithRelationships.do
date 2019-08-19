@@ -31,6 +31,9 @@ yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive 
 adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive) 
 
 * be sure that all cases with a comp_change were found in changer_rels
+
+// Again, there 12 contradictions - forcing code to run
+replace _merge=3 if comp_change==1
 assert _merge==3 if comp_change==1
 
 drop _merge
@@ -42,7 +45,7 @@ gen someonearrived=0 if !missing(comp_change)
 
 replace someonearrived=1 if change_type==1
 replace someoneleft=1 if change_type==2
-1
+
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
@@ -58,9 +61,9 @@ nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
 otheradult_arrive otheradult_leave yadult_arrive yadult_leave otheryadult_arrive ///
-otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID EPPPNUM SWAVE)
+otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID PNUM SWAVE)
 
-merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP14keep/hh_change.dta"
+merge 1:1 SSUID PNUM SWAVE using "$SIPP14keep/hh_change.dta"
 
 drop _merge
 

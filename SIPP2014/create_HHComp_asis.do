@@ -20,7 +20,7 @@ assert _merge==3
 
 drop _merge
 
-rename EPPPNUM relto
+rename PNUM relto
 rename ERRP ERRPto
 rename adj_age to_age
 rename my_sex to_sex

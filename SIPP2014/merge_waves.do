@@ -17,7 +17,6 @@ forvalues wave = $second_wave/$final_wave {
     keep if MONTHCODE == ${refmon} 
 }
 
-// Appending only worked when I inserted the full folder address - it didin't recognized the global
 
 ** allwaves.dta is a long-form datasets include all the waves from SIPP2001, month 4 data. 
 save "$tempdir/allwaves", $replace
