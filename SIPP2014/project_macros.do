@@ -6,13 +6,17 @@
 //================================================================================================//
 
 global first_wave 1
-global final_wave 3
+global final_wave 9
 global second_wave = ${first_wave} + 1
 global penultimate_wave = ${final_wave} - 1
 
 global adult_age 18
 
-global refmon 12
+global refmon1 4
+global refmon2 8
+global refmon3 12
+
+
 
 ** A global macro for the number of transitive closure passes we want to do.
 global max_tc 1

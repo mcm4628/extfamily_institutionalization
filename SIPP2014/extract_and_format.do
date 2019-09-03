@@ -19,8 +19,16 @@
 	
 	destring pnum, replace
 	rename *, upper
+	
+	* Adapt SWAVE (month 4th of 2014w1 is SWAVE 1, month 8th SWAVE 2, month 12th  SWAVE 3)
+     rename SWAVE swave
+     gen SWAVE=.
+     replace SWAVE=1 if swave==1 & MONTHCODE==4
+     replace SWAVE=2 if swave==1 & MONTHCODE==8
+     replace SWAVE=3 if swave==1 & MONTHCODE==12
 
-	save "$SIPP14keep/wave1_extract", $replace
+
+	save "$SIPP14keep/wave1_extract" if swave==1 & MONTHCODE==4, $replace
 
 * Wave 2
 	clear
@@ -36,6 +44,14 @@
 	destring pnum, replace
 	rename *, upper
 
+	* Adapt SWAVE (month 4th of 2014w2 is SWAVE 4, month 8th SWAVE 5, month 12th  SWAVE 6)
+    rename SWAVE swave
+    gen SWAVE=.
+    replace SWAVE=4 if swave==2 & MONTHCODE==4
+    replace SWAVE=5 if swave==2 & MONTHCODE==8
+    replace SWAVE=6 if swave==2 & MONTHCODE==12
+
+	
 	save "$SIPP14keep/wave2_extract", $replace
 
 * Wave 3
@@ -52,6 +68,14 @@
 	destring eresidenceid, replace
 	destring pnum, replace
 	rename *, upper
+	
+	* Adapt SWAVE (month 4th of 2014w3 is SWAVE 7, month 8th SWAVE 8, month 12th  SWAVE 9)
+    rename SWAVE swave
+    gen SWAVE=.
+    replace SWAVE=7 if swave==3 & MONTHCODE==4
+    replace SWAVE=8 if swave==3 & MONTHCODE==8
+    replace SWAVE=9 if swave==3 & MONTHCODE==12
+
 
 	save "$SIPP14keep/wave3_extract", $replace
 

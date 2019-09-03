@@ -83,13 +83,13 @@ replace EPNSPOUSE=. if PNUM==EPNSPOUSE
 ** Use Program: compute_relationships
 **        args: person1 person2 relationship_1_2 relationship_2_1 reason condition filename_1_2 filename_2_1
 ********************************************************************************
-compute_relationships PNUM EPNPAR1 BIOCHILD BIOMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != 9999) & (EPAR1TYP == 1))" biochild_of_mom biomom
-compute_relationships PNUM EPNPAR2 BIOCHILD BIODAD EPNPAR2 "((!missing(EPNPAR2)) & (EPNPAR2 != 9999) & (EPAR2TYP == 1))" biochild_of_dad biodad
-compute_relationships PNUM EPNPAR1 STEPCHILD STEPMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != 9999) & (EPAR1TYP == 2))" stepchild_of_mom stepmom
-compute_relationships PNUM EPNPAR2 STEPCHILD STEPDAD EPNPAR2 "((!missing(EPNPAR2)) & (EPNPAR2 != 9999) & (EPAR2TYP == 2))" stepchild_of_dad stepdad
-compute_relationships PNUM EPNPAR1 ADOPTCHILD ADOPTMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != 9999) & (EPAR1TYP == 3))" adoptchild_of_mom adoptmom
-compute_relationships PNUM EPNPAR2 ADOPTCHILD ADOPTDAD EPNPAR1 "((!missing(EPNPAR2)) & (EPNPAR2 != 9999) & (EPAR2TYP == 3))" adoptchild_of_dad adoptdad
-compute_relationships PNUM EPNSPOUSE SPOUSE SPOUSE EPNSPOUSE "((!missing(EPNSPOUSE)) & (EPNSPOUSE != 9999) & (ESEX == 1))" epnspous1 epnspous2 
+compute_relationships PNUM EPNPAR1 BIOCHILD BIOMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != .) & (EPAR1TYP == 1))" biochild_of_mom biomom
+compute_relationships PNUM EPNPAR2 BIOCHILD BIODAD EPNPAR2 "((!missing(EPNPAR2)) & (EPNPAR2 != .) & (EPAR2TYP == 1))" biochild_of_dad biodad
+compute_relationships PNUM EPNPAR1 STEPCHILD STEPMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != .) & (EPAR1TYP == 2))" stepchild_of_mom stepmom
+compute_relationships PNUM EPNPAR2 STEPCHILD STEPDAD EPNPAR2 "((!missing(EPNPAR2)) & (EPNPAR2 != .) & (EPAR2TYP == 2))" stepchild_of_dad stepdad
+compute_relationships PNUM EPNPAR1 ADOPTCHILD ADOPTMOM EPNPAR1 "((!missing(EPNPAR1)) & (EPNPAR1 != .) & (EPAR1TYP == 3))" adoptchild_of_mom adoptmom
+compute_relationships PNUM EPNPAR2 ADOPTCHILD ADOPTDAD EPNPAR1 "((!missing(EPNPAR2)) & (EPNPAR2 != .) & (EPAR2TYP == 3))" adoptchild_of_dad adoptdad
+compute_relationships PNUM EPNSPOUSE SPOUSE SPOUSE EPNSPOUSE "((!missing(EPNSPOUSE)) & (EPNSPOUSE != .) & (ESEX == 1))" epnspous1 epnspous2 
 
 ********************************************************************************
 ** Section: Merge in ERELRP, a variable indicating the reference person for the household.
