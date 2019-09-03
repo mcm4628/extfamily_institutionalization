@@ -14,7 +14,7 @@ sort SSUID SHHADID SWAVE
 by SSUID SHHADID SWAVE:  gen HHmembers = _N  /* Number the people in the household in each wave. */
 
 * merge in age of other person in the household to save as "to_age"
-merge 1:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_interviews.dta", keepusing(adj_age my_sex)
+merge 1:1 SSUID EPPPNUM SWAVE using "$SIPP01keep/demo_long_interviews.dta", keepusing(adj_age my_sex)
 
 assert _merge==3
 
@@ -70,7 +70,7 @@ tab relationship, m
 rename relfrom EPPPNUM
 rename relto to_EPPNUM
 
-merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_interviews.dta"
+merge m:1 SSUID EPPPNUM SWAVE using "$SIPP01keep/demo_long_interviews.dta"
 
 drop if _merge==2
 
