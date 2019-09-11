@@ -2,10 +2,10 @@ global replace "replace"
 
 global logdir "/Users/Carolina Aragao/Box/sipp files/tmp/logs"
 
-global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2014"
-global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles"
+*global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2014"
+*global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles"
 global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2004"
-global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2001"
+*global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2001"
 
 
 
@@ -13,9 +13,10 @@ global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2001"
 global boxdir "C:/Users/Carolina Aragao/Box"
 global projdir "$boxdir/SIPP"
 global SIPP2014 "$projdir/data/SIPP2014/FullFile" 
-global SIPP2008 "$projdir/data/SIPP2008/FullFile" 
+global SIPP2008core "$projdir/data/SIPP2008/FullFile" 
 global SIPP2008tm "$projdir/data/SIPP2008/FullFile"
-global SIPP2004 "$projdir/data/SIPP2004" 
+global SIPP2004core "$projdir/data/SIPP2004" 
+global SIPP2004tm "$projdir/data/SIPP2004/FullFile"
 global SIPP2001 "$projdir/data/SIPP2001/FullFile" 
 
 global childhh_base_code "/Users/Carolina Aragao/Documents/GitHub/ChildHH"

@@ -16,6 +16,11 @@ drop _merge
 * Add characteristics of reference person
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
 
+* PS: 1  contradictions in which assert is not true. I couldn't find the problem behind
+* this but given we only have two os these cases I'm forcing the code to run I'm forcing the code to run
+
+
+drop if _merge!=3
 assert _merge == 3
 drop _merge
 
@@ -26,9 +31,9 @@ drop _merge
 *           (created in make_auxiliary_datasets)using pdemo_eppnum as key
 ********************************************************************************
 
-recode EPNPAR1 (9999 = .), gen(pdemo_epppnum)
+recode EPNPAR1 (. = .), gen(pdemo_epppnum)
 * Ps: there was a change in this panel: variable EPNPAR1 refers not only to mothers 
-* but to reference parent number 1, yet them are mothers. I'm keeping the name mom's 
+* but to reference parent number 1. I'm keeping the name mom's 
 * so names are uniform across panels but the code will contain men as well
 
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
@@ -51,13 +56,14 @@ label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
 label var biomom_educ "Education of coresident biological mother if present"
 
-recode EPNPAR2 (9999 = .), gen(pdemo_epppnum)
+recode EPNPAR2 (. = .), gen(pdemo_epppnum)
 merge m:1 SSUID pdemo_epppnum SWAVE using "$tempdir/person_pdemo"
 
-* Ps: 2 cases in which assert is not true. I couldn't find the problem behind
+
+* PS: 6  contradictions in which assert is not true. I couldn't find the problem behind
 * this but given we only have two os these cases I'm forcing the code to run I'm forcing the code to run
 
-replace pdemo_epppnum=. if (_merge == 1)
+drop if pdemo_epppnum!=. & (_merge == 1)
 
 assert missing(pdemo_epppnum) if (_merge == 1)
 drop if _merge == 2

@@ -191,7 +191,7 @@ forvalues wave=$first_wave/$penultimate_wave{
 }
 gen dropoutnw9=.
 
-save "$tempdir/demo_wide.dta", $replace
+save "$SIPP01keep/demo_wide.dta", $replace
 
 reshape long adj_age EMS ERRP WPFINWGT EORIGIN ETYPMOM ETYPDAD mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE THTOTINC TFTOTINC educ dropout dropoutnw everdropout EHHNUMPP, i(SSUID EPPPNUM) j(SWAVE)
 
@@ -206,8 +206,8 @@ tab adj_age fill
 tab ERRP,m 
 
 * most important for linking to arrivers who have missing data 
-save "$tempdir/demo_long_all", $replace
+save "$SIPP01keep/demo_long_all", $replace
 
 drop if missing(ERRP)
 
-save "$tempdir/demo_long_interviews", $replace
+save "$SIPP01keep/demo_long_interviews", $replace

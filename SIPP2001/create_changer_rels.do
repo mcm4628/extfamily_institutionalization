@@ -124,7 +124,7 @@ foreach changer in leaver arriver {
 	
 	* get changer age *
     gen EPPPNUM = relto
-    merge m:1 SSUID EPPPNUM SWAVE using "$tempdir/demo_long_all", keepusing(adj_age)
+    merge m:1 SSUID EPPPNUM SWAVE using "$SIPP01keep/demo_long_all", keepusing(adj_age)
     drop if (_merge == 2)
     assert (_merge == 3)
 	

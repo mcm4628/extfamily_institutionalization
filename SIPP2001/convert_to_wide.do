@@ -102,9 +102,9 @@ label define racealt  1 "NH white"
 * there was a variable for race in each wave
 forvalues wave = $first_wave/$final_wave {
     recode ERACE`wave' (1=1) (2=2) (3=4) (4=5), generate (race`wave')
-    replace race`wave' = 3 if ((EORIGIN`wave' == 1) & (ERACE`wave' != 2)) /* non-black Hispanic */
+    replace race`wave' = 3 if (inrange(EORIGIN`wave',20,28) & (ERACE`wave' != 2)) /* non-black Hispanic */
 	recode ERACE`wave' (1=1)(2=2)(3=4)(4=5), generate(racealt`wave')
-	replace racealt`wave' = 3 if EORIGIN`wave'==1 /*All Hispanic */
+	replace racealt`wave' = 3 if inrange(EORIGIN`wave',20,28) /*All Hispanic */
     label values race`wave' race
 	label values racealt`wave' racealt
 }
