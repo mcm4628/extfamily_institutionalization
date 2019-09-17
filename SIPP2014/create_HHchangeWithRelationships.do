@@ -32,8 +32,8 @@ adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive)
 
 * be sure that all cases with a comp_change were found in changer_rels
 
-// Again, there 12 contradictions - forcing code to run
-replace _merge=3 if comp_change==1
+** PS: Again, there 12 contradictions - forcing code to run
+drop if _merge!=3 & comp_change==1
 assert _merge==3 if comp_change==1
 
 drop _merge
