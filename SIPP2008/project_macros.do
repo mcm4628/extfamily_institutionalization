@@ -7,9 +7,14 @@
 
 global first_wave 1
 global final_wave 15
+global firstrefmon 1
+global finalrefmon 4
+global firstmonth 1
+global finalmonth =15*4
 global second_wave = ${first_wave} + 1
 global penultimate_wave = ${final_wave} - 1
-
+global second_month=${firstmonth}+1
+global penultimate_month=${finalmonth}-1
 global adult_age 18
 
 global refmon 4
