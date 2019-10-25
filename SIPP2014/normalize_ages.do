@@ -189,7 +189,7 @@ forvalues wave=$first_wave/$penultimate_wave{
  gen everdropout`wave'=0
  replace everdropout`wave'=1 if dropout`wave'==1
 }
-gen dropoutnw3=.
+gen dropoutnw9=.
 
 save "$tempdir/demo_wide.dta", $replace
 

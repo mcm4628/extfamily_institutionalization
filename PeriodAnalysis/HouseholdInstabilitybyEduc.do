@@ -72,14 +72,14 @@ bys my_race: tab SWAVE mom_educ [aw=WPFINWGT], sum(addr_change)
 
 ******************************* By type of change*********************************
 clear
-use "$SIPP14keep\HHchangeWithRelationships.dta"
+use "$SIPP14keep/HHchangeWithRelationships.dta"
 gen year=2014
 rename PNUM EPPPNUM 
-append using "$SIPP04keep\HHchangeWithRelationships.dta"
+append using "$SIPP04keep/HHchangeWithRelationships.dta"
 replace year=2004 if year==.
-append using "$SIPP08keep\HHchangeWithRelationships.dta"
+append using "$SIPP08keep/HHchangeWithRelationships.dta"
 replace year=2008 if year==2008
-append using "$SIPP01keep\HHchangeWithRelationships.dta"
+append using "$SIPP01keep/HHchangeWithRelationships.dta"
 replace year=2001 if year==.
 
 
@@ -123,7 +123,11 @@ replace wave=33 if SWAVE==14 & year==2008
 replace wave=34 if SWAVE==1 & year==2014
 replace wave=35 if SWAVE==2 & year==2014
 replace wave=36 if SWAVE==3 & year==2014
-
+replace wave=37 if SWAVE==4 & year==2014
+replace wave=38 if SWAVE==5 & year==2014
+replace wave=39 if SWAVE==6 & year==2014
+replace wave=40 if SWAVE==7 & year==2014
+replace wave=41 if SWAVE==8 & year==2014
 
 * Recode
 tab mom_educ, nol
@@ -138,14 +142,7 @@ label def mom_educ2 1 "hsol" 2 "ltcol" 3 "coll"
 
 * Creating moving avareges
 egen id= group(SSUID EPPPNUM)
-tsset id swave
-
-tssmooth ma parent = parent_change, window(2 1 2) 
-tssmooth ma sib = sib_change, window(2 1 2) 
-tssmooth ma gp = gp_change, window(2 1 2) 
-tssmooth ma otherrel = otherrel_change, window(2 1 2) 
-tssmooth ma nonrel = nonrel_change, window(2 1 2) 
-
+tsset id wave
 
 * Sample
 keep if TAGE<=18 
@@ -158,33 +155,6 @@ tab SWAVE mom_educ  [aw=WPFINWGT], sum(gp_change) means
 tab SWAVE mom_educ  [aw=WPFINWGT], sum(otherrel_change) means
 tab SWAVE mom_educ  [aw=WPFINWGT], sum(nonrel_change) means
 
-* Graphs
-
-* Parent Channge
-quietly anova parent wave##mom_educ2
-quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Parent Change)
-
-*Sibling
-quietly anova sib wave##mom_educ2
-quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Sibling Change)
-
-*Grandparents
-quietly anova gp wave##mom_educ2
-quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Mean Change)
-
-*Other relative
-quietly anova otherrel wave##mom_educ2
-quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Mean Change)
-
-* Non-relative
-quietly anova nonrel wave##mom_educ2
-quietly margins wave##mom_educ2
-marginsplot, noci ytitle(Mean Change)
-
 
 * Moving Averages 2
 local i_vars "SSUID EPPPNUM"
@@ -196,39 +166,107 @@ keep SSUID EPPPNUM wave TAGE WPFINWGT mom_educ2 parent_change sib_change other_c
 reshape wide TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change, i(`i_vars') j(`j_vars')
 
 
-* Moving Avarages
+* Moving Avarages (3)
 
 * Parent change
-forvalues n =1/35 {
-    gen parent_changem`n' = (parent_change`n-1' + parent_change`n' + parent_change`n+1')/3
+forvalues j =2/40 {
+	local i= `j' -1
+	local k= `j'+ 1
+    gen parent_changem`j' = (parent_change`i' + parent_change`j' + parent_change`k')/3
     
 }
 
-*Sibling change
-forvalues n =1/35 {
-    gen sib_changem`n' = (sib_change`n-1' + sib_change`n' + sib_change`n+1')/3
+*Grandparent change
+forvalues j =2/40 {
+	local i= `j' -1
+	local k= `j'+ 1
+    gen gp_changem`j' = (gp_change`i' + gp_change`j' + gp_change`k')/3
     
 }
 
-*Grandparents change
-forvalues n =1/35 {
-    gen gp_changem`n' = (gp_change`n-1' + gp_change`n' + gp_change`n+1')/3
+
+* Sibling change
+forvalues j =2/40 {
+	local i= `j' -1
+	local k= `j'+ 1
+    gen sib_changem`j' = (sib_change`i' + sib_change`j' + sib_change`k')/3
     
 }
 
 *Other relative change
-forvalues n =1/35 {
-    gen otherrel_changem`n' = (otherrel_change`n-1' + otherrel_change`n' + otherrel_change`n+1')/3
+forvalues j =2/40 {
+	local i= `j' -1
+	local k= `j'+ 1
+    gen other_changem`j' = (otherrel_change`i' + otherrel_change`j' + otherrel_change`k')/3
     
 }
 
 *Non-relative change
-forvalues n =1/35 {
-    gen nonrel_changem`n' = (nonrel_change`n-1' + nonrel_change`n' + nonrel_change`n+1')/3
+forvalues j =2/40 {
+	local i= `j' -1
+	local k= `j'+ 1
+    gen nonrel_changem`j' = (nonrel_change`i' + nonrel_change`j' + nonrel_change`k')/3
     
 }
 
-reshape long TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change parent_changem sib_changem other_changem nonparent_changem gp_changem nonrel_changem otherrel_changem, i(SSUID EPPPNUM) j(wave)
+
+* Moving avarage (5)
+
+*Parent change 
+forvalues j =3/39 {
+	local l= `j' -2
+	local i= `j' -1
+	local k= `j'+ 1
+	local m= `j'+ 2
+    gen parent_m`j' = (parent_change`l' + parent_change`i' + parent_change`j' + parent_change`k' + parent_change`m')/5
+    
+}
+
+*Grandparent change
+forvalues j =3/39 {
+	local l= `j' -2
+	local i= `j' -1
+	local k= `j'+ 1
+	local m= `j'+ 2
+    gen gp_m`j' = (gp_change`i' + gp_change`j' + gp_change`k')/3
+    
+}
+
+
+* Sibling change
+forvalues j =3/39 {
+	local l= `j' -2
+	local i= `j' -1
+	local k= `j'+ 1
+	local m= `j'+ 2
+    gen sib_m`j' = (sib_change`i' + sib_change`j' + sib_change`k')/3
+    
+}
+
+*Other relative change
+forvalues j =3/39 {
+	local l= `j' -2
+	local i= `j' -1
+	local k= `j'+ 1
+	local m= `j'+ 2
+    gen other_m`j' = (otherrel_change`i' + otherrel_change`j' + otherrel_change`k')/3
+    
+}
+
+*Non-relative change
+forvalues j =3/39 {
+	local l= `j' -2
+	local i= `j' -1
+	local k= `j'+ 1
+	local m= `j'+ 2
+    gen nonrel_m`j' = (nonrel_change`i' + nonrel_change`j' + nonrel_change`k')/3
+    
+}
+
+
+reshape long TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change ///
+parent_changem sib_changem other_changem nonparent_changem gp_changem nonrel_changem otherrel_changem ///
+parent_m sib_m gp_m nonrel_m otherrel_m, i(SSUID EPPPNUM) j(wave) 
 
 
 * Parent Channge

@@ -7,8 +7,11 @@ global tempdir "/Users/inbarweiss/Documents/sipp files/tmp/TempFiles2004"
 
 global boxdir "/Users/inbarweiss/Box Sync"
 global projdir "$boxdir/SIPP"
-global SIPP2008 "$projdir/data/SIPP2008"
-global SIPP2004 "$projdir/data/SIPP2004"
+global SIPP2008core "$projdir/data/SIPP2008/FullFile" 
+global SIPP2008tm "$projdir/data/SIPP2008/FullFile"
+global SIPP2004core "$projdir/data/SIPP2004/FullFile" 
+global SIPP2004tm "$projdir/data/SIPP2004/FullFile"
+
 
 global sipp2008_code "/Users/inbarweiss/ChildHH/SIPP2008"
 global sipp2008_logs "/Users/inbarweiss/Documents/sipp files/logs"

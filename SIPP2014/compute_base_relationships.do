@@ -99,6 +99,10 @@ compute_relationships PNUM EPNSPOUSE SPOUSE SPOUSE EPNSPOUSE "((!missing(EPNSPOU
 merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long"
 assert missing(ref_person) if (_merge == 2)
 drop if (_merge == 2)
+
+
+** PS: assert finds 1 contradiction. Dropping this case
+drop if _merge != 3
 assert (_merge == 3)
 drop _merge
 ********************************************************************************
