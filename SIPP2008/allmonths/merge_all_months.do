@@ -9,7 +9,7 @@ use "$SIPP08keep/wave${first_wave}_extract", clear
 
 ** Append the first wave with waves from the second to last, also keep only observations from the reference month. 
 forvalues wave = $second_wave/$final_wave {
-    append using "$SIPP2008/wave`wave'_extract"
+    append using "$SIPP08keep/wave`wave'_extract"
 }
 
 gen panelmonth=(SWAVE-1)*4+SREFMON
