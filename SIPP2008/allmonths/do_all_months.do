@@ -10,6 +10,9 @@
 //== Note: This program requires the mdesc and confirmdir packages. If you do not have this, type ssc install mdesc/confirmdir before running.
 //=========================================================================//
 
+* !!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+global sipp2008_code "$childhh_base_code/SIPP2008/allmonths" // note that this needs to be edited to indicate the location of code
+
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
 ***************************************************************************
@@ -31,8 +34,6 @@ if ("`r(fn)'" == "") {
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
 do "$childhh_base_code/SIPP2008/project_macros" /* this do-file contains macros of wave, age, month, relationships */
-
-global sipp2008_code "$childhh_base_code/SIPP2008/allmonths"
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
@@ -69,18 +70,18 @@ if `r(confirmdir)' {
 *do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
-*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_all_months  
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_all_months  
 
 ** Makes sub-datasets for analyses.
 ** Includes file for maternal and parental characteristics like education and immigration status
-*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets_am 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" make_auxiliary_datasets_am 
 
 ** Generates a wide dataset by person (includes static demographic variables). 
-*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide_am 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" convert_to_wide_am 
 
 ** Makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
 * Also produces demo_wide and demo_long data files
-*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages_am 
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" normalize_ages_am 
 
 ** Computes biderectional base relationships (mom, dad, child, spouse) 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" compute_base_relationships_am 
