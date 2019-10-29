@@ -376,7 +376,7 @@ forvalues month = $firstmonth/$penultimate_month {
 
 drop _*
 
-save "$SIPP08keep/comp_change.dta_am", $replace
+save "$SIPP08keep/comp_change_am.dta", $replace
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.

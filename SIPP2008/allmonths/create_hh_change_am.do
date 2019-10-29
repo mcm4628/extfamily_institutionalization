@@ -8,7 +8,7 @@
 //===== Note: this code depends on macros set in project_macros and create_comp_change
 //==============================================================================
 
-use "$SIPP08keep/comp_change.dta_am", clear
+use "$SIPP08keep/comp_change_am.dta", clear
 
 #delimit ; 
 label define addr_change          0 "No move"
