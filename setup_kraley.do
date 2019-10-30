@@ -1,10 +1,12 @@
 global replace "replace"
 
+global homedir "T:"
+
 global logdir "$homedir/stata_logs"
 global tempdir "$homedir/stata_data/stata_tmp"
 
 
-global boxdir "$homedir/Box"
+global boxdir "C:/users/kraley/Box"
 global projdir "$boxdir/SIPP"
 
 global SIPP2014 "$projdir/data/SIPP2014/FullFile"

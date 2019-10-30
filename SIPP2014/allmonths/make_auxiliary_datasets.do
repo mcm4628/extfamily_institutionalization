@@ -1,6 +1,6 @@
 //=================================================================================//
 //====== Children's Household Instability Project                          
-//====== Dataset: SIPP2008                                               
+//====== Dataset: SIPP2014                                             
 //====== Purpose: Creates sub-databases: shhadid_members.dta, ssuid_members_wide.dta
 //====== ssuid_shhadid_wide.dta, person_pdemo (parents demographics), partner_of_ref_person_long (and wide)
 //=================================================================================//
@@ -8,19 +8,17 @@
 
 //================================================================================//
 //== Purpose: Make the shhadid member database with a single string variable 
-//== containing a list of all EPPPNUMs in a household in a wave. This file will also 
+//== containing a list of all EPPPNUMs in a household in a month. This file will also 
 //== be used for normalize ages and so it includes a string variable with list of 
 //== all ages of household members with EPPPNUM.
 //================================================================================//
-use "$tempdir/allmonths"
-
-drop SWAVE SREFMON
+use "$SIPP14keep/allmonths14"
 
 local i_vars "SSUID SHHADID" 
 local j_vars "panelmonth"
 
-keep `i_vars' `j_vars' EPPPNUM TAGE
-sort `i_vars' `j_vars' EPPPNUM TAGE
+keep `i_vars' `j_vars' PNUM TAGE
+sort `i_vars' `j_vars' PNUM TAGE
 
 by `i_vars' `j_vars':  gen hhmemnum = _n  /* Number the people in household in each month. */
 
@@ -28,20 +26,20 @@ egen maxpnum = max(hhmemnum) /* max n of people in household in any month. */
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 *******************************************************************************
-** Section: Generate a horizontal list of people in the household at each wave.
+** Section: Generate a horizontal list of people in the household at each month.
 *******************************************************************************
 
 * Create for_concat* variables equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 * and for_concat_age_* variables equal to string value of TAGE-EPPPNUM
 forvalues pn = 1/`maxpn' {
-    gen for_concat_person`pn' = string(EPPPNUM) if (hhmemnum == `pn')
+    gen for_concat_person`pn' = string(PNUM) if (hhmemnum == `pn')
 }
 
 drop hhmemnum
 
 * Collapse by address (SSUID SHHADID) to take the first non-missing value of the 
 * variables we built above. Note that there is exactly one non-missing -- 
-* only the nth person in the household in this wave got a value set for variable #n.
+* only the nth person in the household in this month got a value set for variable #n.
 
 keep `i_vars' `j_vars' for_concat_person* 
 
@@ -72,28 +70,26 @@ compress
 
 macro drop i_vars j_vars 
 
-save "$tempdir/shhadid_members_am", $replace
+save "$tempdir/shhadid_members", $replace
 
 //================================================================================//
 //== Purpose: Make the ssuid member database
 //== The logic is similar for the shhadid database, but here we are going to collapse
 //== by sample unit (SSUID) instead of address (SSUID SHHADID) to create variables
-//== describing number of sample unit members across all waves
+//== describing number of sample unit members across all months
 //================================================================================//
 
-use "$tempdir/allmonths"
-
-drop SWAVE SREFMON
+use "$SIPP14keep/allmonths14"
 
 local i_vars "SSUID"
 local j_vars "panelmonth"
 
-keep `i_vars' `j_vars' EPPPNUM
-sort `i_vars' `j_vars' EPPPNUM
+keep `i_vars' `j_vars' PNUM
+sort `i_vars' `j_vars' PNUM
 
 by `i_vars' `j_vars':  gen hhmemnum = _n  /* Number the people in the sampling unit in each wave. */
 
-egen maxpnum = max(hhmemnum) /* max n of people in sampling unit in any wave. */
+egen maxpnum = max(hhmemnum) /* max n of people in sampling unit in any month. */
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 *******************************************************************
@@ -102,7 +98,7 @@ local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 * Create for_concat* variable equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
 forvalues pn = 1/`maxpn' {
-    gen for_concat_person`pn' = string(EPPPNUM) if (hhmemnum == `pn')
+    gen for_concat_person`pn' = string(PNUM) if (hhmemnum == `pn')
 }
 
 drop hhmemnum
@@ -110,7 +106,7 @@ drop hhmemnum
 keep `i_vars' `j_vars' for_concat_person*
 
 * Collapse to take the first non-missing of the variables we built above.  
-* There is exactly one non-missing -- only the nth person in the household in this wave got a value set for variable #n.
+* There is exactly one non-missing -- only the nth person in the household in this month got a value set for variable #n.
 collapse (firstnm) for_concat_person*, by (`i_vars' `j_vars')
 
 *Concatenate all person-numbers into a single string.
@@ -124,29 +120,27 @@ replace ssuid_members = strtrim(ssuid_members)
 * Add a space at the beginning and end of the string so we are sure every person appears surrounded by spaces.
 replace ssuid_members = " " + ssuid_members + " "
 
-* Compute max number of members by wave and overall.
+* Compute max number of members by month and overall.
 sort panelmonth
 gen n_ssuid_members = wordcount(ssuid_members)
-by panelmonth:  egen mx_ssuid_members = max(n_ssuid_members)
+by panelmonth:  egen max_ssuid_members = max(n_ssuid_members)
 egen overall_max_ssuid_members = max(n_ssuid_members)
 drop n_ssuid_members
 
 compress 
 
-reshape wide ssuid_members mx_ssuid_members, i(`i_vars') j(`j_vars')
+reshape wide ssuid_members max_ssuid_members, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
-save "$tempdir/ssuid_members_wide_am", $replace
+save "$tempdir/ssuid_members_wide", $replace
 
 //================================================================================//
 //== Purpose: Make the ssuid SHHADID database with information on the number of addresses (SHHADID)
-//== in the sampling unit (SSUID) in each wave and overall.
+//== in the sampling unit (SSUID) in each month and overall.
 //================================================================================//
 
-use "$tempdir/allmonths"
-
-drop SWAVE SREFMON
+use "$SIPP14keep/allmonths14"
 
 local i_vars "SSUID"
 local j_vars "panelmonth"
@@ -156,9 +150,9 @@ sort `i_vars' `j_vars' SHHADID
 duplicates drop
 
 
-by `i_vars' `j_vars':  gen anum = _n /* Number the addresses in the household for each wave. */
+by `i_vars' `j_vars':  gen anum = _n /* Number the addresses in the household for each month. */
 
-* maximum number of addresses in any household in any wave.
+* maximum number of addresses in any household in any month.
 egen maxanum = max(anum)
 local maxan = `=maxanum'
 
@@ -167,6 +161,7 @@ local maxan = `=maxanum'
 ********************************************************************
 
 * Create for_concat* variable equal to string value of address's SHHADID for for_contact_*[an] and missing otherwise
+destring SHHADID, replace
 forvalues an = 1/`maxan' {
     gen for_concat_address`an' = string(SHHADID) if (anum == `an')
 }
@@ -176,7 +171,7 @@ drop anum
 keep `i_vars' `j_vars' for_concat_address* 
 
 * Collapse to take the first non-missing of the variables we built above.  
-* There is exactly one non-missing -- only the nth address in the household in this wave got a value set for variable #n.
+* There is exactly one non-missing -- only the nth address in the household in this month got a value set for variable #n.
 collapse (firstnm) for_concat_address*, by (`i_vars' `j_vars')
 
 
@@ -191,21 +186,21 @@ replace ssuid_shhadid = strtrim(ssuid_shhadid)
 * Add a space at the beginning and end of the string so we are sure every person appears surrounded by spaces.
 replace ssuid_shhadid = " " + ssuid_shhadid + " "
 
-* Compute max number of addresses by wave and overall.
+* Compute max number of addresses by month and overall.
 
 sort panelmonth
 gen n_ssuid_shhadid = wordcount(ssuid_shhadid)
-by panelmonth:  egen mx_ssuid_shhadid = max(n_ssuid_shhadid)
+by panelmonth:  egen max_ssuid_shhadid = max(n_ssuid_shhadid)
 egen overall_max_ssuid_shhadid = max(n_ssuid_shhadid)
 drop n_ssuid_shhadid
 
 compress 
 
-reshape wide ssuid_shhadid mx_ssuid_shhadid, i(`i_vars') j(`j_vars')
+reshape wide ssuid_shhadid max_ssuid_shhadid, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
-save "$tempdir/ssuid_shhadid_wide_am", $replace
+save "$tempdir/ssuid_shhadid_wide", $replace
 
 //================================================================================//
 //== Purpose: Create a dataset with education, immigration status (nativity, place of birth
@@ -214,16 +209,14 @@ save "$tempdir/ssuid_shhadid_wide_am", $replace
 //==        and father (EPNDAD) to get parents' educ and immigration status in the analysis dataset.
 //================================================================================//
 
-use "$tempdir/allmonths"
+use "$SIPP14keep/allmonths14"
 
-drop SWAVE SREFMON
-
-local i_vars "SSUID EPPPNUM"
+local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
 
 
-keep `i_vars' `j_vars' EEDUCATE EBORNUS TMOVEUS TBRSTATE TAGE
-sort `i_vars' `j_vars' EEDUCATE EBORNUS TMOVEUS TBRSTATE TAGE
+keep `i_vars' `j_vars' EEDUC TAGE
+sort `i_vars' `j_vars' EEDUC TAGE
 
 
 ** Label recoded education.
@@ -234,23 +227,20 @@ label define educ   1 "lths"
                     4 "coll";
 #delimit cr
 
-recode EEDUCATE (31/38 = 1)  (39 = 2)  (40/43 = 3)  (44/47 = 4), gen (educ)
+recode EEDUC (31/38 = 1)  (39 = 2)  (40/42 = 3)  (43/46 = 4), gen (educ)
 label values educ educ
 
-recode EBORNUS (1 = 0)  (2 = 1) , gen (immigrant)
-
-drop EEDUCATE EBORNUS
+drop EEDUC
 
 * demo_epppnum will be key to merge with epnmom and epndad to get parent education onto
 * ego's record
-rename EPPPNUM pdemo_epppnum
+rename PNUM pdemo_epppnum
 rename TAGE page /* page for "parent age" */
-rename TMOVEUS pmoveus /* pmoveus for "parent move to us" */
-rename TBRSTATE pbpl /*pbpl for "parent birthplace"*/
 
 
-save "$tempdir/person_pdemo_am", $replace
+save "$tempdir/person_pdemo", $replace
+
 
 * create a dataset of household reference persons.
-do "$childhh_base_code/SIPP2008/allmonths/make_aux_refperson_am"
+do "$childhh_base_code/SIPP2014/allmonths/make_aux_refperson"
 

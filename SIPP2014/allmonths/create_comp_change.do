@@ -1,6 +1,6 @@
 //==============================================================================
 //===== Children's Household Instability Project
-//===== Dataset: SIPP2008
+//===== Dataset: SIPP2014
 //===== Purpose:  Compute household composition changes.  We compute not just 
 //=====           the fact of a change, but the id's of who changed so that we 
 //=====           can examine relationships for those responsible for the changes.
@@ -8,10 +8,10 @@
 //=====           We also compute who stays in the household so we can look at the attributes of stayers.
 //==============================================================================
 
-use "$tempdir/person_wide_adjusted_ages_am"
+use "$tempdir/person_wide_adjusted_ages"
 
 * drop demographic data 
-drop my_race* my_sex* EBORNUS* EMS* EPNDAD* EPNMOM* EPNSPOUS* ERRP* ETYPDAD* ETYPMOM* mom* dad* bio*
+drop my_race* my_sex* EMS* EPNPAR2* EPNPAR1* EPNSPOUSE* ERELRP* EPAR1TYP* EPAR2TYP* mom* dad* bio*
 
 ********************************************************************************
 ** Section:  Propagate shhadid_members (a list of ids of people in ego's address)
@@ -27,8 +27,8 @@ drop my_race* my_sex* EBORNUS* EMS* EPNDAD* EPNMOM* EPNSPOUS* ERRP* ETYPDAD* ETY
 **        	so we just copy this into prev_hh_members for this month.
 ********************************************************************************
 
-gen prev_hh_members$firstmonth = ""
-forvalues month = $second_month/$finalmonth {
+gen prev_hh_members$first_month = ""
+forvalues month = $second_month/$final_month {
     local prev_month = `month' - 1
     gen prev_hh_members`month' = shhadid_members`prev_month' if (missing(SHHADID`month') & missing(prev_hh_members`prev_month'))
     replace prev_hh_members`month' = prev_hh_members`prev_month' if (missing(SHHADID`month') & (!missing(prev_hh_members`prev_month')))
@@ -43,8 +43,8 @@ forvalues month = $second_month/$finalmonth {
 **         backward from the penultimate month.
 ********************************************************************************
 
-gen future_hh_members$finalmonth = ""
-forvalues month = $penultimate_month (-1) $firstmonth {
+gen future_hh_members$final_month = ""
+forvalues month = $penultimate_month (-1) $first_month {
     local next_month = `month' + 1
     gen future_hh_members`month' = shhadid_members`next_month' if (missing(SHHADID`month') & missing(future_hh_members`next_month'))
     replace future_hh_members`month' = future_hh_members`next_month' if (missing(SHHADID`month') & (!missing(future_hh_members`next_month')))
@@ -103,14 +103,14 @@ label define comp_change          0 "No change"
                                   1 "Composition Change";								  
 #delimit cr
 
-gen found_prev_hh_member_in_gap$firstmonth = ""
-forvalues month = $finalmonth (-1) $second_month {
-    display "Panel Month `month'"
+gen found_prev_hh_member_in_gap$first_month = ""
+forvalues month = $final_month (-1) $second_month {
+    display "Month `month'"
     gen found_prev_hh_member_in_gap`month' = " " * strlen(prev_hh_members`month') if (missing(SHHADID`month'))
 
     * This copies the flags we've found so far (from the next month to this one) except of course we don't try to copy
     * anything into the final month since there is no succeeding month.
-    if (`month' < $finalmonth) {
+    if (`month' < $final_month) {
         local next_month = `month' + 1
         replace found_prev_hh_member_in_gap`month' = found_prev_hh_member_in_gap`next_month' if (missing(SHHADID`next_month'))
     }
@@ -140,13 +140,13 @@ forvalues month = $finalmonth (-1) $second_month {
 **           in the same way as found_prev_hh_member in gap.  See above.
 ********************************************************************************
 
-gen found_future_hh_member_in_gap$finalmonth = ""
-forvalues month = $firstmonth/$penultimate_month {
-    display "panel month `month'"
+gen found_future_hh_member_in_gap$final_month = ""
+forvalues month = $first_month/$penultimate_month {
+    display "Month `month'"
     gen found_future_hh_member_in_gap`month' = " " * strlen(future_hh_members`month') if (missing(SHHADID`month'))
 
     * Go ahead and copy what we've found so far (except at the first missing month).
-    if (`month' > $firstmonth) {
+    if (`month' > $first_month) {
         local prev_month = `month' - 1
         replace found_future_hh_member_in_gap`month' = found_future_hh_member_in_gap`prev_month' if (missing(SHHADID`prev_month'))
     }
@@ -183,22 +183,23 @@ forvalues month = $firstmonth/$penultimate_month {
 **         For details about string manipulations and other fancy Stata use, see 
 **=         "Some notes in implementation" in earlier comments in this file.
 ********************************************************************************
+
 // first a quick loop to fill in missing values of max_shhadid_members*
 
-forvalues month=$firstmonth/$finalmonth {
+forvalues month=$first_month/$final_month {
     egen max_shhadid_members`month'= max(mx_shhadid_members`month')
 }
 
-forvalues month = $firstmonth/$penultimate_month {
+forvalues month = $first_month/$penultimate_month {
     local next_month = `month' + 1
 
-    display "Computing comp change for panel model `month'"
+    display "Computing comp change for month `month'"
 
     *** Start by assuming this month is not interesting.
     gen comp_change`month' = .
     gen comp_change_reason`month' = 0
 
-    gen leavers`month' = " "
+	gen leavers`month' = " "
     gen arrivers`month' = " "
     gen stayers`month' = " "
 
@@ -376,7 +377,7 @@ forvalues month = $firstmonth/$penultimate_month {
 
 drop _*
 
-save "$SIPP08keep/comp_change_am.dta", $replace
+save "$SIPP14keep/comp_change_am.dta", $replace
 
 *** TODO:  Check data.
 * One thing in particular is getting the same person in a set twice.

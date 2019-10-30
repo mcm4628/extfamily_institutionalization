@@ -1,14 +1,14 @@
 //==============================================================================
 //===== Children's Household Instability Project                                                    
-//===== Dataset: SIPP2008                                                                               
+//===== Dataset: SIPP2014                                                                              
 //===== Purpose: Create a database with comp_change, addr_change, and sociodemographic characteristics
-//===== One record per person per panelmonth.
+//===== One record per person per month.
 //===== create_comp_change generates the variable comp_change. This file adds addr_change
 //===== and reshapes the data to long form.
 //===== Note: this code depends on macros set in project_macros and create_comp_change
 //==============================================================================
 
-use "$SIPP08keep/comp_change_am.dta", clear
+use "$SIPP14keep/comp_change_am.dta", clear
 
 #delimit ; 
 label define addr_change          0 "No move"
@@ -19,35 +19,36 @@ label define addr_change          0 "No move"
 * Function Propagate shhadid_members forard into prev_SHHADID for missing months.
 ********************************************************************************
 
-gen prev_SHHADID$firstmonth = .
-forvalues month = $second_month/$finalmonth {
+destring SHHADID*, replace
+gen prev_SHHADID$first_month = .
+forvalues month = $second_month/$final_month {
     local prev_month = `month' - 1
-    gen prev_SHHADID`month' = SHHADID`prev_month' if (missing(SHHADID`month') & missing(prev_SHHADID`prev_month'))
-    replace prev_SHHADID`month' = prev_SHHADID`prev_month' if (missing(SHHADID`month') & (!missing(prev_SHHADID`prev_month')))
+	gen prev_SHHADID`month' = SHHADID`prev_month' if (missing(SHHADID`month') & missing(prev_SHHADID`prev_month'))
+	replace prev_SHHADID`month' = prev_SHHADID`prev_month' if (missing(SHHADID`month') & (!missing(prev_SHHADID`prev_month')))
 }
 
 ********************************************************************************
 ** Function:  Propagate shhadid_members backward into future_hh_members for missing months.  
 ********************************************************************************
 
-gen future_SHHADID$finalmonth = .
-forvalues month = $penultimate_month (-1) $firstmonth {
+gen future_SHHADID$final_month = .
+forvalues month = $penultimate_month (-1) $first_month {
     local next_month = `month' + 1
     gen future_SHHADID`month' = SHHADID`next_month' if (missing(SHHADID`month') & missing(future_SHHADID`next_month'))
-    replace future_SHHADID`month' = future_SHHADID`next_month' if (missing(SHHADID`month') & (!missing(future_SHHADID`next_month')))
+	replace future_SHHADID`month' = future_SHHADID`next_month' if (missing(SHHADID`month') & (!missing(future_SHHADID`next_month')))
 }
 
 ********************************************************************************
 ** Function: walk backward through the months and for each month in which ego is missing  compare prev_SHHAIDD to see if we find anyone
 ********************************************************************************
 
-gen found_prev_SHHADID$firstmonth = .
-forvalues month = $finalmonth (-1) $second_month {
+gen found_prev_SHHADID$first_month = .
+forvalues month = $final_month (-1) $second_month {
 	gen found_prev_SHHADID`month'= 0 if (missing(SHHADID`month'))
 	gen found_prev_SHHADID_in_gap`month'=0 if (missing(SHHADID`month'))
 	replace found_prev_SHHADID`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") != 0))
 	replace found_prev_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") !=0))
-	if (`month' < $finalmonth) {
+	if (`month' < $final_month) {
 		local next_month = `month' + 1
 		replace found_prev_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (found_prev_SHHADID_in_gap`next_month' == 1))
 	}
@@ -57,13 +58,13 @@ forvalues month = $finalmonth (-1) $second_month {
 ** Function: walk forward through the months 
 ********************************************************************************
 
-gen found_future_SHHADID$finalmonth = .
-forvalues month = $firstmonth/$penultimate_month {
+gen found_future_SHHADID$final_month = .
+forvalues month = $first_month/$penultimate_month {
 	gen found_future_SHHADID`month'= 0 if (missing(SHHADID`month'))
 	gen found_future_SHHADID_in_gap`month'=0 if (missing(SHHADID`month'))
 	replace found_future_SHHADID`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") != 0))
 	replace found_future_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") !=0))
-	if (`month' > $finalmonth) {
+	if (`month' > $final_month) {
 		local prev_month = `month' - 1
 		replace found_future_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (found_future_SHHADID_in_gap`prev_month' == 1))
 	}
@@ -73,7 +74,7 @@ forvalues month = $firstmonth/$penultimate_month {
 ** Function: Compute address change.
 *******************************************************************************
 
-forvalues month = $firstmonth/$penultimate_month {
+forvalues month = $first_month/$penultimate_month {
     local next_month = `month' + 1
 
     * Start by assuming this month is not interesting.
@@ -122,13 +123,11 @@ forvalues month = $firstmonth/$penultimate_month {
 gen original=1 if !missing(SHHADID1)
 gen agemonth1=adj_age1 if original==1
 
-keep SSUID EPPPNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* original agemonth1
+keep SSUID PNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* original agemonth1
 
-reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID EPPPNUM) j(panelmonth)
+reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID PNUM) j(panelmonth)
 
-merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_all_am.dta"
-
-drop if panelmonth > 60
+merge 1:1 SSUID PNUM panelmonth using "$tempdir/demo_long_all_am.dta"
 
 assert _merge==3
 
@@ -137,7 +136,7 @@ drop _merge
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
 
-gen inmonth = !missing(ERRP)
+gen inmonth = !missing(ERELRP)
 
 gen insample=0
 * Keep if in this month and next
@@ -160,4 +159,4 @@ replace insample=3 if insample==0 & !missing(hh_change)
 	label var addr_change "Indicator for whether individual moved"
 	label values addr_change addr_change
 
-save "$SIPP08keep/hh_change_am.dta", $replace
+save "$SIPP14keep/hh_change_am.dta", $replace
