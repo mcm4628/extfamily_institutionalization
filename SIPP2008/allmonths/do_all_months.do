@@ -32,6 +32,8 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 do "$childhh_base_code/SIPP2008/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
+global sipp2008_code "~/github/childhh/SIPP2008/allmonths"
+
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
 ***************************************************************************
