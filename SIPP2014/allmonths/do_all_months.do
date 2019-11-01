@@ -10,14 +10,14 @@
 global SIPP2014 "/data/sipp/2014"
 
 *This is the location of the SIPP Extracts and analysis files
-global SIPP14keep "$homedir/data/SIPP2014/"
+global SIPP14keep "~/data/SIPP2014/"
 
 * This is where logfiles produced by stata will go
-global sipp2014_logs "$homedir/projects/childhh/logs"
+global sipp2014_logs "~/projects/childhh/logs"
 
 * This is the location of the code
-
-global childhh_base_code "~/github/childhh/SIPP2014/allmonths"
+global sipp2014_code "~/github/childhh/SIPP2014/allmonths"
+global childhh_base_code "~/github/childhh"
 
 //=========================================================================//
 //== Purpose: Preparation for running the program.
@@ -44,7 +44,7 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
-do "$childhh_base_code/project_macros" /* this do-file contains macros of wave, age, month, relationships */
+do "$sipp2014_code/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
@@ -78,7 +78,7 @@ if `r(confirmdir)' {
 * Execute scripts to process data.
 ********************************************************************************
 ** Extracts data from NBER download and formats it for our scripts
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" extract_and_format
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" merge_waves  
@@ -99,11 +99,6 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_bas
 
 ** Identifies additional relationships transitively
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_secondary_relationships 
-
-** Identifies one consistent relationship between every pair of coresident individuals
-** We no longer use unfied relationships favoring instead measures based on relationships 
-** reported in a wave
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" unify_relationships_across_waves 
 
 ** Creates a variable to measure change in household composition.
 ** Also creates lists of people who arrive/leave or stay in ego's household

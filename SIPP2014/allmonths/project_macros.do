@@ -6,13 +6,13 @@
 //================================================================================================//
 
 global first_wave 1
-global final_wave 9
+global final_wave 4
 global first_month 1
 global final_month = 4*12
 global second_wave = ${first_wave} + 1
 global penultimate_wave = ${final_wave} - 1
 global second_month=$first_month + 1
-global penultimate_mont = $final_month - 1
+global penultimate_month = $final_month - 1
 
 global adult_age 18
 

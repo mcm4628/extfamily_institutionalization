@@ -189,7 +189,7 @@ forvalues month=$first_month/$penultimate_month{
  gen everdropout`month'=0
  replace everdropout`month'=1 if dropout`month'==1
 }
-gen dropoutnw9=.
+gen dropoutnw49=.
 
 save "$SIPP14keep/demo_wide_am.dta", $replace
 
@@ -210,4 +210,4 @@ save "$SIPP14keep/demo_long_all_am", $replace
 
 drop if missing(ERELRP)
 
-save "$SIPPkeep/demo_long_interviews_am", $replace
+save "$SIPP14keep/demo_long_interviews_am", $replace

@@ -127,7 +127,11 @@ keep SSUID PNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* 
 
 reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID PNUM) j(panelmonth)
 
-merge 1:1 SSUID PNUM panelmonth using "$tempdir/demo_long_all_am.dta"
+merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/demo_long_all_am.dta"
+
+* these cases were create for a loop in normalize_ages 
+drop if panelmonth==49
+
 
 assert _merge==3
 

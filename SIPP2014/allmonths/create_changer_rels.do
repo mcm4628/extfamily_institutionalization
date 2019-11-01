@@ -128,7 +128,7 @@ foreach changer in leaver arriver {
 	
 	* get changer age *
     gen PNUM = relto
-    merge m:1 SSUID PNUM panelmonth using "$tempdir/demo_long_all", keepusing(adj_age)
+    merge m:1 SSUID PNUM panelmonth using "$SIPP14keep/demo_long_all_am", keepusing(adj_age)
     drop if (_merge == 2)
     assert (_merge == 3)
 	

@@ -14,4 +14,6 @@ forvalues wave = $second_wave/$final_wave {
 
 ** allmonths14.dta is a long-form dataset including all the waves from SIPP2014
 
+drop SWAVE
+
 save "$SIPP14keep/allmonths14.dta", $replace

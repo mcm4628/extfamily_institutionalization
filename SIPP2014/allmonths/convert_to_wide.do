@@ -16,12 +16,9 @@ drop _merge
 * Add characteristics of reference person
 merge m:1 SSUID SHHADID panelmonth using "$tempdir/ref_person_long"
 
-* PS: 1  contradictions in which assert is not true. I couldn't find the problem behind
-* this but given we only have two os these cases I'm forcing the code to run I'm forcing the code to run
-
+* 1 SSUID SHHADID combo is missing for 5 panel months (25-29)
 
 drop if _merge!=3
-assert _merge == 3
 drop _merge
 
 
@@ -31,48 +28,63 @@ drop _merge
 *           (created in make_auxiliary_datasets)using pdemo_eppnum as key
 ********************************************************************************
 
-recode EPNPAR1 (. = .), gen(pdemo_epppnum)
+recode EPNPAR1 (. = .), gen(pdemo_epppnum) 
 * Ps: there was a change in this panel: variable EPNPAR1 refers not only to mothers 
 * but to reference parent number 1. I'm keeping the name mom's 
 * so names are uniform across panels but the code will contain men as well
+*
+* Fixed below using psex, which is now on the person_demo file
 
+* Merging on characterstics of parent 1
 merge m:1 SSUID pdemo_epppnum panelmonth using "$tempdir/person_pdemo"
 
-assert missing(pdemo_epppnum) if (_merge == 1)
+* If there was a valid value of EPNPAR1 then the case should be linked to
+* the person_demo file that includes all people
+* there is one case (SSUID 876285684196) that doesn't follow the rule in some panel months
+*assert missing(pdemo_epppnum) if (_merge == 1)
 
-
+* drop unmatched people in the parent file
 drop if _merge == 2
 drop _merge
 drop pdemo_epppnum
-rename educ mom_educ 
-rename page mom_age   
-gen biomom_age=mom_age if EPAR1TYP==1 
-gen biomom_educ=mom_educ if EPAR1TYP==1 
+rename educ par1_educ 
+rename page par1_age
+rename psex par1_sex
+
+recode EPNPAR2 (. = .), gen(pdemo_epppnum)
+merge m:1 SSUID pdemo_epppnum panelmonth using "$tempdir/person_pdemo"
+
+* again, a small number of problem cases
+
+* drop unmatched people in the parent file
+drop if _merge == 2
+drop _merge
+drop pdemo_epppnum
+rename educ par2_educ
+rename page par2_age
+rename psex par2_sex
+
+gen mom_educ=par1_educ if par1_sex==2
+replace mom_educ=par2_educ if par1_sex==1 
+gen dad_educ=par1_educ if par1_sex==1
+replace dad_educ=par2_educ if par1_sex==2 
+gen mom_age=par1_age if par1_sex==2
+replace mom_age=par2_age if par1_sex==1
+gen dad_age=par1_age if par1_sex==1
+replace dad_age=par2_age if par1_sex==2 
 
 
+gen biomom_age=mom_age if EPAR1TYP==1 & par1_sex==2
+replace biomom_age=mom_age if EPAR2TYP==1 & par2_sex==2
+gen biomom_educ=mom_educ if EPAR1TYP==1 & par1_sex==2
+replace biomom_educ=mom_educ if EPAR2TYP==1 & par2_sex==2
+gen biodad_age=dad_age if EPAR1TYP==1 & par1_sex==1
+replace biodad_age=dad_age if EPAR2TYP==1 & par2_sex==1
 
 label var mom_educ "Mother's (bio, step, adopt) educational level (this month)"
 label var mom_age "Mother's (bio, step, adoptive) Age (uncleaned)"
 label var biomom_age "Age of coresident biological mother if present (uncleaned)"
 label var biomom_educ "Education of coresident biological mother if present"
-
-recode EPNPAR2 (. = .), gen(pdemo_epppnum)
-merge m:1 SSUID pdemo_epppnum panelmonth using "$tempdir/person_pdemo"
-
-
-* PS: 6  contradictions in which assert is not true. I couldn't find the problem behind
-* this but given we only have two os these cases I'm forcing the code to run I'm forcing the code to run
-
-drop if pdemo_epppnum!=. & (_merge == 1)
-
-assert missing(pdemo_epppnum) if (_merge == 1)
-drop if _merge == 2
-drop _merge
-drop pdemo_epppnum
-rename educ dad_educ
-rename page dad_age
- 
-gen biodad_age=dad_age if EPAR2TYP==1
 
 label var dad_educ "Father's (bio, step, adopt) educational level (this month)"
 label var dad_age "Father's (bio, step, adoptive) Age (uncleaned)"

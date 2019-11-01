@@ -4,6 +4,9 @@ keep SSUID PNUM SHHADID ERELRP ESEX panelmonth EEDUC
 keep if ((ERELRP == 1) | (ERELRP == 2))
 drop ERELRP
 
+duplicates report SSUID SHHADID panelmonth // each address has one reference person per month
+
+
 recode EEDUC (31/38 = 1)  (39 = 2)  (40/42 = 3)  (43/46 = 4), gen (educ)
 
 rename PNUM ref_person
@@ -14,8 +17,7 @@ label values ref_person_educ educ
 
 drop EEDUC
 
-duplicates drop
 save "$tempdir/ref_person_long", $replace
 
-reshape wide ref_person ref_person_sex ref_person_educ, i(SSUID SHHADID) j(panelmonth)
+*reshape wide ref_person ref_person_sex ref_person_educ, i(SSUID SHHADID) j(panelmonth)
 save "$tempdir/ref_person_wide", $replace

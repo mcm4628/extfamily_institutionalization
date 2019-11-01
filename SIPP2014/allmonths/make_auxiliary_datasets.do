@@ -215,8 +215,8 @@ local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
 
 
-keep `i_vars' `j_vars' EEDUC TAGE
-sort `i_vars' `j_vars' EEDUC TAGE
+keep `i_vars' `j_vars' EEDUC TAGE ESEX
+sort `i_vars' `j_vars' EEDUC TAGE ESEX
 
 
 ** Label recoded education.
@@ -236,7 +236,7 @@ drop EEDUC
 * ego's record
 rename PNUM pdemo_epppnum
 rename TAGE page /* page for "parent age" */
-
+rename ESEX psex // parent sex because the parent pointers are now gender neutral
 
 save "$tempdir/person_pdemo", $replace
 
