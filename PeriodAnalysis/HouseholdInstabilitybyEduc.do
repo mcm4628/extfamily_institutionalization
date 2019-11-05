@@ -145,7 +145,7 @@ egen id= group(SSUID EPPPNUM)
 tsset id wave
 
 * Sample
-keep if TAGE<=18 
+keep if TAGE<18 
 
 
 * Tabs
@@ -169,7 +169,7 @@ reshape wide TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonpa
 * Moving Avarages (3)
 
 * Parent change
-forvalues j =2/40 {
+forvalues j =1/35 {
 	local i= `j' -1
 	local k= `j'+ 1
     gen parent_changem`j' = (parent_change`i' + parent_change`j' + parent_change`k')/3
@@ -210,68 +210,137 @@ forvalues j =2/40 {
 }
 
 
-* Moving avarage (5)
+************************* All months - not only reference **************************
+
+clear
+use "$SIPP01keep/HHchangeWithRelationships.dta"
+
+
+* Recode
+tab mom_educ, nol
+recode mom_educ -1=.
+
+gen mom_educ2=.
+replace mom_educ2=1 if mom_educ==1|mom_educ==2
+replace mom_educ2=2 if mom_educ==3
+replace mom_educ2=3 if mom_educ==4
+
+label def mom_educ2 1 "hsol" 2 "ltcol" 3 "coll" 
+
+* Sample
+keep if TAGE<18 
+
+
+* Moving Averages 2
+local i_vars "SSUID EPPPNUM"
+local j_vars "SWAVE"
+local wide_vars "SSUID EPPPNUM SWAVE TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change"
+
+keep SSUID EPPPNUM SWAVE TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change
+
+reshape wide TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change, i(`i_vars') j(`j_vars')
+
+
+
 
 *Parent change 
-forvalues j =3/39 {
-	local l= `j' -2
-	local i= `j' -1
-	local k= `j'+ 1
-	local m= `j'+ 2
-    gen parent_m`j' = (parent_change`l' + parent_change`i' + parent_change`j' + parent_change`k' + parent_change`m')/5
+forvalues j =4/32 {
+	local l= `j' -3
+	local i= `j' -2
+	local k= `j'- 1
+    gen parent_s`j' = (parent_change`l' + parent_change`i' + parent_change`j' + parent_change`k')
     
 }
 
-*Grandparent change
-forvalues j =3/39 {
-	local l= `j' -2
-	local i= `j' -1
-	local k= `j'+ 1
-	local m= `j'+ 2
-    gen gp_m`j' = (gp_change`i' + gp_change`j' + gp_change`k')/3
+forvalues j =33/35 {
+	local i= `j' -2
+	local k= `j'- 1
+    gen parent_s`j' = (parent_change`i' + parent_change`j' + parent_change`k')
+    
+}
+
+
+* Granparent change
+forvalues j =4/32 {
+	local i= `j' -3
+	local k= `j'- 2
+	local l =`j'- 1
+    gen gp_changes`j' = (gp_change`i' + gp_change`k' + gp_change`l' + gp_change`j')
+    
+}
+
+forvalues j =33/35 {
+	local i= `j' -2
+	local k= `j'- 1
+    gen gp_changes`j' = (gp_change`i' + gp_change`k' + gp_change`j')
     
 }
 
 
 * Sibling change
-forvalues j =3/39 {
-	local l= `j' -2
-	local i= `j' -1
-	local k= `j'+ 1
-	local m= `j'+ 2
-    gen sib_m`j' = (sib_change`i' + sib_change`j' + sib_change`k')/3
+forvalues j =4/32 {
+	local i= `j' -3
+	local k= `j'- 2
+	local l =`j'- 1
+    gen sib_changes`j' = (sib_change`i' + sib_change`k' + sib_change`l' + sib_change`j')
     
 }
+
+forvalues j =33/35 {
+	local i= `j' -2
+	local k= `j'- 1
+    gen sib_changes`j' = (sib_change`i' + sib_change`k' + sib_change`j')
+    
+}
+
+
 
 *Other relative change
-forvalues j =3/39 {
-	local l= `j' -2
-	local i= `j' -1
-	local k= `j'+ 1
-	local m= `j'+ 2
-    gen other_m`j' = (otherrel_change`i' + otherrel_change`j' + otherrel_change`k')/3
+
+forvalues j =4/32 {
+	local i= `j' -3
+	local k= `j'- 2
+	local l =`j'- 1
+    gen other_changes`j' = (other_change`i' + other_change`k' + other_change`l' + other_change`j')
     
 }
 
+forvalues j =33/35 {
+	local i= `j' -2
+	local k= `j'- 1
+    gen other_changes`j' = (other_change`i' + other_change`k' + other_change`j')
+    
+}
+
+
 *Non-relative change
-forvalues j =3/39 {
-	local l= `j' -2
-	local i= `j' -1
-	local k= `j'+ 1
-	local m= `j'+ 2
-    gen nonrel_m`j' = (nonrel_change`i' + nonrel_change`j' + nonrel_change`k')/3
+
+forvalues j =4/32 {
+	local i= `j' -3
+	local k= `j'- 2
+	local l =`j'- 1
+    gen nonrel_changes`j' = (nonrel_change`i' + nonrel_change`k' + nonrel_change`l' + nonrel_change`j')
+    
+}
+
+forvalues j =33/35 {
+	local i= `j' -2
+	local k= `j'- 1
+    gen nonrel_changes`j' = (nonrel_change`i' + nonrel_change`k' + nonrel_change`j')
     
 }
 
 
 reshape long TAGE WPFINWGT mom_educ2 parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change ///
-parent_changem sib_changem other_changem nonparent_changem gp_changem nonrel_changem otherrel_changem ///
-parent_m sib_m gp_m nonrel_m otherrel_m, i(SSUID EPPPNUM) j(wave) 
+parent_changes sib_changes other_changes nonparent_changes gp_changes nonrel_changes otherrel_changes, i(SSUID EPPPNUM) j(SWAVE) 
 
+
+
+keep if SWAVE==4|SWAVE==8|SWAVE==12|SWAVE==16|SWAVE==20|SWAVE==24|SWAVE==28|SWAVE==32|SWAVE==35
 
 * Parent Channge
-quietly anova parent_changem wave##mom_educ2
-quietly margins wave##mom_educ2
+quietly anova parent_changes SWAVE##mom_educ2
+quietly margins SWAVE##mom_educ2
 marginsplot, noci ytitle(Parent Change)
 
 *Sibling

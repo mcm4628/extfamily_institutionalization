@@ -1,20 +1,16 @@
+
 //================================================================================================//
 //===== Children's Household Instability Project                                               
-//===== Dataset: SIPP2004                                                                   
+//===== Dataset: SIPP2001                                                                   
 //===== Purpose: Create macros of waves, age, month, relationships. 
 //===== Also, create program executed by multiple do files to reduce number of relationship categories.
 //================================================================================================//
 
 global first_wave 1
-global final_wave 12
-global firstrefmon 1
-global finalrefmon 4
-global firstmonth 1
-global finalmonth =12*4
+global final_wave 36
 global second_wave = ${first_wave} + 1
 global penultimate_wave = ${final_wave} - 1
-global second_month=${firstmonth}+1
-global penultimate_month=${finalmonth}-1
+
 global adult_age 18
 
 global refmon 4

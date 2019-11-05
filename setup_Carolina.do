@@ -15,7 +15,7 @@ global projdir "$boxdir/SIPP"
 global SIPP2014 "$projdir/data/SIPP2014/FullFile" 
 global SIPP2008core "$projdir/data/SIPP2008/FullFile" 
 global SIPP2008tm "$projdir/data/SIPP2008/FullFile"
-global SIPP2004core "$projdir/data/SIPP2004" 
+global SIPP2004core "$projdir/data/SIPP2004/FullFile" 
 global SIPP2004tm "$projdir/data/SIPP2004/FullFile"
 global SIPP2001 "$projdir/data/SIPP2001/FullFile" 
 

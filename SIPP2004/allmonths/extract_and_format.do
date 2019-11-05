@@ -11,7 +11,7 @@ individuals in the household ages 15 or older.
 clear 
 use "$SIPP2004tm/sippp04putm2"
 keep ssuid epppnum tmoveus tbrstate 
-save "$SIPP04keep/wave2_migration_extract", $replace
+save "$SIPP2004/wave2_migration_extract", $replace
 
 * Core questions:
 forvalues wave=1/12{
@@ -23,7 +23,7 @@ forvalues wave=1/12{
 	shhadid srefmon srotaton ssuseq swave wpfinwgt eeducate ssuid renroll ///
 	eenrlm eenlevel
 	
-	merge m:1 ssuid epppnum using "$SIPP04keep/wave2_migration_extract"
+	merge m:1 ssuid epppnum using "$SIPP2004/wave2_migration_extract"
 	drop if _merge==2
 	drop _merge
 	
@@ -31,6 +31,6 @@ forvalues wave=1/12{
 	destring epppnum, replace
 	destring lgtkey, replace
 	rename *, upper
-	
+
 	save "$SIPP04keep/wave`wave'_extract", $replace
 }
