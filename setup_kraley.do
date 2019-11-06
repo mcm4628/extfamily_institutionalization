@@ -1,20 +1,21 @@
 global replace "replace"
 
-global homedir "T:"
+global homedir "D:/Projects/SIPP"
+global projdir "D:/Projects/SIPP"
 
-global logdir "$homedir/stata_logs"
-global tempdir "$homedir/stata_data/stata_tmp"
+global logdir "$projdir/kraley/childhh/stata_logs"
+global tempdir "$projdir/kraley/stata_data/stata_tmp"
 
+*global boxdir "C:/users/kraley/Box"
 
-global boxdir "C:/users/kraley/Box"
-global projdir "$boxdir/SIPP"
+* Where "original" data sits
+global SIPP2014 "$projdir/stata_data/2014"
+global SIPP2008core "$projdir/stata_data/2008"
+global SIPP2008tm "$projdir/stata_data/2008"
+global SIPP2004 "$projdir/stata_data/2004"
+global SIPP2001 "$projdir/stata_data/2001"
 
-global SIPP2014 "$projdir/data/SIPP2014/FullFile"
-global SIPP2008core "$projdir/data/SIPP2008/FullFile"
-global SIPP2008tm "$projdir/data/SIPP2008/FullFile"
-global SIPP2004 "$projdir/data/SIPP2004"
-global SIPP2001 "$projdir/data/SIPP2001/FullFile"
-
+* location of code directory
 global childhh_base_code "T:/GitHub/ChildHH"
 
 global sipp2014_code "$childhh_base_code/SIPP2014"
@@ -30,10 +31,10 @@ global sipp2001_code "$childhh_base_code/SIPP2001"
 global sipp2001_logs "$logdir/SIPP2001"
 
 
-global SIPP14keep "$homedir/stata_data/SIPP2014"
-global SIPP08keep "$homedir/stata_data/SIPP2008"
-global SIPP04keep "$homedir/stata_data/SIPP2004"
-global SIPP01keep "$homedir/stata_data/SIPP2001"
+global SIPP14keep "$projdir/kraley/childhh/stata_data/SIPP14/keep"
+global SIPP08keep "$projdir/kraley/childhh/stata_data/SIPP08/keep"
+global SIPP04keep "$projdir/kraley/childhh/stata_data/SIPP04/keep"
+global SIPP01keep "$projdir/kraley/childhh/stata_data/SIPP01/keep"
 
 
 

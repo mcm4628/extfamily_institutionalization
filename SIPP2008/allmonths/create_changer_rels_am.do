@@ -5,7 +5,7 @@
 //===== a person's (ego's) household to their relationship to ego.
 //==============================================================================
 
-use "$SIPP08keep/comp_change.dta_am", clear
+use "$SIPP08keep/comp_change_am.dta", clear
 
 keep SSUID EPPPNUM SHHADID* arrivers* leavers* stayers* comp_change* comp_change_reason* adj_age* 
 

@@ -11,7 +11,7 @@
 //=========================================================================//
 
 * !!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-global sipp2008_code "$childhh_base_code/SIPP2008/allmonths" // note that this needs to be edited to indicate the location of code
+global sipp2008_code "$childhh_base_code/SIPP2008/allmonths"
 
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
@@ -34,8 +34,6 @@ if ("`r(fn)'" == "") {
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
 do "$childhh_base_code/SIPP2008/project_macros" /* this do-file contains macros of wave, age, month, relationships */
-
-global sipp2008_code "~/github/childhh/SIPP2008/allmonths"
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
@@ -69,7 +67,7 @@ if `r(confirmdir)' {
 * Execute scripts to process data.
 ********************************************************************************
 ** Extracts data from NBER download and formats it for our scripts
-*do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" extract_and_format
+do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" merge_all_months  

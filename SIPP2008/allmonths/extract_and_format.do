@@ -11,7 +11,7 @@ individuals in the household ages 15 or older.
 clear 
 use "$SIPP2008tm/sippp08putm2"
 keep ssuid epppnum tmoveus tbrstate 
-save "$SIPP2008/wave2_migration_extract", $replace
+save "$SIPP08keep/wave2_migration_extract", $replace
 
 * Core questions:
 forvalues wave=1/15{
