@@ -189,7 +189,7 @@ forvalues month=1/47{
  gen everdropout`month'=0
  replace everdropout`month'=1 if dropout`month'==1
 }
-gen dropoutnw49=.
+gen dropoutnw48=.
 
 save "$SIPP04keep/demo_wide_am.dta", $replace
 

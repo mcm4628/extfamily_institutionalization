@@ -60,7 +60,7 @@ parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
 otheradult_arrive otheradult_leave yadult_arrive yadult_leave otheryadult_arrive ///
 otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID EPPPNUM panelmonth)
 
-merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/hh_change_am.dta"
+merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP04keep/hh_change_am.dta"
 
 drop _merge
 
