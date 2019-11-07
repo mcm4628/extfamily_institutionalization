@@ -251,20 +251,20 @@ assert _merge == 3
 drop _merge
 
 * Merge in file with information on number of addresses in sampling unit per month and overall (make_auxiliary_datasets)
-merge m:1 SSUID using "$tempdir/ssuid_shhadid_wide"
+merge m:1 SSUID using "$tempdir/ssuid_residence_wide"
 assert _merge == 3
 drop _merge
 
 * Create variables identifying first and last month of appearance for each person(which is often the same as the whole household).
-* Note: SHHADID is never missing in the base data, so we can assume here that a missing SHHADID means the person was absent from that month.
-gen my_last_month = ${first_month} if (!missing(SHHADID${first_month}))
+* Note: ERESIDENCE is never missing in the base data, so we can assume here that a missing ERESIDENCE means the person was absent from that month.
+gen my_last_month = ${first_month} if (!missing(ERESIDENCE${first_month}))
 forvalues month = $second_month/$final_month {
-    replace my_last_month = `month' if (!missing(SHHADID`month'))
+    replace my_last_month = `month' if (!missing(ERESIDENCE`month'))
 }
 
-gen my_first_month = ${final_month} if (!missing(SHHADID${final_month}))
+gen my_first_month = ${final_month} if (!missing(ERESIDENCE${final_month}))
 forvalues month = $penultimate_month (-1) $first_month {
-    replace my_first_month = `month' if (!missing(SHHADID`month'))
+    replace my_first_month = `month' if (!missing(ERESIDENCE`month'))
 }
 
 drop ERACE* race* ESEX*
