@@ -10,7 +10,7 @@
 //=====================================================================//
 
 * hh_change has one record per person per month
-use "$SIPP14keep/hh_change_am.dta"
+use "$SIPP14keep/hh_change_am.dta", clear
 
 keep SSUID PNUM panelmonth comp_change hh_change addr_change 
 
@@ -24,7 +24,7 @@ keep SSUID PNUM panelmonth comp_change hh_change addr_change
 * we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
 merge 1:m SSUID PNUM panelmonth using "$tempdir/changer_rels", keepusing(relationship ///
-parent sibling grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
+parent sibling biosib halfsib stepsib grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave change_type ///
 yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive ///
@@ -48,6 +48,9 @@ replace someoneleft=1 if change_type==2
 
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
+gen biosib_change=1 if comp_change==1 & biosib==1
+gen halfsib_change=1 if comp_change==1 & halfsib==1
+gen stepsib_change=1 if comp_change==1 & stepsib==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 gen nonparent_change=1 if comp_change==1 & parent!=1
 gen gp_change=1 if comp_change==1 & grandparent==1
@@ -56,7 +59,8 @@ gen otherrel_change=1 if comp_change==1 & other_rel==1
 gen foster_change=1 if comp_change==1 & foster==1 		// tiny
 gen allelse_change=1 if comp_change==1 & allelse==1
 
-collapse (max) comp_change parent_change sib_change other_change nonparent_change gp_change ///
+collapse (max) comp_change parent_change sib_change biosib_change ///
+halfsib_change stepsib_change other_change nonparent_change gp_change ///
 nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
@@ -115,6 +119,9 @@ replace infant_arrive=0 if missing(infant_arrive) & !missing(comp_change)
 label variable comp_change "Household composition changed bewteen this month and the next"
 label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
 label variable sib_change "Started or stopped living with a (full/half/step) sibling entered or left household"
+label variable biosib_change "Started or stopped living with a full sibling entered or left household"
+label variable stepsib_change "Started or stopped living with a step sibling entered or left household"
+label variable halfsib_change "Started or stopped living with a half sibling entered or left household"
 label variable other_change "Started or stopped living with non-parent, non-sibling"
 label variable nonparent_change "Started or stopped living with non-parent"
 label variable gp_change "Started or stopped living with a grandparent"

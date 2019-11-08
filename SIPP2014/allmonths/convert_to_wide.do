@@ -8,19 +8,9 @@
  
 use "$SIPP14keep/allmonths14", clear  
 
-merge m:1 SSUID SHHADID panelmonth using "$tempdir/shhadid_members" 
+merge m:1 SSUID ERESIDENCEID panelmonth using "$tempdir/residence_members" 
 assert _merge == 3
 drop _merge
-
-
-* Add characteristics of reference person
-merge m:1 SSUID SHHADID panelmonth using "$tempdir/ref_person_long"
-
-* 1 SSUID SHHADID combo is missing for 5 panel months (25-29)
-
-drop if _merge!=3
-drop _merge
-
 
 ********************************************************************************
 * Section: create variables describing mother's and father's education and mother's
@@ -106,9 +96,9 @@ replace dropout=1 if RENROLL==3 & educ < 2
 
 local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
-local wide_vars "SHHADID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age shhadid_members mx_shhadid_members ref_person ref_person_sex ref_person_educ educ dropout"
+local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ dropout"
 
-local extra_vars "overall_max_shhadid_members"
+local extra_vars "overall_max_residence_members"
 
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
 reshape wide `wide_vars', i(`i_vars') j(`j_vars')
@@ -257,14 +247,14 @@ drop _merge
 
 * Create variables identifying first and last month of appearance for each person(which is often the same as the whole household).
 * Note: ERESIDENCE is never missing in the base data, so we can assume here that a missing ERESIDENCE means the person was absent from that month.
-gen my_last_month = ${first_month} if (!missing(ERESIDENCE${first_month}))
+gen my_last_month = ${first_month} if (!missing(ERESIDENCEID${first_month}))
 forvalues month = $second_month/$final_month {
-    replace my_last_month = `month' if (!missing(ERESIDENCE`month'))
+    replace my_last_month = `month' if (!missing(ERESIDENCEID`month'))
 }
 
-gen my_first_month = ${final_month} if (!missing(ERESIDENCE${final_month}))
+gen my_first_month = ${final_month} if (!missing(ERESIDENCEID${final_month}))
 forvalues month = $penultimate_month (-1) $first_month {
-    replace my_first_month = `month' if (!missing(ERESIDENCE`month'))
+    replace my_first_month = `month' if (!missing(ERESIDENCEID`month'))
 }
 
 drop ERACE* race* ESEX*

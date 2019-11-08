@@ -8,20 +8,20 @@
 //=====           We also compute who stays in the household so we can look at the attributes of stayers.
 //==============================================================================
 
-use "$tempdir/person_wide_adjusted_ages"
+use "$tempdir/person_wide_adjusted_ages", clear
 
 * drop demographic data 
 drop my_race* my_sex* EMS* EPNPAR2* EPNPAR1* EPNSPOUSE* ERELRP* EPAR1TYP* EPAR2TYP* mom* dad* bio*
 
 ********************************************************************************
-** Section:  Propagate shhadid_members (a list of ids of people in ego's address)
+** Section:  Propagate residence_members (a list of ids of people in ego's address)
 **           forward into prev_hh_members for missing months.  This allows us to
 **           know who was in the household with the respondent in the most recent 
 **           month at which the respondent was present.
 
 ** Logic:   Walk forward through the months, starting with the second.  When the 
-**          respondent is missing, SHHADID will be missing. If missing, we copy 
-**          shhadid_members for the previous month into prev_hh_members for the 
+**          respondent is missing, TAGE will be missing. If missing, we copy 
+**          residence_members for the previous month into prev_hh_members for the 
 **          first missing month. For subsequent months of a continuous gap (stretch 
 **          of missing interviews) prev_hh_members for the previous month will exist
 **        	so we just copy this into prev_hh_members for this month.
@@ -30,12 +30,12 @@ drop my_race* my_sex* EMS* EPNPAR2* EPNPAR1* EPNSPOUSE* ERELRP* EPAR1TYP* EPAR2T
 gen prev_hh_members$first_month = ""
 forvalues month = $second_month/$final_month {
     local prev_month = `month' - 1
-    gen prev_hh_members`month' = shhadid_members`prev_month' if (missing(SHHADID`month') & missing(prev_hh_members`prev_month'))
-    replace prev_hh_members`month' = prev_hh_members`prev_month' if (missing(SHHADID`month') & (!missing(prev_hh_members`prev_month')))
+    gen prev_hh_members`month' = residence_members`prev_month' if (missing(ERESIDENCEID`month') & missing(prev_hh_members`prev_month'))
+    replace prev_hh_members`month' = prev_hh_members`prev_month' if (missing(ERESIDENCEID`month') & (!missing(prev_hh_members`prev_month')))
 }
 
 ********************************************************************************
-** Section:  Propagate shhadid_members backward into future_hh_members for missing months.  
+** Section:  Propagate residence_members backward into future_hh_members for missing months.  
 **           This allows us to know who will be in the household with the 
 **           respondent in month in which the respondent reappears.
 **
@@ -46,8 +46,8 @@ forvalues month = $second_month/$final_month {
 gen future_hh_members$final_month = ""
 forvalues month = $penultimate_month (-1) $first_month {
     local next_month = `month' + 1
-    gen future_hh_members`month' = shhadid_members`next_month' if (missing(SHHADID`month') & missing(future_hh_members`next_month'))
-    replace future_hh_members`month' = future_hh_members`next_month' if (missing(SHHADID`month') & (!missing(future_hh_members`next_month')))
+    gen future_hh_members`month' = residence_members`next_month' if (missing(ERESIDENCEID`month') & missing(future_hh_members`next_month'))
+    replace future_hh_members`month' = future_hh_members`next_month' if (missing(ERESIDENCEID`month') & (!missing(future_hh_members`next_month')))
 }
 
 ********************************************************************************
@@ -76,7 +76,7 @@ forvalues month = $penultimate_month (-1) $first_month {
 **         Some notes on implementation:
 **             The notation " " * strlen(x) creates a string of blanks whose length is the same as
 **                 the length of x.
-**             We loop through overall_max_shhadid_members possible previous household members.  Since the
+**             We loop through overall_max_residence_members possible previous household members.  Since the
 **                 has to work for all observations, we have to loop through the most members any household
 **                 may have.  That's fine because for households with fewer members word(prev_hh_members, n)
 **                 is null for n > the number of prev_hh_members who actually exist for this household.
@@ -106,24 +106,24 @@ label define comp_change          0 "No change"
 gen found_prev_hh_member_in_gap$first_month = ""
 forvalues month = $final_month (-1) $second_month {
     display "Month `month'"
-    gen found_prev_hh_member_in_gap`month' = " " * strlen(prev_hh_members`month') if (missing(SHHADID`month'))
+    gen found_prev_hh_member_in_gap`month' = " " * strlen(prev_hh_members`month') if (missing(ERESIDENCEID`month'))
 
     * This copies the flags we've found so far (from the next month to this one) except of course we don't try to copy
     * anything into the final month since there is no succeeding month.
     if (`month' < $final_month) {
         local next_month = `month' + 1
-        replace found_prev_hh_member_in_gap`month' = found_prev_hh_member_in_gap`next_month' if (missing(SHHADID`next_month'))
+        replace found_prev_hh_member_in_gap`month' = found_prev_hh_member_in_gap`next_month' if (missing(ERESIDENCEID`next_month'))
     }
 
-    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_member = word(prev_hh_members`month', `my_hh_member_num') if (missing(SHHADID`month'))
+    forvalues my_hh_member_num = 1/`=overall_max_residence_members' {
+        gen my_hh_member = word(prev_hh_members`month', `my_hh_member_num') if (missing(ERESIDENCEID`month'))
         replace my_hh_member = "X" if missing(my_hh_member)
 
         * position is computed only if there is a previous member to search for (my_hh_member != "X"),
         * respondent is missing this month, and previous member is found somewhere in this month (the strpos
         * looks for my_hh_member in ssuid_members).
         tempvar position
-        gen `position' = strpos(prev_hh_members`month', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(SHHADID`month')) & (strpos(ssuid_members`month', " " + my_hh_member + " ") != 0))
+        gen `position' = strpos(prev_hh_members`month', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(ERESIDENCEID`month')) & (strpos(ssuid_members`month', " " + my_hh_member + " ") != 0))
 
         * Now if position is set we know we found the member and we know at what position in the string.  
         * Remember that we search for " 102 " when we want to find 102, so the position of the 1 in found_prev_hh_member_in_gap
@@ -143,19 +143,19 @@ forvalues month = $final_month (-1) $second_month {
 gen found_future_hh_member_in_gap$final_month = ""
 forvalues month = $first_month/$penultimate_month {
     display "Month `month'"
-    gen found_future_hh_member_in_gap`month' = " " * strlen(future_hh_members`month') if (missing(SHHADID`month'))
+    gen found_future_hh_member_in_gap`month' = " " * strlen(future_hh_members`month') if (missing(ERESIDENCEID`month'))
 
     * Go ahead and copy what we've found so far (except at the first missing month).
     if (`month' > $first_month) {
         local prev_month = `month' - 1
-        replace found_future_hh_member_in_gap`month' = found_future_hh_member_in_gap`prev_month' if (missing(SHHADID`prev_month'))
+        replace found_future_hh_member_in_gap`month' = found_future_hh_member_in_gap`prev_month' if (missing(ERESIDENCEID`prev_month'))
     }
 
-    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
-        gen my_hh_member = word(future_hh_members`month', `my_hh_member_num') if (missing(SHHADID`month'))
+    forvalues my_hh_member_num = 1/`=overall_max_residence_members' {
+        gen my_hh_member = word(future_hh_members`month', `my_hh_member_num') if (missing(ERESIDENCEID`month'))
         replace my_hh_member = "X" if missing(my_hh_member)
         tempvar position
-        gen `position' = strpos(future_hh_members`month', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(SHHADID`month')) & (strpos(ssuid_members`month', " " + my_hh_member + " ") != 0))
+        gen `position' = strpos(future_hh_members`month', " " + my_hh_member + " ") if ((my_hh_member != "X") & (missing(ERESIDENCEID`month')) & (strpos(ssuid_members`month', " " + my_hh_member + " ") != 0))
         replace found_future_hh_member_in_gap`month' = substr(found_future_hh_member_in_gap`month', 1, `position' - 1) + "1" + substr(found_future_hh_member_in_gap`month', `position' + 1, .) if (!missing(`position'))
         drop my_hh_member
     }
@@ -184,10 +184,10 @@ forvalues month = $first_month/$penultimate_month {
 **=         "Some notes in implementation" in earlier comments in this file.
 ********************************************************************************
 
-// first a quick loop to fill in missing values of max_shhadid_members*
+// first a quick loop to fill in missing values of max_residence_members*
 
 forvalues month=$first_month/$final_month {
-    egen max_shhadid_members`month'= max(mx_shhadid_members`month')
+    egen max_residence_members`month'= max(mx_residence_members`month')
 }
 
 forvalues month = $first_month/$penultimate_month {
@@ -208,30 +208,30 @@ forvalues month = $first_month/$penultimate_month {
     ** Section:  Compute composition change when respondent is present in adjacent months.
     ********************************************************************************
 
-    *** If we have data in both months, just compare HH members (strings shhadid_members this month compared to shhadid_members next month).
-    replace comp_change`month' = (shhadid_members`month' != shhadid_members`next_month') if ((!missing(SHHADID`month')) & (!missing(SHHADID`next_month')))
-    replace comp_change_reason`month' = 1 if ((shhadid_members`month' != shhadid_members`next_month') & (!missing(SHHADID`month')) & (!missing(SHHADID`next_month')))
-    gen comp_change_case = ((shhadid_members`month' != shhadid_members`next_month') & (!missing(SHHADID`month')) & (!missing(SHHADID`next_month')))
+    *** If we have data in both months, just compare HH members (strings residence_members this month compared to residence_members next month).
+    replace comp_change`month' = (residence_members`month' != residence_members`next_month') if ((!missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')))
+    replace comp_change_reason`month' = 1 if ((residence_members`month' != residence_members`next_month') & (!missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')))
+    gen comp_change_case = ((residence_members`month' != residence_members`next_month') & (!missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')))
 
     display "Computing comp change for months with adjacent data"
     * Since we have adjacent data, you're a leaver if you're in this HH but not the next and a stayer otherwise.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`month'' {
-        gen my_hh_member = word(shhadid_members`month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`month'' {
+        gen my_hh_member = word(residence_members`month', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace leavers`month' = leavers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`next_month', " " + my_hh_member + " ") == 0))
-        replace stayers`month' = stayers`month' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(shhadid_members`next_month', " " + my_hh_member + " ") != 0))
+        replace leavers`month' = leavers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(residence_members`next_month', " " + my_hh_member + " ") == 0))
+        replace stayers`month' = stayers`month' + my_hh_member + " " if ((comp_change_case == 1) & (strpos(residence_members`next_month', " " + my_hh_member + " ") != 0))
 
         drop my_hh_member
     }
 
     * Since we have adjacent data, you're an arriver if you're in the next HH but not this one.  We already took care of stayers.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`next_month'' {
-        gen my_hh_member = word(shhadid_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`next_month'' {
+        gen my_hh_member = word(residence_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace arrivers`month' = arrivers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`month', " " + my_hh_member + " ") == 0))
+        replace arrivers`month' = arrivers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(residence_members`month', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
@@ -259,8 +259,8 @@ forvalues month = $first_month/$penultimate_month {
     display "Computing comp change for non-infant ego's first month."
     * We look at the "gap" from first month to this month to see if anyone from the future HH shows up and set changes accordingly.
     * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume ego and other were already together.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`next_month'' {
-        gen my_hh_member = word(shhadid_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`next_month'' {
+        gen my_hh_member = word(residence_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
         gen my_pos = strpos(future_hh_members`month', " " + my_hh_member + " ") if (comp_change_case == 1)
@@ -280,15 +280,15 @@ forvalues month = $first_month/$penultimate_month {
     * Again, we also need to populate age and weight from the next month since ego has no data in this month.
 	*******************************************************************************
 	
-    replace comp_change`month' = 1 if ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
-    replace comp_change_reason`month' = 3 if ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
-    gen comp_change_case = ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
+    replace comp_change`month' = 1 if ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
+    replace comp_change_reason`month' = 3 if ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
+    gen comp_change_case = ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (`next_month' > my_first_month) & (indexnot(found_future_hh_member_in_gap`month', " ") != 0))
     replace adj_age`month' = adj_age`next_month' if (comp_change_case == 1)
     replace WPFINWGT`month' = WPFINWGT`next_month' if (comp_change_case == 1)
 
     * For anyone we see in the "gap" they arrive from our perspective.  Others we don't know so we assume ego and other were already together.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`next_month'' {
-        gen my_hh_member = word(shhadid_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`next_month'' {
+        gen my_hh_member = word(residence_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
         gen my_pos = strpos(future_hh_members`month', " " + my_hh_member + " ") if (comp_change_case == 1)
@@ -307,13 +307,13 @@ forvalues month = $first_month/$penultimate_month {
     * during which ego is missing as we look forward.
 	*******************************************************************************
     
-	replace comp_change`month' = 1 if ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
-    replace comp_change_reason`month' = 4 if ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
-    gen comp_change_case = ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
+	replace comp_change`month' = 1 if ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
+    replace comp_change_reason`month' = 4 if ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
+    gen comp_change_case = ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") != 0))
 
     * For anyone we see in the "gap" they depart from our perspective.  Others we don't know so we assume we stay together.
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`month'' {
-        gen my_hh_member = word(shhadid_members`month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`month'' {
+        gen my_hh_member = word(residence_members`month', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
         gen my_pos = strpos(prev_hh_members`next_month', " " + my_hh_member + " ") if (comp_change_case == 1)
@@ -335,13 +335,13 @@ forvalues month = $first_month/$penultimate_month {
 	* future household as if we move into the future household in the first missing month. 
 	* If there there is no future HH (ego's last appearance) we don't code a household change.
 	******************************************************************************
-    replace comp_change`month' = (shhadid_members`month' != future_hh_members`next_month') if ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
-    replace comp_change_reason`month' = 5 if ((shhadid_members`month' != future_hh_members`next_month') & (!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
+    replace comp_change`month' = (residence_members`month' != future_hh_members`next_month') if ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
+    replace comp_change_reason`month' = 5 if ((residence_members`month' != future_hh_members`next_month') & (!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
 
-    gen comp_change_case = ((shhadid_members`month' != future_hh_members`next_month') & (!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
+    gen comp_change_case = ((residence_members`month' != future_hh_members`next_month') & (!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (indexnot(future_hh_members`next_month', " ") != 0) & (indexnot(found_prev_hh_member_in_gap`next_month', " ") == 0) & (indexnot(found_future_hh_member_in_gap`next_month', " ") == 0))
 
-    forvalues my_hh_member_num = 1/`=max_shhadid_members`month'' {
-        gen my_hh_member = word(shhadid_members`month', `my_hh_member_num') if (comp_change_case == 1)
+    forvalues my_hh_member_num = 1/`=max_residence_members`month'' {
+        gen my_hh_member = word(residence_members`month', `my_hh_member_num') if (comp_change_case == 1)
         * This is a bit lazy but prevents having to check for missing my_hh_member in all the places below, so overall it's easier to read.
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
@@ -351,18 +351,18 @@ forvalues month = $first_month/$penultimate_month {
         drop my_hh_member
     }
 
-    forvalues my_hh_member_num = 1/`=overall_max_shhadid_members' {
+    forvalues my_hh_member_num = 1/`=overall_max_residence_members' {
         gen my_hh_member = word(future_hh_members`next_month', `my_hh_member_num') if (comp_change_case == 1)
         replace my_hh_member = "XXXX" if missing(my_hh_member)
 
-        replace arrivers`month' = arrivers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(shhadid_members`month', " " + my_hh_member + " ") == 0))
+        replace arrivers`month' = arrivers`month' + my_hh_member + " " if ((comp_change_case == 1) & (my_hh_member != "XXXX") & (strpos(residence_members`month', " " + my_hh_member + " ") == 0))
 
         drop my_hh_member
     }
 
 
     * We set comp_change to zero if ego was present this month and this is not ego's last month.
-    replace comp_change`month' = 0 if (missing(comp_change`month') & (!missing(SHHADID`month') & (`month' != my_last_month)))
+    replace comp_change`month' = 0 if (missing(comp_change`month') & (!missing(ERESIDENCEID`month') & (`month' != my_last_month)))
 	
 	replace comp_change_reason`month'=. if missing(comp_change`month')
 

@@ -177,9 +177,9 @@ save "$tempdir/person_wide_adjusted_ages", $replace
 
 keep SSUID PNUM EMS* ERELRP* WPFINWGT* EORIGIN* EPAR1TYP* EPAR2TYP* my_race ///
 my_racealt my_sex mom_educ* dad_educ* adj_age* mom_age* ///
-biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ///
-ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure ///
-check fill TAGE* THTOTINC* TFTOTINC* educ* dropout* RHNUMPERWT2*
+biomom_age* biomom_educ* dad_age* biodad_age* innext*  ///
+biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure ///
+check fill TAGE* THTOTINC* TFTOTINC* educ* dropout* RHNUMPERWT2* ERESIDENCEID*
 
 
 forvalues month=$first_month/$penultimate_month{
@@ -193,7 +193,7 @@ gen dropoutnw49=.
 
 save "$SIPP14keep/demo_wide_am.dta", $replace
 
-reshape long adj_age EMS ERELRP WPFINWGT EORIGIN EPAR1TYP EPAR2TYP mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE THTOTINC TFTOTINC educ dropout dropoutnw everdropout RHNUMPERWT2, i(SSUID PNUM) j(panelmonth)
+reshape long adj_age EMS ERELRP WPFINWGT EORIGIN EPAR1TYP EPAR2TYP mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext  TAGE THTOTINC TFTOTINC educ dropout dropoutnw everdropout RHNUMPERWT2 ERESIDENCEID, i(SSUID PNUM) j(panelmonth)
 
 label variable adj_age "Adjusted Age"
 label variable innext "Is this person interviewed in next month?"
@@ -202,12 +202,8 @@ tab adj_age check
 
 tab adj_age fill
 
-* now includes all observations, even when missing interview. ERRP is missing when no interview.
-tab ERELRP,m 
-
-* most important for linking to arrivers who have missing data 
 save "$SIPP14keep/demo_long_all_am", $replace
 
-drop if missing(ERELRP)
+drop if missing(TAGE)
 
 save "$SIPP14keep/demo_long_interviews_am", $replace

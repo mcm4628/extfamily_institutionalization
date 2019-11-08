@@ -14,15 +14,23 @@ forvalues wave=1/4 {
 	rfamrefwt2 thtotinc eresidenceid einttype pnum  ///
 	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid rged ///
 	renroll eedgrade rhnumper rhnumperwt2 eresidenceid rrel* rrel_pnum*
-	
+
+        drop rrelig // an rrel* variable I didn't intend to grab
+
+        replace eresidenceid=subinstr(eresidenceid,"A","1",.)
+        replace eresidenceid=subinstr(eresidenceid,"B","2",.)
+        replace eresidenceid=subinstr(eresidenceid,"C","3",.)
+        replace eresidenceid=subinstr(eresidenceid,"D","4",.)
+        replace eresidenceid=subinstr(eresidenceid,"E","5",.)
+        replace eresidenceid=subinstr(eresidenceid,"F","6",.)
+        
 	destring pnum, replace
+        destring eresidenceid, replace
 	rename *, upper
 	
      rename SWAVE swave
      gen panelmonth=MONTHCODE+(12*(`wave'-1))
 
-     drop rrelig // an rrel* variable I didn't intend to grab
-        
 	save "$SIPP14keep/wave`wave'_extract", $replace
 }
 
@@ -30,28 +38,21 @@ forvalues wave=1/4 {
 
 clear
 
-* note: doing wave 1 seperately to get the et2_rel variables that were discontinued in subsequent waves
-set maxvar 5500
-use "$SIPP2014/pu2014w1_compressed"
-keep ssuid pnum eresidenceid monthcode swave et2_lno* et2_mth* et2_sex* tt2_age* et2_rel*
-
-destring pnum, replace
-rename *, upper
-
-rename SWAVE swave
-gen panelmonth=MONTHCODE
-
-save "$SIPP14keep/wave1_type2_extract", $replace
-
-clear
-
-forvalues wave=2/4 {
+forvalues wave=1/4 {
         clear
 	set maxvar 5500
 	use "$SIPP2014/pu2014w`wave'_compressed"
-	keep ssuid pnum eresidenceid monthcode swave et2_lno* et2_mth* et2_sex* tt2_age* rrel* rrel_pnum*
-	
+	keep ssuid pnum eresidenceid monthcode swave et2_lno* et2_mth* et2_sex* tt2_age* rrel* rrel_pnum* tage
+
+        replace eresidenceid=subinstr(eresidenceid,"A","1",.)
+        replace eresidenceid=subinstr(eresidenceid,"B","2",.)
+        replace eresidenceid=subinstr(eresidenceid,"C","3",.)
+        replace eresidenceid=subinstr(eresidenceid,"D","4",.)
+        replace eresidenceid=subinstr(eresidenceid,"E","5",.)
+        replace eresidenceid=subinstr(eresidenceid,"F","6",.)
+       
 	destring pnum, replace
+        destring eresidenceid, replace
 	rename *, upper
 	
      rename SWAVE swave
