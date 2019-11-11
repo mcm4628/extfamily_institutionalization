@@ -94,13 +94,14 @@ tab from_age pairtype
 
 recode RREL (1=1)(2=2)(3=1)(4=2)(5/19=.), gen(relationship) 
 replace relationship=RREL+2 if RREL >=9 & RREL <=13 // bump rarer codes up to make room for common ones
+replace relationship=16 if RREL==14 | RREL==15 // combine in-law categories
 replace relationship=RREL+1 if RREL >=16 & RREL <=19 // bump rarer codes up to make room for common ones
 replace relationship=3 if RREL==5 & to_age < from_age // parents must be older than children
 replace relationship=4 if RREL==5 & to_age > from_age
 replace relationship=5 if RREL==6 & to_age < from_age // Step
-replace relationship=6 if RREL==6 & to_age > from_age
+replace relationship=6 if RREL==6 & to_age > from_age // There are a small number of cases where ages are equal
 replace relationship=7 if RREL==7 & to_age < from_age // Adoptive
-replace relationship=8 if RREL==7 & to_age > from_age
+replace relationship=8 if RREL==7 & to_age > from_age // There are a small number of cases where ages are equal
 replace relationship=9 if RREL==8 & to_age < from_age // Grand
 replace relationship=10 if RREL==8 & to_age > from_age
 

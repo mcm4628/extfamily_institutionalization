@@ -9,7 +9,6 @@
 //==============================================================================
 
 use "$tempdir/person_wide_adjusted_ages", clear
-
 * drop demographic data 
 drop my_race* my_sex* EMS* EPNPAR2* EPNPAR1* EPNSPOUSE* ERELRP* EPAR1TYP* EPAR2TYP* mom* dad* bio*
 
@@ -190,6 +189,8 @@ forvalues month=$first_month/$final_month {
     egen max_residence_members`month'= max(mx_residence_members`month')
 }
 
+// The real work of creating comp_change begins
+
 forvalues month = $first_month/$penultimate_month {
     local next_month = `month' + 1
 
@@ -199,7 +200,7 @@ forvalues month = $first_month/$penultimate_month {
     gen comp_change`month' = .
     gen comp_change_reason`month' = 0
 
-	gen leavers`month' = " "
+    gen leavers`month' = " "
     gen arrivers`month' = " "
     gen stayers`month' = " "
 
@@ -225,6 +226,7 @@ forvalues month = $first_month/$penultimate_month {
 
         drop my_hh_member
     }
+
 
     * Since we have adjacent data, you're an arriver if you're in the next HH but not this one.  We already took care of stayers.
     forvalues my_hh_member_num = 1/`=max_residence_members`next_month'' {
