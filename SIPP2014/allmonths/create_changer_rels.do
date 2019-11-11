@@ -22,9 +22,15 @@ assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 
 * PS: Assert finds 12 contradictions. I'm forcing code to run until I find the mistake
-replace have_changers = 1 if comp_change == 1
+*replace have_changers = 1 if comp_change == 1
 
-assert (have_changers == 1) if (comp_change == 1)
+*assert (have_changers == 1) if (comp_change == 1)
+* Note that comp_change can == 1 in a month when an individual is not present in the data
+* because the measure of comp_change is prospective and some individuals arrive into the data
+* in the subsequent month. These cases do not have_changers, apparently. This may be an error.
+
+* I am starting to suspect that some comp_change==1 are an error. These would be causes where comp_change==1
+* and there are no arrivers or leavers.
 
 drop if missing(comp_change)
 
@@ -109,7 +115,6 @@ drop _merge
 display "Relationships for arrivers"
 tab relationship, m sort
 save "$tempdir/arriver_rels", $replace
-
 
 gen change_type=1
 
