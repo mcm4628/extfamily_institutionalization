@@ -13,7 +13,7 @@ keep if SREFMON == ${refmon}
 
 ** Append the first wave with waves from the second to last, also keep only observations from the reference month. 
 forvalues wave = $second_wave/$final_wave {
-    append using "$SIPP2008/wave`wave'_extract"
+    append using "$SIPP08keep/wave`wave'_extract"
     keep if SREFMON == ${refmon} 
 }
 
