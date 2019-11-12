@@ -3,21 +3,6 @@
 //===== Dataset: SIPP2014
 //===== Purpose: Executes do files to create core datafiles:
 //===== 
-*****************Code and data location macros ************************************
-*****************often these are in setup file, but they make more sense here *****
-
-* This is the location of the SIPP original data
-global SIPP2014 "/data/sipp/2014"
-
-*This is the location of the SIPP Extracts and analysis files
-global SIPP14keep "$homedir/data/SIPP2014/"
-
-* This is where logfiles produced by stata will go
-global sipp2014_logs "$homedir/projects/childhh/logs"
-
-* This is the location of the code
-
-global childhh_base_code "~/github/childhh/SIPP2014/allmonths"
 
 //=========================================================================//
 //== Purpose: Preparation for running the program.
@@ -44,7 +29,7 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
-do "$childhh_base_code/project_macros" /* this do-file contains macros of wave, age, month, relationships */
+do "$sipp2014_code/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
@@ -78,7 +63,7 @@ if `r(confirmdir)' {
 * Execute scripts to process data.
 ********************************************************************************
 ** Extracts data from NBER download and formats it for our scripts
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" extract_and_format
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" merge_waves  
@@ -93,6 +78,9 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" convert_to_
 ** Makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
 * Also produces demo_wide and demo_long data files
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" normalize_ages 
+
+** Creates matched demographic info file for all coresident pairs of type 1 people 
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" allpairs
 
 ** Computes biderectional base relationships (mom, dad, child, spouse) 
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_relationships 

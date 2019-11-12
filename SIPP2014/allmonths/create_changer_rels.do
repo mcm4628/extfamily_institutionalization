@@ -21,20 +21,6 @@ tab comp_change have_changers
 assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 
-<<<<<<< HEAD
-=======
-* PS: Assert finds 12 contradictions. I'm forcing code to run until I find the mistake
-*replace have_changers = 1 if comp_change == 1
-
-*assert (have_changers == 1) if (comp_change == 1)
-* Note that comp_change can == 1 in a month when an individual is not present in the data
-* because the measure of comp_change is prospective and some individuals arrive into the data
-* in the subsequent month. These cases do not have_changers, apparently. This may be an error.
-
-* I am starting to suspect that some comp_change==1 are an error. These would be causes where comp_change==1
-* and there are no arrivers or leavers.
-
->>>>>>> 0185063a7eb89fdaa6e16d8a2a12404cc4c24dc4
 drop if missing(comp_change)
 drop if (comp_change == 0)
 

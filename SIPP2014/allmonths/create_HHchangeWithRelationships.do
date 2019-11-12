@@ -23,6 +23,7 @@ keep SSUID PNUM panelmonth comp_change hh_change addr_change
 * changer_rels includes no records for individuals who experienced no composition change in the month
 * we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
+
 merge 1:m SSUID PNUM panelmonth using "$tempdir/changer_rels", keepusing(relationship ///
 parent sibling biosib halfsib stepsib grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
@@ -31,10 +32,12 @@ yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive 
 adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive) 
 
 * be sure that all cases with a comp_change were found in changer_rels
+gen err=0 if comp_change == 1
+replace err=1 if _merge !=3 & comp_change == 1
+egen error=mean(err)
 
-** PS: Again, there 12 contradictions - forcing code to run
-drop if _merge!=3 & comp_change==1
-assert _merge==3 if comp_change==1
+* we will tolerate less than .5% without changers identified on either have_arrivers or have_leavers
+assert error < .005  
 
 drop _merge
 
@@ -116,7 +119,7 @@ replace otheradult2_leave=0 if missing(otheradult2_leave) & !missing(comp_change
 
 replace infant_arrive=0 if missing(infant_arrive) & !missing(comp_change)
 
-label variable comp_change "Household composition changed bewteen this month and the next"
+label variable comp_change "Household composition changed between this month and the next"
 label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
 label variable sib_change "Started or stopped living with a (full/half/step) sibling entered or left household"
 label variable biosib_change "Started or stopped living with a full sibling entered or left household"
