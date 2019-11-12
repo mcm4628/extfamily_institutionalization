@@ -1,0 +1,13 @@
+SIPP 2014 allmonths analysis create_HHchangeWithRelationships.do does not get enough parent_change hits
+
+I've got 19604 parent==1 out of 134362 composition changes. that's fine except that many many more are other relative and non-relative. I don't trust these measures. Who are these "other siblings"? 
+
+SIPP 2008 allmonths analysis needs to fix my_first_month to be first month of coresidence and then check merges work correctly.
+
+I'm trying to get to a point where I have defensible estimates of children's household instability across time by maternal/parental education.
+
+Also want to be able to break down sibling change by type of sibling.
+
+fix do_all files to clean up temp files.
+
+fix setup file so that all the directories make sense
