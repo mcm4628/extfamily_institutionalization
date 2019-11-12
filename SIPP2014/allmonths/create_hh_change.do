@@ -139,7 +139,7 @@ drop _merge
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
 
-gen inmonth = !missing(ERELRP)
+gen inmonth = !missing(ERESIDENCEID)
 
 gen insample=0
 * Keep if in this month and next
