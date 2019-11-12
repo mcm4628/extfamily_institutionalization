@@ -5,7 +5,7 @@
 * The RREL variables RREL1-RREL20 are for type 1 persons and RREL21-RREL30 are for type 2 persons
 
 * Create a file with demographic information on type 2 people because it isn't in allpairs
-/*
+
 use "$SIPP14keep/allmonths14_type2.dta", clear
 
 keep SSUID ERESIDENCEID panelmonth PNUM ET2_LNO* ET2_SEX* TT2_AGE* TAGE
@@ -62,8 +62,8 @@ rename PNUM from_num
 rename RREL_PNUM to_num
 
 save "$tempdir/rel_pairs_bymonth", $replace
-*/
-use "$tempdir/rel_pairs_bymonth", clear
+
+**use "$tempdir/rel_pairs_bymonth", clear
 
 merge 1:1 SSUID ERESIDENCEID panelmonth from_num to_num using "$tempdir/allpairs"
 * all in rel_pairs are matched in allpairs, but not vice versa.

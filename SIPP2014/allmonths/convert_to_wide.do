@@ -11,6 +11,26 @@ use "$SIPP14keep/allmonths14", clear
 merge m:1 SSUID ERESIDENCEID panelmonth using "$tempdir/residence_members" 
 assert _merge == 3
 drop _merge
+*****************************************************************************
+* Section: create a dummy for whether the individual is coresiding with any original
+*          sample member to be able to drop observations that aren't
+*****************************************************************************
+
+gen with_original=0
+replace with_original=1 if PNUM >=101 & PNUM <=120 // original sample member
+
+tab with_original
+
+forvalues n=101/120 {
+    replace with_original = strpos(residence_members, " `n' ") if with_original==0 // if you find n in the list of residence members, set with_original equal to 1
+}
+
+tab with_original
+
+
+replace with_original=1 if with_original > 1
+
+tab with_original
 
 ********************************************************************************
 * Section: create variables describing mother's and father's education and mother's
@@ -96,7 +116,7 @@ replace dropout=1 if RENROLL==3 & educ < 2
 
 local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
-local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ dropout"
+local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ dropout with_original"
 
 local extra_vars "overall_max_residence_members"
 
@@ -254,7 +274,7 @@ forvalues month = $second_month/$final_month {
 
 gen my_first_month = ${final_month} if (!missing(ERESIDENCEID${final_month}))
 forvalues month = $penultimate_month (-1) $first_month {
-    replace my_first_month = `month' if (!missing(ERESIDENCEID`month'))
+    replace my_first_month = `month' if (!missing(ERESIDENCEID`month')) & with_original`month'==1
 }
 
 drop ERACE* race* ESEX*

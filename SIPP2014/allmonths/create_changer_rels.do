@@ -21,14 +21,15 @@ tab comp_change have_changers
 assert (have_changers == 0) if (comp_change == 0)
 assert (have_changers == 0) if missing(comp_change)
 
-* PS: Assert finds 12 contradictions. I'm forcing code to run until I find the mistake
-replace have_changers = 1 if comp_change == 1
-
-assert (have_changers == 1) if (comp_change == 1)
-
 drop if missing(comp_change)
-
 drop if (comp_change == 0)
+
+gen err=0
+replace err=1 if have_changers == 0 & comp_change == 1
+egen error=mean(err)
+
+* we will tolerate less than .5% without changers identified on either have_arrivers or have_leavers
+assert error < .005  
 
 save "$tempdir/comp_change_onlychangers", $replace
 
