@@ -49,11 +49,13 @@ gen someonearrived=0 if !missing(comp_change)
 replace someonearrived=1 if change_type==1
 replace someoneleft=1 if change_type==2
 
+gen bioparent_change=1 if comp_change==1 & bioparent==1
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
 gen biosib_change=1 if comp_change==1 & biosib==1
 gen halfsib_change=1 if comp_change==1 & halfsib==1
 gen stepsib_change=1 if comp_change==1 & stepsib==1
+gen child_change=1 if comp_change==1 & child==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 gen nonparent_change=1 if comp_change==1 & parent!=1
 gen gp_change=1 if comp_change==1 & grandparent==1
@@ -62,8 +64,8 @@ gen otherrel_change=1 if comp_change==1 & other_rel==1
 gen foster_change=1 if comp_change==1 & foster==1 		// tiny
 gen allelse_change=1 if comp_change==1 & allelse==1
 
-collapse (max) comp_change parent_change sib_change biosib_change ///
-halfsib_change stepsib_change other_change nonparent_change gp_change ///
+collapse (max) comp_change bioparent_change parent_change sib_change biosib_change ///
+halfsib_change stepsib_change child_change other_change nonparent_change gp_change ///
 nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
@@ -78,7 +80,7 @@ drop _merge
 * unable to infer comp_change. insample is generated at the end of create_hh_change.do
 keep if insample !=0
 
-local reltyp "parent sib other nonparent gp nonrel otherrel foster allelse"
+local reltyp "bioparent parent sib biosib halfsib stepsib child other nonparent gp nonrel otherrel foster allelse"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{
@@ -167,7 +169,7 @@ label define yesno   0 "No" 1 "Yes"
 label define insample 0 "Not in sample" 1 "In this month and the next" 2 "Inferred Composition Change" 3 "Only Address Change"
 label define momeasure 0 "Never lived with parent" 1 "Biological Mother" 2 "Other Mother" 3 "Father"
 
-local changevars "comp_change parent_change sib_change other_change nonparent_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave otheradult2_arrive otheradult2_leave infant_arrive innext hh_change inmonth"
+local changevars "comp_change bioparent_change parent_change sib_change child_change other_change nonparent_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave otheradult2_arrive otheradult2_leave infant_arrive innext hh_change inmonth"
 
 foreach v in `changevars' {
 	label values `v' yesno

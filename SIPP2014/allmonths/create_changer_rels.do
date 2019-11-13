@@ -69,7 +69,7 @@ use "$tempdir/hh_leavers", clear
 drop if missing(leaver)
 gen from_num = PNUM
 destring leaver, gen(to_num)
-merge 1:1 SSUID from_num to_num panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship)
+merge 1:1 SSUID from_num to_num panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship to_age from_age)
 	
 display "deleting relationships to self"
 assert from_num!=to_num
