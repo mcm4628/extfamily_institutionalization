@@ -108,3 +108,15 @@ do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_HHch
 ** households of children, need to collapse by SSUID SHHADID and SWAVE and then select if adj_age < 18
 do "$childhh_base_code/do_and_log" "$sipp2008_code" "$sipp2008_logs" create_HHComp_asis_am
 
+******************************
+* Clean up temporary directory
+******************************
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"
