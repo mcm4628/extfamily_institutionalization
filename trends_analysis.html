@@ -1,0 +1,41 @@
+<p>The overarching aim of this document is to conduct and present analyses describing children&rsquo;s household instability over time. These analysis will describe overall trends as well as variation by &ldquo;parental&rdquo; education and race-ethnicity.</p>
+<p>But a presentation of trends is complicated by a couple of concerns. First, there is substantial sample attrition as panels age and we suspect that this attrition is more severe for individuals with a greater tendency for household instability. Thus we must conduct within panel analyses to evaluate this possibility. Second, the 2014 panel uses an innovative approach that could affect the quality of measurement of children&rsquo;s household instability. We address these potential measurement concerns first because they affect our approach to describing trends over time.</p>
+<p>The first order of business is to evaluate data from the 2004, 2008, and 2014 panels independently to see if we find evidence that instability declines systematically as panels age. If we find that sort of trend, it could suggest that sample attrition downwardly biases estimates of children&rsquo;s household instability. But it might not be error; it could be that children&rsquo;s household instability is really declining over time.</p>
+<p>We start with the 2014 data on all months and select observations less than age 18.</p>
+<pre><code></code></pre>
+<p>We collapse by age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month by wave, which is the same as year in 2014.</p>
+<pre><code>
+Next we sum across all months in each wave to get an annual transition rate. 
+
+</code></pre>
+<pre><code>
+And then sum across all ages to get a cumulative number of transitions before 18th bithday.
+
+</code></pre>
+<pre><code>
+These are estimates of the total amount of instability by 18th birthday estimated from the whole 2008 panel
+           all comp parent sibling other nonparent grand nonrel otherrel
+2013      8.4  6.0  0.0   2.0      4.3    6.0   0.0     1.1    1.6 
+2014      9.5  7.0  0.0   2.3      5.3    7.0   0.0     1.3    2.3 
+2015      8.3  6.7  0.0   2.5      4.8    6.7   0.0     1.2    2.1 
+2016      6.3  4.8  0.0   1.6      3.5    4.8   0.0     0.9    1.6
+
+Instability rates are highest in 2014. We expected this. Household composition in 2013 is captured in the first (wave 1) interview conducted in 2014. During the interview individuals are asked about people they lived with throughout the year, not just those they are coresiding with at the time of the interview. Former household members present during the reference period but not in the household at the time of the interview are called &quot;type 2&quot; individuals. They don't have their own record in the data, but we capture their coming and going as they appear on strings of household members. An initial analysis of these data showed more people coming into the house over the year than leaving, which suggests that type 2 people are underreported. This would mean that measures of household instability in the first wave/year are downwardly biased. The second wave might also be downwardly biased, but at least we have a record of who was in the household at the start of the year and we count them as contributing to household instability over the year if they aren't recorded in the household during the wave 2 reference period (i.e. in 2014). After the second wave, selective sample attrition likely downwardly biases the measure of household instability even further. 
+
+Note: Parent instability appears to be broken. 
+
+Now do the same for 2008.
+
+</code></pre>
+<pre><code>
+We collapse by age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month.
+
+</code></pre>
+<p>Next we sum across all months in each wave and multiply by 3 to get an annual transition rate. There would be an alternative way where we originally sum by year (as we do for 2014). I don&rsquo;t think it will ever make sense to do that by actual calendar year because different rotations have their first observation in different months and there is a tendency to have more instability in the last month of the reference period. Thus we sum by wave to get a four-month estimate of instability. We could sum by a calculated year rather than multiply by three and then aggregate these by year.</p>
+<pre><code></code></pre>
+<p>Then create estimates by year.</p>
+<pre><code></code></pre>
+<p>These are estimates of the total amount of instability by 18th birthday estimated from the whole 2008 panel</p>
+<pre><code>       all comp parent sibling other nonparent grand nonrel otherrel
+</code></pre>
+<p>2009      6.9  5.0  1.1   1.8      2.7    4.3   0.6     1.0    1.4 2010      8.2  5.7  1.4   2.0      3.0    4.8   0.7     1.0    1.6 2011      7.5  5.3  1.3   1.9      2.8    4.5   0.7     1.0    1.4 2012      7.1  5.0  1.2   1.8      2.6    4.2   0.7     0.7    1.5</p>
