@@ -9,6 +9,18 @@
 //== 
 //== Note: This program requires the mdesc and confirmdir packages. If you do not have this, type ssc install mdesc/confirmdir before running.
 //=========================================================================//
+* make sure temporary directory is clean
+
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"
+
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
 ***************************************************************************

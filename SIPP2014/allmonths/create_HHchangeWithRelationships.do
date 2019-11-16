@@ -25,7 +25,7 @@ keep SSUID PNUM panelmonth comp_change hh_change addr_change
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
 
 merge 1:m SSUID PNUM panelmonth using "$tempdir/changer_rels", keepusing(relationship ///
-parent sibling biosib halfsib stepsib grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
+bioparent parent sibling biosib halfsib stepsib grandparent nonrel child other_rel foster allelse adult_arrive adult_leave ///
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave change_type ///
 yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive ///
