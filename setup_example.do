@@ -23,7 +23,7 @@ global SIPP2008tm "/data/sipp/2008_TM/StataData"
 global SIPP2008 "$homedir/data/SIPP2008/childhh"
 
 * This is the location of the do files.  
-global sipp2008_code "$childhh_base_code/SIPP2008"
+global sipp2008_code "$childhh_base_code/SIPP2008/allmonths"
 
 * This is where logfiles produced by stata will go
 global sipp2008_logs "$homedir/projects/childhh/logs"
@@ -41,7 +41,7 @@ global SIPP2004tm "/data/sipp/2004_TM/StataData"
 global SIPP2004 "$homedir/data/SIPP2004/childhh"
 
 * This is the location of the do files.  
-global sipp2004_code "$childhh_base_code/SIPP2004"
+global sipp2004_code "$childhh_base_code/SIPP2004/allmonths"
 
 * This is where logfiles produced by stata will go
 global sipp2004_logs "$homedir/projects/childhh/logs"
@@ -53,13 +53,13 @@ global SIPP04keep "$homedir/projects/childhh/data/keep/2004"
 
 * This is the location of the SIPP original data
 global SIPP2001Core "/data/sipp/2001_Core/StataData"
-global SIPP2001tm "/data/sipp/2001_TM/StataData"
+global SIPP2001tm "~/data/SIPP2001/childhh"
 
 * This is the location of the SIPP Extracts for the childhh project
 global SIPP2001 "$homedir/data/SIPP2001/childhh"
 
 * This is the location of the do files.  
-global sipp2001_code "$childhh_base_code/SIPP2001"
+global sipp2001_code "$childhh_base_code/SIPP2001/allmonths"
 
 * This is where logfiles produced by stata will go
 global sipp2001_logs "$homedir/projects/childhh/logs"
