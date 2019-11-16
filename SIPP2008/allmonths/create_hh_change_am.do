@@ -128,7 +128,7 @@ reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID
 
 merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_all_am.dta"
 
-drop if panelmonth > 60
+drop if panelmonth > $finalmonth
 
 assert _merge==3
 
