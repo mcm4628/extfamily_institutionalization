@@ -1,25 +1,28 @@
-The purppose of this document is to conduct and present analyses describing children's household instability over time. These analysis will describe overall trends. A separate analysis will investigate variation by "parental" education and race-ethnicity.
+The purpose of this document is to conduct and present analyses describing children's household instability over time. These analysis will describe overall trends. A separate analysis will investigate variation by "parental" education and race-ethnicity.
 
-A presentation of trends is complicated by a couple of concerns. First, there is substantial sample attrition as panels age and we suspect that this attrition is more severe for individuals with a greater tendency for household instability. Thus we must conduct within panel analyses to evaluate this possibility. Second, the 2014 panel uses an innovative approach that could affect the quality of measurement of children's household instability. We address these potential measurement concerns first because they affect our approach to describing trends over time.
+A presentation of trends is complicated by a couple of concerns. First, there is substantial sample attrition as panels age and we suspect that this attrition is more severe for individuals with a greater tendency for household instability. Thus we conduct within panel analyses to evaluate this possibility. Second, the 2014 panel uses an innovative approach that could affect the quality of measurement of children's household instability. We address these potential measurement concerns first because they affect our approach to describing trends over time.
 
-The first order of business is to evaluate data from the 2004, 2008, and 2014 panels independently to see if we find evidence that instability declines systematically as panels age. If we find that sort of trend, it could suggest that sample attrition downwardly biases estimates of children's household instability. But it might not be error; it could be that children's household instability is really declining over time. 
+To begin, we evaluate data from the 2004, 2008, and 2014 panels independently to see if we find evidence that instability declines systematically as panels age. If we find that sort of trend, it could suggest that sample attrition downwardly biases estimates of children's household instability. But it might not be error; it could be that children's household instability is really declining over time. We will evaluate that possibility, as best we can, as well.
 
-We start with the 2014 data on all months and select observations less than age 18.
+Start with the 2014 data on all months and select observations who are not adults.
 
 ~~~~
 <<dd_do: quietly>>
 
 use "$SIPP14keep/HHchangeWithRelationships_am.dta", clear
 
+global adult_age 18 // set a macro so that we can easily change the age cutoff 
+
 drop if missing(ERESIDENCEID)
 
-keep if adj_age < 18
+keep if adj_age < $adult_age
 
 <</dd_do>>
 ~~~~
 
 We collapse by age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month by wave, which is the same as year in 2014.
 
+~~~~
 <<dd_do: quietly>>
 
 gen swave=floor((panelmonth+11)/12)
@@ -41,7 +44,7 @@ collapse (sum) hh_change comp_change parent_change sib_change other_change nonpa
 <</dd_do>>
 ~~~~
 
-And then sum across all ages to get a cumulative number of transitions before 18th bithday.
+And then sum across all ages to get a cumulative number of transitions before "$adult_age"th bithday.
 
 ~~~~
 <<dd_do: quietly>>
@@ -54,11 +57,13 @@ mkmat hh_change comp_change parent_change sib_change gp_change nonrel_change, ma
 matrix rownames byear14 = "2013" "2014" "2015" "2016"
 matrix colnames byear14 = "all" "comp" "par" "sib" "grndp" "nonrel" 
 <</dd_do>>
+~~~~
+
 
 ~~~~
 <<dd_do>>
 
-matlist byear14, format(%6.1f) title(These are estimates of the total amount of instability by 18th birthday estimated from the 2014 SIPP panel) rowtitle(year)
+matlist byear14, format(%6.1f) title(These are estimates of the total amount of instability by "$adult_age"th birthday estimated from the 2014 SIPP panel) rowtitle(year)
 
 
 <</dd_do>>
@@ -85,12 +90,14 @@ use "$SIPP08keep/HHchangeWithRelationships_am.dta", clear
 
 drop if missing(SHHADID)
 
-keep if adj_age < 18
+keep if adj_age < $adult_age
+
 <</dd_do>>
 ~~~~
 
 We collapse by age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month.
 
+~~~~
 <<dd_do: quietly>>
 
 collapse (mean) hh_change comp_change parent_change sib_change other_change nonparent_change gp_change nonrel_change otherrel_change [aweight=WPFINWGT], by(adj_age panelmonth)
@@ -137,11 +144,12 @@ mkmat hh_change comp_change parent_change sib_change gp_change nonrel_change, ma
 matrix rownames byear08 = "~2009" "~2010" "~2011" "~2012"
 matrix colnames byear08 = "all" "comp" "par" "sib" "grndp" "nonrel" 
 <</dd_do>>
+~~~~
 
 ~~~~
 <<dd_do>>
 
-matlist byear08, format(%6.1f) title(These are estimates of the total amount of instability by 18th birthday estimated from the 2008 panel) rowtitle(year)
+matlist byear08, format(%6.1f) title(These are estimates of the total amount of instability by "$adult_age"th birthday estimated from the 2008 panel) rowtitle(year)
 
 clear matrix
 
@@ -184,11 +192,12 @@ mkmat hh_change comp_change parent_change sib_change gp_change nonrel_change, ma
 matrix rownames byear08r = "~2009" "~2010" "~2011" "~2012"
 matrix colnames byear08r = "all" "comp" "par" "sib" "grndp" "nonrel" 
 <</dd_do>>
+~~~~
 
 ~~~~
 <<dd_do>>
 
-matlist byear08r, format(%6.1f) title(These are revised estimates of the total amount of instability by 18th birthday estimated from the 2008 panel) rowtitle(year)
+matlist byear08r, format(%6.1f) title(These are revised estimates of the total amount of instability by "$adult_age"th birthday estimated from the 2008 panel) rowtitle(year)
 
 clear matrix
 
@@ -214,7 +223,7 @@ use "$SIPP04keep/HHchangeWithRelationships_am.dta", clear
 
 drop if missing(SHHADID)
 
-keep if adj_age < 18
+keep if adj_age < $adult_age
 <</dd_do>>
 ~~~~
 
@@ -260,11 +269,12 @@ mkmat hh_change comp_change parent_change sib_change gp_change nonrel_change, ma
 matrix rownames byear04 = "~2005" "~2006" "~2007" "~2008"
 matrix colnames byear04 = "all" "comp" "par" "sib" "grndp" "nonrel" 
 <</dd_do>>
+~~~~
 
 ~~~~
 <<dd_do>>
 
-matlist byear04, format(%6.1f)  title(These are estimates of the total amount of instability by 18th birthday estimated from the 2004 panel)  rowtitle(year)
+matlist byear04, format(%6.1f)  title(These are estimates of the total amount of instability by "$adult_age"th birthday estimated from the 2004 panel)  rowtitle(year)
 
 <</dd_do>>
 ~~~~
@@ -346,11 +356,12 @@ mkmat hh_change comp_change parent_change sib_change gp_change nonrel_change, ma
 matrix rownames byear01 = "~2002" "~2003" "~2004" 
 matrix colnames byear01 = "all" "comp" "par" "sib" "grndp" "nonrel" 
 <</dd_do>>
+~~~~
 
 ~~~~
 <<dd_do>>
 
-matlist byear01, format(%6.1f)  title(These are estimates of the total amount of instability by 18th birthday estimated from the 2001 panel)  rowtitle(year)
+matlist byear01, format(%6.1f)  title(These are estimates of the total amount of instability by "$adult_age"th birthday estimated from the 2001 panel)  rowtitle(year)
 
 <</dd_do>>
 ~~~~
@@ -388,7 +399,7 @@ matrix colnames byear = "all" "comp" "par" "sib" "grndp" "nonrel"
 ~~~~
 <<dd_do>>
 
-matlist byear, format(%6.1f)  title(These are estimates of trends in instability by 18th birthday estimated from the 2001, 2004, 2008, and 2014 panel)  rowtitle(year)
+matlist byear, format(%6.1f)  title(These are estimates of trends in instability by "$adult_age"th birthday estimated from the 2001, 2004, 2008, and 2014 panel)  rowtitle(year)
 
 <</dd_do>>
 ~~~~
