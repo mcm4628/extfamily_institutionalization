@@ -114,7 +114,7 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHch
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
 ** households of children, need to collapse by SSUID SHHADID and panelmonth and then select if adj_age < 18
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHComp_asis
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHComp_asis
 
 ******************************
 * Clean up temporary directory
