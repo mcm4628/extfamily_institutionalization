@@ -1,9 +1,6 @@
 ********************************************************************************
 * Does household instability predict school enrollment?
 
-cd "T:\GitHub\ChildHH"
-do setup_childhh_environment
-
 *excute extract_and_format, convert_to_wide, normalize_ages first to get more variables 
 use "$SIPP14keep/HHchangeWithRelationships_am.dta", $replace
 
