@@ -16,20 +16,12 @@ global SIPP2001 "$projdir/stata_data/2001"
 * location of code directory
 global childhh_base_code "T:/GitHub/ChildHH"
 
-global sipp2014_code "$childhh_base_code/SIPP2014"
-global sipp2014_logs "$logdir/SIPP2014"
 
-global sipp2008_code "$childhh_base_code/SIPP2008"
-global sipp2008_logs "$logdir/SIPP2008"
+* 2014 Macros
+global sipp2014_code "$childhh_base_code/SIPP2014/allmonths"
 
-global sipp2004_code "$childhh_base_code/SIPP2004"
-global sipp2004_logs "$logdir/SIPP2004"
+*This is the location of the SIPP Extracts and analysis files
+global SIPP14keep "$homedir/ywang/stata_data/SIPP14/keep"
 
-global sipp2001_code "$childhh_base_code/SIPP2001"
-global sipp2001_logs "$logdir/SIPP2001"
-
-
-global SIPP14keep "$projdir/ywang/childhh/stata_data/SIPP14/keep"
-global SIPP08keep "$projdir/ywang/childhh/stata_data/SIPP08/keep"
-global SIPP04keep "$projdir/ywang/childhh/stata_data/SIPP04/keep"
-global SIPP01keep "$projdir/ywang/childhh/stata_data/SIPP01/keep"
+* This is where logfiles produced by stata will go
+global sipp2014_logs "$homedir/ywang/childhh/logs"
