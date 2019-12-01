@@ -107,16 +107,13 @@ label var biodad_age "Age of coresident biological father if present"
 recode EEDUC (31/38 = 1)  (39 = 2)  (40/42 = 3)  (43/46 = 4), gen (educ)
 label values educ educ
 
-gen dropout=0
-replace dropout=1 if RENROLL==3 & educ < 2
-
 ********************************************************************************
 * Section: Make the dataset wide by month (12 months).
 ********************************************************************************
 
 local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
-local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ dropout with_original"
+local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ RGED RENROLL EEDGRADE EEDGREP RFOODR RFOODS RHNUMU18 RHNUMU18WT2 RHNUM65OVER RHNUM65OVRT2 RHPOV RHPOVT2 THINCPOV THINCPOVT2 with_original"
 
 local extra_vars "overall_max_residence_members"
 
