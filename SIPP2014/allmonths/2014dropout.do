@@ -1,7 +1,5 @@
 ********************************************************************************
 * Does household instability predict school enrollment?
-*
-* This analysis focuses on those observations between age 13 and 18.
 
 cd "T:\GitHub\ChildHH"
 do setup_childhh_environment
