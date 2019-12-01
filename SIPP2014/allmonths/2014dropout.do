@@ -137,20 +137,13 @@ foreach var in `cvar'{
  bysort idnum (panelmonth): gen `var'lag=`var'[_n-1]
 }
 
-label define parcomp 1 "2 bioparents" 2 "single parent" 3 "step parent" 4 "no parent"
-label define sibcomp 0 "no siblings" 1 "only biosibs" 2 "step/half sibs"
-label define extend 0 "nuclear" 1 "grandparent" 2 "horizontal extension"
 
-label values parcomp parcomp
 label values parcomplag parcomp
-label values sibcomp sibcomp
 label values sibcomplag sibcomp
-label values extend extend
 label values extendlag extend
 
 label define edu 1 "Less than HS" 2"HS Grad" 3"Some College" 4"College Grad"
 label values par_ed_first edu
-label values par_ed_firstlag edu
 
 label define poverty 1 "Deep poverty" 2"Poor" 3"Near Poor" 4"Not Poor"
 label values cpov poverty
