@@ -1,92 +1,125 @@
-********************************************************************************
-* Does household instability predict school enrollment?
+*******************************************************************************
+* Does household instability predict high school dropout and/or high school graduation?
+* This file creates variables describing (first) transition to dropout or high school graduation
 
-*excute extract_and_format, convert_to_wide, normalize_ages first to get more variables 
-use "$SIPP14keep/HHchangeWithRelationships_am.dta", $replace
 
-*fill in missing educ
+* !!!! NOTE: ssc install carryforward prior to running
+*******************************************************************************
+
+*excute do_all_months.do to create HHchangeWithRelationships_am.dta 
+use "$SIPP14keep/HHchangeWithRelationships_am.dta", clear
+
+*******************************************************************************
+* Section: Create measures of educational attainment
+*******************************************************************************
+
+************fill in missing educ***************************
+
 egen id = concat (SSUID PNUM)
 destring id, gen(idnum)
 format idnum %20.0f
 duplicates tag idnum panelmonth, gen(isdup)
 drop if isdup !=0
 
-keep if educ==1 | educ==.
+* drop observations where individuals have more than a high school degree
+* Note that I don't drop cases with a high school degree so that I can model the transition
+* to a high school degree in addition to drop out.
+keep if inlist(educ,1,2,.)
+
 xtset idnum panelmonth
+
 gsort idnum -panelmonth
+
+* carry forward education from the previous month if education is missing in the current month
 by idnum: replace educ = educ[_n-1] if missing(educ)
 sort idnum panelmonth
 
-*create high school dropout
+************restrict sample ********************************
 *children aged 14-20 without a high school diploma are at risk of high school dropout
-keep if adj_age >=14 & adj_age <=20 & educ==1 
-recode RENROLL (1=0) (2=1), gen (dropout)
+keep if adj_age >=14 & adj_age <=20 & educ==1|educ==2 
+
+************create indicator for high school dropout adjusted for summer *********
+
+gen dropout= (educ==1 & RENROLL==2) if !missing(RENROLL)
+
+tab dropout
+
+** now adjusting for summer
+* create indicators for wave and month
+*gen swave=floor((panelmonth+11)/12)
 
 *indicator of month: Jan-Dec
-gen month=panelmonth
-replace month=1 if inlist(month,1,13,25,37)
-replace month=2 if inlist(month,2,14,26,38)
-replace month=3 if inlist(month,3,15,27,39)
-replace month=4 if inlist(month,4,16,28,40)
-replace month=5 if inlist(month,5,17,29,41)
-replace month=6 if inlist(month,6,18,30,42)
-replace month=7 if inlist(month,7,19,31,43)
-replace month=8 if inlist(month,8,20,32,44)
-replace month=9 if inlist(month,9,21,33,45)
-replace month=10 if inlist(month,10,22,34,46)
-replace month=11 if inlist(month,11,23,35,47)
-replace month=12 if inlist(month,12,24,36,48)
-
-save "$SIPP14keep/dropout.dta", $replace
+*gen month=12-(swave*12-panelmonth)
 
 *adjust dropout measure
 *recode dropout in summer (6-8) to 0 if they report enrolled in September
+
+save "$tempdir/dropout.dta", $replace
+
 keep SSUID PNUM panelmonth dropout RENROLL
 reshape wide dropout RENROLL, i(SSUID PNUM) j(panelmonth)
 
-replace dropout6=0 if dropout9==0
-replace dropout7=0 if dropout9==0
-replace dropout8=0 if dropout9==0
-
-replace dropout18=0 if dropout21==0
-replace dropout19=0 if dropout21==0
-replace dropout20=0 if dropout21==0
-
-replace dropout30=0 if dropout33==0
-replace dropout31=0 if dropout33==0
-replace dropout32=0 if dropout33==0
-
-replace dropout42=0 if dropout45==0
-replace dropout43=0 if dropout45==0
-replace dropout44=0 if dropout45==0
+* loop across years
+forvalues y=0/3{
+* loop for june, july, and august     
+    forvalues mon=6/8{
+        local pm=`y'*12+`mon'
+        local september=`y'*12+9
+        replace dropout`pm'=0 if dropout`september'==0
+    }
+}
 
 reshape long dropout RENROLL, i(SSUID PNUM) j(panelmonth)
 
-save "$SIPP14keep/dropout_adjust.dta", $replace
+save "$tempdir/dropout_adjust.dta", $replace
 
-use "$SIPP14keep/dropout.dta", $replace
+use "$tempdir/dropout.dta", clear
 drop dropout RENROLL
-merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/dropout_adjust.dta"
+
+merge 1:1 SSUID PNUM panelmonth using "$tempdir/dropout_adjust.dta"
+
 keep if _merge==3
 drop _merge
 
-*drop already droped out at baseline
-xtset idnum panelmonth
-bysort idnum: gen count=_n
-bysort idnum: gen dropout_base=1 if count==1 &dropout==1
-sort idnum panelmonth
-by idnum: carryforward(dropout_base),replace
-drop if dropout_base==1 
-*7,961 observations deleted
+*********** create indicator of high school graduation *********
+gen hsgrad= (educ==2) if !missing(educ)
 
+tab hsgrad
+
+*********** identify and drop cases that have dropped out or graduated at first observation **
+
+xtset idnum panelmonth
+
+* Identify first observation of the individual. (Note that this is not always January 2013).
+bysort idnum: gen count=_n
+bysort idnum: gen dropout_base=1 if count==1 & dropout==1
+bysort idnum: gen hsgrad_base=1 if count==1 & hsgrad==1
+
+sort idnum panelmonth
+
+* Mark for deletion all observations for individuals that originated as a dropout or high school graduate
+by idnum: carryforward(dropout_base),replace
+by idnum: carryforward(hsgrad_base),replace
+drop if dropout_base==1 | hsgrad_base==1
+
+************************* create indicator of ever dropout***************
 *tag first dropout month 
 sort idnum panelmonth
 egen tag_dropout=tag (idnum dropout)
 replace tag_dropout=0 if tag_dropout==1 & dropout==0
 tab tag_dropout
 
-*create indicator of ever dropout
 bysort idnum: egen ever_dropout= max(dropout)
+
+************************* create indicator of ever hs graduate***********
+
+*tag month of high school graduation
+sort idnum panelmonth
+egen tag_hsgrad=tag (idnum hsgrad)
+replace tag_hsgrad=0 if tag_hsgrad==1 & hsgrad==0
+tab tag_hsgrad
+
+bysort idnum: egen ever_hsgrad= max(hsgrad)
 
 *identify panelmonth of first dropout and carry forward/backward
 sort idnum panelmonth 
@@ -96,14 +129,28 @@ gsort idnum -panelmonth
 by idnum: carryforward(month_firstd), replace	
 sort idnum panelmonth
 
-*drop months that come after the first week of dropout (create a censored sample)
-keep if ever_dropout==0 | (panelmonth<=month_firstd)	
+*identify panelmonth of first hsgrad and carry forward/backward
+sort idnum panelmonth 
+gen month_firstg = panelmonth if tag_hsgrad==1
+by idnum: carryforward(month_firstg), replace	
+gsort idnum -panelmonth 
+by idnum: carryforward(month_firstg), replace	
+sort idnum panelmonth
+
+*************************************************************************
+* Section: select person-months at risk of high school dropout or high school graduation
+*************************************************************************
+
+gen censormonth=min(month_firstg, month_firstd)
+
+*drop months that come after the first dropout or hsgrad (create a censored sample)
+keep if panelmonth <= censormonth
 
 *describe sample
 sort idnum panelmonth
 egen tagid = tag(idnum)
 tab tagid  
-//5,887 children,  124,203 observations
+//5,846 children,  136,775 observations
 
 *household composition changes (8 categories just in case)
 gen cchange=.

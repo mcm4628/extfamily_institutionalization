@@ -55,4 +55,4 @@ keep if MONTHCODE==12
 
 drop MONTHCODE
 
-save "$SIPP14keep/dropout.dta", replace
+save "$SIPP14keep/HHcomp_dropout.dta", replace
