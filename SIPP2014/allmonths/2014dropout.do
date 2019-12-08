@@ -2,7 +2,6 @@
 * Does household instability predict high school dropout and/or high school graduation?
 * This file creates variables describing (first) transition to dropout or high school graduation
 
-
 * !!!! NOTE: ssc install carryforward prior to running
 *******************************************************************************
 
@@ -13,45 +12,69 @@ use "$SIPP14keep/HHchangeWithRelationships_am.dta", clear
 * Section: Create measures of educational attainment
 *******************************************************************************
 
-************fill in missing educ***************************
-
-egen id = concat (SSUID PNUM)
-destring id, gen(idnum)
-format idnum %20.0f
-duplicates tag idnum panelmonth, gen(isdup)
-drop if isdup !=0
-
 * drop observations where individuals have more than a high school degree
 * Note that I don't drop cases with a high school degree so that I can model the transition
 * to a high school degree in addition to drop out.
 keep if inlist(educ,1,2,.)
 
-xtset idnum panelmonth
-
-gsort idnum -panelmonth
-
-* carry forward education from the previous month if education is missing in the current month
-by idnum: replace educ = educ[_n-1] if missing(educ)
-sort idnum panelmonth
-
 ************restrict sample ********************************
 *children aged 14-20 without a high school diploma are at risk of high school dropout
-keep if adj_age >=14 & adj_age <=20 & educ==1|educ==2 
+keep if adj_age >=14 & adj_age <20 
+
+************fill in missing educ***************************
+tab educ, m
+
+/*
+------------+-----------------------------------
+       lths |    123,077       67.66       67.66
+         hs |     23,348       12.83       80.49
+          . |     35,493       19.51      100.00
+------------+-----------------------------------
+      Total |    181,918      100.00
+*/
+
+tab adj_age if educ==.
+/*
+------------+-----------------------------------
+         14 |     34,831       98.13       98.13
+         15 |        101        0.28       98.42
+         16 |        124        0.35       98.77
+         17 |        118        0.33       99.10
+         18 |        142        0.40       99.50
+         19 |        177        0.50      100.00
+------------+-----------------------------------
+      Total |     35,493      100.00
+*/
+*educ for all children under age 15 is missing: 34,831 person months
+*662 missing person months for age 15-19
+
+*assuming all children under age 15 are less than high
+replace educ=1 if adj_age<15 
+
+*fill in missing educ: carry forward education from previous month if education is missing in current month
+egen id = concat (SSUID PNUM)
+destring id, gen(idnum)
+format idnum %20.0f
+duplicates tag idnum panelmonth, gen(isdup)
+drop if isdup !=0
+xtset idnum panelmonth
+sort idnum panelmonth
+by idnum: replace educ = educ[_n-1] if missing(educ)
+
 
 ************create indicator for high school dropout adjusted for summer *********
-
 gen dropout= (educ==1 & RENROLL==2) if !missing(RENROLL)
 
+************
 tab dropout
 
-** now adjusting for summer
 * create indicators for wave and month
-*gen swave=floor((panelmonth+11)/12)
+gen swave=floor((panelmonth+11)/12)
 
 *indicator of month: Jan-Dec
-*gen month=12-(swave*12-panelmonth)
+gen month=12-(swave*12-panelmonth)
 
-*adjust dropout measure
+** now adjusting for summer
 *recode dropout in summer (6-8) to 0 if they report enrolled in September
 
 save "$tempdir/dropout.dta", $replace
@@ -130,7 +153,6 @@ by idnum: carryforward(month_firstd), replace
 sort idnum panelmonth
 
 *identify panelmonth of first hsgrad and carry forward/backward
-sort idnum panelmonth 
 gen month_firstg = panelmonth if tag_hsgrad==1
 by idnum: carryforward(month_firstg), replace	
 gsort idnum -panelmonth 
@@ -143,14 +165,18 @@ sort idnum panelmonth
 
 gen censormonth=min(month_firstg, month_firstd)
 
+
 *drop months that come after the first dropout or hsgrad (create a censored sample)
-keep if panelmonth <= censormonth
+keep if panelmonth<=censormonth
+
+
+*individuals who completed at least 3 months
 
 *describe sample
 sort idnum panelmonth
 egen tagid = tag(idnum)
 tab tagid  
-//5,846 children,  136,775 observations
+//7,071   children, 136,519  observations
 
 *household composition changes (8 categories just in case)
 gen cchange=.
@@ -201,4 +227,5 @@ label values cchange cchange
 label values cchangelag cchange
 
 save "$SIPP14keep/dropout_month.dta", $replace
+
 
