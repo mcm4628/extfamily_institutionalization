@@ -202,15 +202,25 @@ merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/HHComp_pm.dta", keepusing (pa
 keep if _merge==3 | _merge==1
 drop _merge
 
-*create lagged variables 
+
+*create ever variables
+local evervar comp_change bioparent_change parent_change sib_change biosib_change ///
+ halfsib_change stepsib_change other_change gp_change nonrel_change otherrel_change cchange
+foreach var in `evervar'{
+ bysort idnum (panelmonth): gen tvnum_`var'=sum(`var')
+ recode tvnum_`var' (1/max=1), gen (tvever_`var')
+ }
+ 
+ *create lagged variables 
 local cvar comp_change bioparent_change parent_change sib_change biosib_change ///
  halfsib_change stepsib_change other_change gp_change nonrel_change otherrel_change cchange ///
- parcomp sibcomp extend RHNUMPERWT2 RHNUMU18WT2 cpov
+ parcomp sibcomp extend RHNUMPERWT2 RHNUMU18WT2 cpov tvever_parent_change tvever_biosib_change ///
+ tvever_halfsib_change tvever_stepsib_change tvever_sib_change tvever_other_change 
 foreach var in `cvar'{
  bysort idnum (panelmonth): gen `var'lag=`var'[_n-1]
 }
 
-
+ 
 label values parcomplag parcomp
 label values sibcomplag sibcomp
 label values extendlag extend
@@ -227,5 +237,3 @@ label values cchange cchange
 label values cchangelag cchange
 
 save "$SIPP14keep/dropout_month.dta", $replace
-
-
