@@ -169,14 +169,11 @@ gen censormonth=min(month_firstg, month_firstd)
 *drop months that come after the first dropout or hsgrad (create a censored sample)
 keep if panelmonth<=censormonth
 
-
-*individuals who completed at least 3 months
-
 *describe sample
 sort idnum panelmonth
 egen tagid = tag(idnum)
 tab tagid  
-//7,071   children, 136,519  observations
+
 
 *household composition changes (8 categories just in case)
 gen cchange=.
@@ -207,30 +204,38 @@ drop _merge
 local evervar comp_change bioparent_change parent_change sib_change biosib_change ///
  halfsib_change stepsib_change other_change gp_change nonrel_change otherrel_change cchange
 foreach var in `evervar'{
- bysort idnum (panelmonth): gen tvnum_`var'=sum(`var')
+ bysort idnum: gen tvnum_`var'= sum(`var')
  recode tvnum_`var' (1/max=1), gen (tvever_`var')
  }
  
- *create lagged variables 
+*create lag 2 variables 
 local cvar comp_change bioparent_change parent_change sib_change biosib_change ///
  halfsib_change stepsib_change other_change gp_change nonrel_change otherrel_change cchange ///
- parcomp sibcomp extend RHNUMPERWT2 RHNUMU18WT2 cpov tvever_parent_change tvever_biosib_change ///
+ tvever_parent_change tvever_biosib_change ///
  tvever_halfsib_change tvever_stepsib_change tvever_sib_change tvever_other_change 
 foreach var in `cvar'{
- bysort idnum (panelmonth): gen `var'lag=`var'[_n-1]
+ bysort idnum: gen `var'lag=`var'[_n-2]
 }
 
- 
-label values parcomplag parcomp
-label values sibcomplag sibcomp
-label values extendlag extend
+*create poverty status, household composition at first observation
+sort idnum count
+bysort idnum: gen cpov_f=cpov[1]
+bysort idnum: gen parcomp_f=parcomp[1]
+bysort idnum: gen sibcomp_f=sibcomp[1]
+bysort idnum: gen extend_f=extend[1]
+
+sort idnum panelmonth
+
+label values parcomp_f parcomp
+label values sibcomp_f sibcomp
+label values extend_f extend
 
 label define edu 1 "Less than HS" 2"HS Grad" 3"Some College" 4"College Grad"
 label values par_ed_first edu
 
 label define poverty 1 "Deep poverty" 2"Poor" 3"Near Poor" 4"Not Poor"
 label values cpov poverty
-label values cpovlag poverty
+label values cpov_f poverty
 
 label define cchange 1 "no change" 2 "only parent change" 3 "par&sib change" 4 "par&other change" 5 "only sib change" 6 "sib&other change" 7 "only other change" 8 "3 changes"
 label values cchange cchange
