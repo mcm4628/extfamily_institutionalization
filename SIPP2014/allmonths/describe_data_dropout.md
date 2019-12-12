@@ -71,7 +71,7 @@ The SIPP is a large (N=<<dd_display: %6.0fc `allindividuals'>>), probability sam
 The primary dependent variable is school dropout prior to obtaintaing a high school degree. Many individuals who dropout of school will eventually obtain a diploma or GED, but dropping out of school is a sign of academic trouble that may have lasting consequences even if the person returns to school. 
 
 ~~~~
-<<dd_do>>
+<<dd_do: quietly>>
 
 *******************************************************************************
 * Create measures of educational attainment
@@ -97,7 +97,7 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 	   reshape wide dropout educ, i(SSUID PNUM) j(panelmonth)
 
 	   * loop across years
-	   forvalues y=1/3{
+	   forvalues y=0/3{
 	   display "processing year `y'"
 	   * loop for june, july, and august     
 	       forvalues mon=6/8{
@@ -106,13 +106,6 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
                replace dropout`pm'=0 if dropout`september'==0
     	       }
 	   }
-
-	   gen first_dropout_m=.
-	   gen first_hsgrad_m=.
-	   forvalues m=13/48 {
-	   	     replace first_dropout_m=`m' if missing(first_dropout_m) & dropout`m'==1
-	   	     replace first_hsgrad_m=`m' if missing(first_hsgrad_m) & educ`m'==2
-           }
 
 	   drop educ*
 
@@ -243,9 +236,12 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 
  	 save "$tempdir/hseduc14", replace
 
-	 collapse (count) dropout, by(idnum)
+	 gen dum_do=1 if dropout==1
 
-	 tab count
+	 collapse (count) dum_do, by(idnum)
+
+	 * make sure that there's no more than one observation where dropout==1
+	 assert dum_do < 2
 
 <</dd_do>>
 ~~~~
@@ -253,7 +249,7 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-19 who had dropped out of school or had their high school degree at first observation, leaving <<dd_display:%8.0fc `allindividuals2'>> age 16-19. The data are censored at high school graduation or first dropout. In addition, we delete observations missing information on school enrollment, leaving us with <<dd_display: %8.0fc `allmonths2'>> person-months at risk of high school dropout or graduation (<<dd_display: %5.0fc `allindividuals3'>> adolescents). 
 
 ~~~~
-<<dd_do>>
+<<dd_do: quietly>>
 
 *************************************************************************
 * Section: create independent variables. Doing this before finalizing 
@@ -384,21 +380,18 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 
    drop sample_p sample_m  
 
-   gen dropouts=1 if dropout==1
+   gen numdropouts=1 if dropout==1
+   gen perdropouts=1 if tagid==1 & ever_dropout==1
+   replace perdropouts=0 if tagid==1 & ever_dropout==0
 
-   tab tagid
-   tab dropouts
+   egen ndropouts=count(numdropouts)
 
-   egen ndropouts=count(dropouts)
-
-   egen pdropouts=mean(dropout)
-
-   sum dropouts
+   egen pdropouts=mean(perdropouts)
 
    local n_dropouts = ndropouts
    local p_dropouts = 100*pdropouts
 
-   drop ndropouts pdropouts dropouts tagid count // cleanup 
+   drop ndropouts pdropouts numdropouts perdropout tagid count // cleanup 
 
 <</dd_do>>
 ~~~~
