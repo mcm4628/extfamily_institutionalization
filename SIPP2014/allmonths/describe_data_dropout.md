@@ -1,11 +1,13 @@
 ~~~~
 <<dd_do: quietly>>
 
-*******************************************************************************
-* Does household instability predict high school dropout and/or high school graduation?
-* This file creates variables describing (first) transition to dropout or high school graduation
-* and produces the description of the data and variables to be included in the paper. 
-*******************************************************************************
+********************************************************************
+* Does household instability predict high school dropout and/or
+* high school graduation? This file creates variables describing
+* (first) transition to dropout or high school graduation
+* and produces the description of the data and variables to be
+* included in the paper. 
+********************************************************************
 
 * !!!! NOTE: ssc install carryforward prior to running
 
@@ -16,11 +18,12 @@ Data for our analysis come from the 2014 panel of the Survey of Income and Progr
 
 ~~~~
 <<dd_do: quietly>>
-*********************************************************************************
+********************************************************************
 * Read in data and describe sample
-*********************************************************************************
+********************************************************************
 
-	 *excute do_all_months.do to create demo_long_interviews_am.dta and HHchangeWithRelationships_am.dta 
+	 *excute do_all_months.do to create demo_long_interviews_am.dta
+	 * and HHchangeWithRelationships_am.dta 
 
 	 global data "$SIPP14keep/demo_long_interviews_am.dta" 
 	 
@@ -73,22 +76,26 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 ~~~~
 <<dd_do: quietly>>
 
-*******************************************************************************
+*************************************************************************
 * Create measures of educational attainment
-*******************************************************************************
-	*fill in missing educ: carry forward education from previous month if education is missing in current month
+*************************************************************************
+	*fill in missing educ: carry forward education from previous
+	* month if education is missing in current month
 
 	xtset idnum panelmonth
 	sort idnum panelmonth
 	by idnum: replace educ = educ[_n-1] if missing(educ)
 
 
-	   ************create indicator for high school dropout adjusted for summer *********
-	   * Note RENROLL is a Census-constructed variable based on measures of periods of enrollment.
+	**create indicator for high school dropout adjusted for summer
+	 * Note RENROLL is a Census-constructed variable based on measures
+	 * of periods of enrollment.
+	 
 	   gen dropout= (educ==1 & RENROLL==2) if !missing(RENROLL)
 	
-	   ** now adjusting for summer
-	   *recode dropout in summer (6-8) to 0 if they report enrolled in September
+	   ** adjust for summer
+	   *recode dropout in summer (6-8) to 0 if they report
+	   * being enrolled in September
 
 	   save "$tempdir/dropout.dta", $replace
 
@@ -124,7 +131,8 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 	*********** create indicator of high school graduation *********
 	gen hsgrad= (educ==2) if !missing(educ)
 
-	*********** identify and drop individuals that have dropped out or graduated at first observation **
+	*********** identify and drop individuals that have
+	**********  dropped out or graduated at first observation 
 
 	xtset idnum panelmonth
 
@@ -142,7 +150,8 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 	
 	sort idnum panelmonth
 
-	* Mark for deletion all observations for individuals that originated as a dropout or high school graduate
+	* Mark for deletion all observations for individuals
+	* that originated as a dropout or high school graduate
 	by idnum: carryforward(dropout_base),replace
 	by idnum: carryforward(hsgrad_base),replace
 
@@ -150,7 +159,7 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 
 	drop dropout_base hsgrad_base omit omitted
 
-************************* create indicator of ever dropout and ever grad ***********
+********* create indicator of ever dropout and ever grad 
 
 	  bysort idnum: egen ever_hsgrad= max(hsgrad)
 
@@ -167,9 +176,10 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 
 	 drop tagid all_p2
 
-*************************************************************************
-* Section: select person-months at risk of high school dropout or high school graduation
-*************************************************************************
+***********************************************************************
+* Section: select person-months at risk of high school dropout or high
+* school graduation
+***********************************************************************
          *tag first dropout month 
 	  sort idnum panelmonth
 	  egen tag_dropout=tag (idnum dropout)
@@ -199,7 +209,8 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 
 	  gen censormonth=min(month_firstg, month_firstd)
 
-   *drop months that come after the first dropout or hsgrad (create a censored sample)
+   *drop months that come after the first dropout or hsgrad
+   * (create a censored sample)
    keep if panelmonth<=censormonth
 
 	  gen outcome=1 if censormonth==month_firstd
@@ -240,8 +251,9 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 
 	 collapse (count) dum_do, by(idnum)
 
-	 * make sure that there's no more than one observation where dropout==1
-	 assert dum_do < 2
+	 * make sure that there's no more than one observation
+	 * where dropout==1
+	 assert dum_do <= 1
 
 <</dd_do>>
 ~~~~
@@ -298,9 +310,10 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 	drop _merge
 
 	*create ever variables
-	local evervar hh_change comp_change bioparent_change parent_change sib_change ///
-	biosib_change halfsib_change stepsib_change other_change gp_change ///
-	nonrel_change otherrel_change cchange
+	local evervar hh_change comp_change bioparent_change ///
+	parent_change sib_change biosib_change halfsib_change ///
+	stepsib_change other_change gp_change ///
+	nonrel_change otherrel_change cchange ///
 	
 	foreach var in `evervar'{
 	    bysort idnum: gen tvnum_`var'= sum(`var')
@@ -308,20 +321,24 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 	}
 
 	* create lagged variables. Because the instability variables are
-	* prospective (between this wave and next), we need to lag one month to get household
-	* instability measured prior to dropout.
-	local cvar hh_change comp_change bioparent_change parent_change sib_change ///
-	biosib_change halfsib_change stepsib_change other_change ///
-	gp_change nonrel_change otherrel_change cchange parcomp sibcomp extend ///
-        tvever_parent_change tvever_biosib_change ///
-	cpov tvever_halfsib_change tvever_stepsib_change tvever_sib_change tvever_other_change 
+	* prospective (between this wave and next), we need to lag one
+	* month to get household instability measured prior to dropout.
+	
+	local cvar hh_change comp_change bioparent_change parent_change ///
+	sib_change biosib_change halfsib_change stepsib_change ///
+	other_change gp_change nonrel_change otherrel_change cchange ///
+	parcomp sibcomp extend tvever_parent_change tvever_biosib_change ///
+	cpov tvever_halfsib_change tvever_stepsib_change ///
+	tvever_sib_change  tvever_other_change
+	
 	foreach var in `cvar'{
 	    bysort idnum (panelmonth): gen `var'lag=`var'[_n-1]
         }
 
 	save "$tempdir/monthlylagged.dta", replace
 
-	*create variables describing household instability in each calendar year
+	* create variables describing household instability in each
+	* calendar year.
 		collapse (sum) `evervar', by(idnum swave)
 
 		foreach var in `evervar' {
@@ -330,8 +347,9 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 		}
 
 		replace swave=swave+1
-
-		drop if swave==5 // we don't need measures of instability in the last wave
+		
+		* we don't need measures of instability 
+		drop if swave==5 
 
 		save "$tempdir/annual_instability", replace
 		
@@ -356,9 +374,9 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 	keep if _merge==1 | _merge==3
  	drop _merge
 	
-*******************************************************************************
+***************************************************************************
 * Trim and describe sample
-******************************************************************************
+***************************************************************************
    * make sure that merges didn't bring in some 15 year olds
    assert adj_age > 15
 
@@ -461,6 +479,7 @@ label values cpov poverty
 label values cpovlag poverty
 
 label define cchange 1 "no change" 2 "only parent change" 3 "par&sib change" 4 "par&other change" 5 "only sib change" 6 "sib&other change" 7 "only other change" 8 "3 changes"
+
 label values cchange cchange
 label values cchangelag cchange
 
