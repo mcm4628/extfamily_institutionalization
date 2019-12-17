@@ -1,0 +1,114 @@
+<p>The purpose of this document is to conduct and present analyses describing differences in children&rsquo;s household instability over time by parental education.</p>
+<p>Start with the 2014 data on all months and select observations who are not adults.</p>
+<pre><code></code></pre>
+<p>We collapse by parental education, age and wave to create a mean number of transitions each panelmonth. The first step estimates weighted rates of transition in each month by wave, which is the same as year in 2014. We keep the second wave because the analysis by trends revealed that it is likely the least downwardly biased.</p>
+<pre><code>
+Next we sum across all months to get an annual transition rate by age for each category of parental education. 
+
+</code></pre>
+<pre><code>
+And then sum across all ages to get a cumulative number of transitions before `adult_age'th bithday by parental_education.
+
+</code></pre>
+<pre><code>. 
+.         matlist byed14, format(%6.1f) title(These are estimates of the amount of instability by `adult_age'th birthd
+&gt; ay estimated from the 2014 SIPP panel) rowtitle(parent ed)
+
+These are estimates of the amount of instability by 18th birthday estimated from the 2014 SIPP panel
+
+   parent ed |    all    comp     par     sib   grndp  nonrel 
+-------------+------------------------------------------------
+&lt; High Sch~l |   11.0     8.2     1.4     2.8     0.9     1.6 
+ High School |   10.8     7.8     1.7     2.7     1.4     1.1 
+Some College |    9.5     6.8     1.6     2.6     0.8     1.2 
+College Gr~+ |    6.2     4.2     0.9     1.6     0.7     0.5 
+     Missing |   23.3    20.8     0.5     0.7     3.1    10.5 
+
+. 
+. 
+</code></pre>
+<pre><code></code></pre>
+<p>Now do the same for 2008.</p>
+<pre><code></code></pre>
+<p>We collapse by parent ed, age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month.</p>
+<pre><code>
+Next we sum across all months in each wave and multiply by 3 to get an annual transition rate. There would be an alternative way where we originally sum by year (as we do for 2014). I don't think it will ever make sense to do that by actual calendar year because different rotations have their first observation in different months and there is a tendency to have more instability in the last month of the reference period. Thus we sum by wave to get a four-month estimate of instability. We could sum by a calculated year rather than multiply by three and then aggregate these by year.
+
+</code></pre>
+<pre><code>. 
+.         matlist byed08, format(%6.1f) title(These are estimates of instability by `adult_age'th birthday by parental
+&gt;  education estimated from the 2008 panel) rowtitle(year)
+
+These are estimates of instability by 18th birthday by parental education estimated from the 2008 panel
+
+        year |    all    comp     par     sib   grndp  nonrel 
+-------------+------------------------------------------------
+&lt; High Sch~l |   12.4     9.3     1.8     2.8     1.2     1.9 
+ High School |   10.0     7.4     2.0     2.5     0.8     1.4 
+Some College |    8.5     6.0     1.6     2.1     0.8     1.3 
+College Gr~+ |    4.8     3.2     0.7     1.5     0.4     0.5 
+     Missing |   14.3    13.0     0.0     0.3     2.7     5.0 
+
+. 
+.         clear matrix
+
+. 
+</code></pre>
+<pre><code></code></pre>
+<p>The 2004 panel.</p>
+<pre><code></code></pre>
+<p>We collapse by parental education, age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month.</p>
+<pre><code></code></pre>
+<pre><code>. 
+.         matlist byed04, format(%6.1f)  title(These are estimates of instability by `adult_age'th birthday by parenta
+&gt; l education estimated from the 2004 panel)  rowtitle(parent education)
+
+These are estimates of instability by 18th birthday by parental education estimated from the 2004 panel
+
+parent educa |    all    comp     par     sib   grndp  nonrel 
+-------------+------------------------------------------------
+&lt; High Sch~l |   12.2     8.8     1.9     2.8     1.0     1.5 
+ High School |    9.9     7.1     1.7     2.4     0.9     1.1 
+Some College |    8.4     6.0     1.4     2.2     0.8     1.0 
+College Gr~+ |    4.9     3.0     0.6     1.5     0.3     0.5 
+     Missing |   15.1    13.4     0.0     0.2     2.0     7.1 
+
+. 
+</code></pre>
+<pre><code></code></pre>
+<pre><code></code></pre>
+<p>The 2001 panel.</p>
+<pre><code></code></pre>
+<p>We collapse by parental education, age and wave to create a mean number of transitions by age for each panelmonth. The first step estimates weighted rates of transition in each month.</p>
+<pre><code></code></pre>
+<pre><code>. 
+.         matlist byed01, format(%6.1f)  title(These are estimates of instability by `adult_age'th birthday by parenta
+&gt; l education estimated from the 2001 panel)  rowtitle(parental ed)
+
+These are estimates of instability by 18th birthday by parental education estimated from the 2001 panel
+
+ parental ed |    all    comp     par     sib   grndp  nonrel 
+-------------+------------------------------------------------
+&lt; High Sch~l |   11.7     9.2     1.8     3.3     1.0     1.7 
+ High School |    8.3     6.3     1.7     2.3     0.7     1.0 
+Some College |    7.3     5.1     1.6     2.1     0.5     0.8 
+College Gr~+ |    4.8     3.1     0.6     1.6     0.2     0.5 
+     Missing |   16.0    14.0     0.0     0.1     3.0     4.4 
+
+. 
+</code></pre>
+<pre><code></code></pre>
+<p>I quietly pull together all the panels for a cross-panel analysis and then graph household instability by parental education by panel.</p>
+<pre><code></code></pre>
+<img src="Graph29.svg" >
+<p>Focusing on the first three panels, we see an increase in household instability in the early 2000s (except for the children of college-educated parents), but instabillity did not continue to rise during the latter part of the naughts. It looks like instability increased for everyone but the least-educated groups in 2014. That may be true, or it may be that the redesign is better at capturing instability of the highly educated.</p>
+<p>Next we take a look at composition change&hellip;</p>
+<pre><code></code></pre>
+<img src="Graph30.svg" >
+<p>and find rougly similar patterns.</p>
+<p>Finallly, a look at parental change.</p>
+<pre><code></code></pre>
+<img src="Graph31.svg" >
+<p>The most striking aspect of this graph is that the children of college-educated parents see a rise in parental instability throughout the period of observation, while parental instability is relatively flat for those with a college-degree or less.</p>
+<p>We might want to look at trends in the percentage of children living with two parents. It may be that declining proportions of children of less-educated parents live with two parents and this accounts for the stability in parental instability.</p>
+<p>To do this, we need to get HHCompasis files up and working for the allmonths datafiles.</p>

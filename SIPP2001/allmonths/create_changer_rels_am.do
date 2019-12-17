@@ -1,11 +1,11 @@
 //==============================================================================
 //===== Children's Household Instability Project
-//===== Dataset: SIPP2004
+//===== Dataset: SIPP2001
 //===== Purpose:  Link individuals identified as entering, leaving, or staying in
 //===== a person's (ego's) household to their relationship to ego.
 //==============================================================================
 
-use "$SIPP04keep/comp_change_am.dta", clear
+use "$SIPP01keep/comp_change_am.dta", clear
 
 keep SSUID EPPPNUM SHHADID* arrivers* leavers* stayers* comp_change* comp_change_reason* adj_age* 
 
@@ -124,7 +124,7 @@ foreach changer in leaver arriver {
 	
 	* get changer age *
     gen EPPPNUM = relto
-    merge m:1 SSUID EPPPNUM panelmonth using "$SIPP04keep/demo_long_all_am", keepusing(adj_age)
+    merge m:1 SSUID EPPPNUM panelmonth using "$SIPP01keep/demo_long_all_am", keepusing(adj_age)
     drop if (_merge == 2)
     assert (_merge == 3)
 	
@@ -149,7 +149,7 @@ label define change_type 1 "arriver" 2 "leaver"
 label values change_type change_type 
 
 * Label relationships. 
-do "$sipp2004_code/simple_rel_label"
+do "$sipp2001_code/simple_rel_label"
 
 ***********************************************************************
 * Note that we compared our relationships to the relationships identified 

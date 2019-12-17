@@ -1,6 +1,6 @@
 //==============================================================================
 //=========== Children's Household Instability Project                                  
-//=========== Dataset: SIPP2014                                                
+//=========== Dataset: SIPP2001                                                 
 //=========== Purpose: Uses programs to compute relationships not 
 //=========== directly identifiable with parent pointers, spouse pointer, or ERRP  
 //================================================================================
@@ -296,10 +296,10 @@ sort SSUID SHHADID panelmonth relfrom relto
 by SSUID SHHADID panelmonth relfrom relto:  gen numrels_tc1 = _N
 by SSUID SHHADID panelmonth relfrom relto:  gen relnum_tc1 = _n
 
-display "How many relationships have we generated per person-month?"
+display "How many relationships have we generated per person-wave?"
 tab numrels_tc1
 
-*reshape so that we can compare relationships for pairs (within month) with more than one relationship type	
+*reshape so that we can compare relationships for pairs (within wave) with more than one relationship type	
 reshape wide relationship reason, i(SSUID SHHADID panelmonth relfrom relto) j(relnum_tc1)
 
 save "$tempdir/relationships_tc1_wide", $replace
@@ -352,8 +352,7 @@ display "Now working on resolving relationships"
      replace best_rel = 0 if ((!missing(`v')) & (!inlist(`v', ``r'_rel_list')))
    }
    replace relationship = best_rel if (missing(relationship) & (best_rel > 0))
-   drop best_rel
-}
+   drop best_rel}
 
 display "Where do we stand with relationships?"
 tab relationship, m
@@ -361,7 +360,6 @@ tab relationship, m
 tab relationship1 relationship2 if missing(relationship)
 
 drop relationship1 relationship2 numrels_tc1
-// relationship3 not found - I removed it from the code
 
 *Append base relationships file (iteration 0). No overlap because dropped matched cases earlier.
 append using "$tempdir/relationships_tc0_wide"

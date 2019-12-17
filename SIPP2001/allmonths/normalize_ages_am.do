@@ -1,12 +1,12 @@
-//========================================================================================================================//
-//=================== Children's Household Instability Project                    ========================================//
-//=================== Dataset: SIPP2014                                         ========================================//
-//=================== Purpose: This file fixes up age so the months are consistent ========================================//
-//========================================================================================================================//
-use "$tempdir/person_wide"
+//===================================================================================================//
+//=================== Children's Household Instability Project                    ===================//
+//=================== Dataset: SIPP2001                      ========================================//
+//=================== Purpose: This file fixes up age so the months are consistent ==================//
+//===================================================================================================//
+use "$tempdir/person_wide_am"
 
 gen num_ages = 0
-forvalues month = $first_month/$final_month {
+forvalues month = $firstmonth/$finalmonth {
     replace num_ages = num_ages + 1 if (!missing(TAGE`month'))
 }
 
@@ -18,14 +18,14 @@ forvalues month = $first_month/$final_month {
 
 *** We make a simple projection of expected age from the first reported age
 * and from the last reported age.  
-gen expected_age_fwd = TAGE$first_month
-gen expected_age_fwd$first_month = expected_age_fwd
+gen expected_age_fwd = TAGE$firstmonth
+gen expected_age_fwd$firstmonth = expected_age_fwd
 
 * a counter; after 3 observations at current age, increase by 1
 gen num_curr_age = 0
 replace num_curr_age = 1 if (!missing(expected_age_fwd))
 
-forvalues month = $second_month/$final_month {
+forvalues month = $second_month/$finalmonth {
     * Increment counter of age runs if we have established an age.
     * Set the counter to 1 if we are just now establishing an age.
     replace num_curr_age = num_curr_age + 1 if (!missing(expected_age_fwd))
@@ -41,13 +41,13 @@ forvalues month = $second_month/$final_month {
 drop num_curr_age expected_age_fwd
 
 * backward projection.
-gen expected_age_bkwd = TAGE$final_month
-gen expected_age_bkwd$final_month = expected_age_bkwd
+gen expected_age_bkwd = TAGE$finalmonth
+gen expected_age_bkwd$finalmonth = expected_age_bkwd
 
 gen num_curr_age = 0
 replace num_curr_age = 1 if (!missing(expected_age_bkwd))
 
-forvalues month = $penultimate_month (-1) $first_month {
+forvalues month = $penultimate_month (-1) $firstmonth {
     * Increment counter of age runs if we have established an age.
     * Set the counter to 1 if we are just now establishing an age.
     replace num_curr_age = num_curr_age + 1 if (!missing(expected_age_bkwd))
@@ -73,7 +73,7 @@ sum expected_age_bkwd*
 *** Count the number of times age matches each projection (within one, in the correct direction).
 gen num_fwd_matches = 0
 gen num_bkwd_matches = 0
-forvalues month = $first_month/$final_month {
+forvalues month = $firstmonth/$finalmonth {
     gen fwd_match`month' = ((!missing(TAGE`month')) & (TAGE`month' >= expected_age_fwd`month') & (TAGE`month' <= expected_age_fwd`month' + 1))
     replace num_fwd_matches = num_fwd_matches + 1 if (fwd_match`month' == 1)
     gen bkwd_match`month' = ((!missing(TAGE`month')) & (TAGE`month' <= expected_age_bkwd`month') & (TAGE`month' >= expected_age_bkwd`month' - 1))
@@ -96,8 +96,8 @@ tab anyproblem
 gen check=0
 gen fill=0
 
-gen adj_age$first_month = TAGE$first_month
-forvalues month = $second_month/$final_month {
+gen adj_age$firstmonth = TAGE$firstmonth
+forvalues month = $second_month/$finalmonth {
 
 * fix age when it is out of line with backwards and forwards projections
     gen adj_age`month' = TAGE`month'
@@ -109,7 +109,6 @@ forvalues month = $second_month/$final_month {
 	replace adj_age`month'= expected_age_fwd`month' if missing(adj_age`month') & !missing(expected_age_fwd`month')
 	replace fill=2 if missing(adj_age`month') & !missing(expected_age_bkwd`month')
 	replace adj_age`month'=expected_age_bkwd`month' if missing(adj_age`month') & !missing(expected_age_bkwd`month')
-
 }
 
 
@@ -118,7 +117,7 @@ forvalues month = $second_month/$final_month {
 ********************************************************************************
 gen num_adjfwd_matches = 0
 gen num_adjbkwd_matches = 0
-forvalues month = $first_month/$final_month {
+forvalues month = $firstmonth/$finalmonth {
     gen adjfwd_match`month' = ((!missing(adj_age`month')) & (adj_age`month' >= expected_age_fwd`month') & (adj_age`month' <= expected_age_fwd`month' + 1))
     replace num_adjfwd_matches = num_adjfwd_matches + 1 if (adjfwd_match`month' == 1)
     gen adjbkwd_match`month' = ((!missing(adj_age`month')) & (adj_age`month' <= expected_age_bkwd`month') & (adj_age`month' >= expected_age_bkwd`month' - 1))
@@ -138,8 +137,8 @@ replace any_adj_problem=1 if num_adjfwd_problem > 0 | num_adjbkwd_problem > 0
 gen monotonic = 1 /* dpes age always increase? */
 gen ageproblem=0 /* are there deviations in age from one observation to the next greater than 5 */
 gen childageproblem=0
-gen curr_age = adj_age$first_month
-forvalues month = $second_month/$final_month {
+gen curr_age = adj_age$firstmonth
+forvalues month = $second_month/$finalmonth {
     replace monotonic = 0 if ((!missing(adj_age`month')) & (!missing(curr_age)) & (adj_age`month' < curr_age))
 	replace ageproblem=1 if ((!missing(adj_age`month')) & (!missing(curr_age)) & (abs(adj_age`month'-curr_age) > 5))
 	replace childageproblem=1 if ((!missing(adj_age`month')) & (!missing(curr_age)) & (abs(adj_age`month'-curr_age) > 5)) & (curr_age < 18)
@@ -162,40 +161,52 @@ drop any_adj_problem
 
 
 * Create dummies for whether in this interview to be able to create an indicator for whether in interview next month
-forvalues w=$first_month/$final_month {
+forvalues w=1/$finalmonth {
   gen in`w'=0
-  replace in`w'=1 if !missing(ERELRP`w')
+  replace in`w'=1 if !missing(ERRP`w')
   }
   
-forvalues w=$first_month/$penultimate_month {
+forvalues w=1/$penultimate_month {
   local x=`w'+1
   gen innext`w'=0
   replace innext`w'=1 if in`x'==1
  }
 
-save "$tempdir/person_wide_adjusted_ages", $replace
+save "$tempdir/person_wide_adjusted_ages_am", $replace
 
-keep SSUID PNUM EMS* ERELRP* WPFINWGT* EORIGIN* EPAR1TYP* EPAR2TYP* my_race ///
-my_racealt my_sex mom_educ* dad_educ* adj_age* mom_age* ///
-biomom_age* biomom_educ* dad_age* biodad_age* innext*  ///
-biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure ///
-check fill TAGE* THTOTINC* TFTOTINC* educ* RGED* RENROLL* EEDGRADE* EEDGREP* RFOODR* RFOODS* ///
-RHNUMU18* RHNUMU18WT2* RHNUM65OVER* RHNUM65OVRT2* RHPOV* RHPOVT2* THINCPOV* THINCPOVT2* RHNUMPERWT2* ERESIDENCEID*
+keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* ETYPMOM* ETYPDAD* my_race ///
+my_racealt my_sex mom_educ* dad_educ*  adj_age* mom_age* ///
+biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ///
+ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure ///
+check fill TAGE* THTOTINC* TFTOTINC* educ* dropout* EHHNUMPP*
 
 
-save "$SIPP14keep/demo_wide_am.dta", $replace
+forvalues month=$firstmonth/$penultimate_month{
+ local x=`month'+1
+ gen dropoutnw`month'=dropout`x'
+ 
+ gen everdropout`month'=0
+ replace everdropout`month'=1 if dropout`month'==1
+}
+gen dropoutnw48=.
 
-reshape long adj_age EMS ERELRP WPFINWGT EORIGIN EPAR1TYP EPAR2TYP mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext  TAGE THTOTINC TFTOTINC educ RGED RENROLL EEDGRADE EEDGREP RFOODR RFOODS RHNUMPERWT2 RHNUMU18 RHNUMU18WT2 RHNUM65OVER RHNUM65OVRT2 RHPOV RHPOVT2 THINCPOV THINCPOVT2 ERESIDENCEID, i(SSUID PNUM) j(panelmonth)
+save "$SIPP01keep/demo_wide_am.dta", $replace
+
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN ETYPMOM ETYPDAD mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE THTOTINC TFTOTINC educ dropout dropoutnw everdropout EHHNUMPP, i(SSUID EPPPNUM) j(panelmonth)
 
 label variable adj_age "Adjusted Age"
-label variable innext "Is this person interviewed in next month?"
+label variable innext "Is this person observed in next month?"
 
 tab adj_age check
 
 tab adj_age fill
 
-save "$SIPP14keep/demo_long_all_am", $replace
+* now includes all observations, even when missing interview. ERRP is missing when no interview.
+tab ERRP,m 
 
-drop if missing(TAGE)
+* most important for linking to arrivers who have missing data 
+save "$SIPP01keep/demo_long_all_am", $replace
 
-save "$SIPP14keep/demo_long_interviews_am", $replace
+drop if missing(ERRP)
+
+save "$SIPP01keep/demo_long_interviews_am", $replace

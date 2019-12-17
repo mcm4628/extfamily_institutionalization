@@ -1,18 +1,18 @@
 //====================================================================//
 //===== Children's Household Instability Project                    
-//===== Dataset: SIPP2014                                          
+//===== Dataset: SIPP2001                                           
 //===== Purpose: This code merges a file with information on the relationship
-//                 of household members who arrive or leave in the next month                
+//                 of household members who arrive or leave in the next wave                
 //               to comp_change hh_change and addr_change. And then collapses
 //               to an individual data file with dummy indicators of whether 
 //               ego saw anyone leave, anyone arrive, a parent leave or arrive,
 //               a sibling leave or arrive, anyone else leave or arrive.
 //=====================================================================//
 
-* hh_change has one record per person per month
-use "$SIPP14keep/hh_change_am.dta", clear
+* hh_change has one record per person per wave
+use "$SIPP01keep/hh_change_am.dta"
 
-keep SSUID PNUM panelmonth comp_change hh_change addr_change 
+keep SSUID EPPPNUM panelmonth comp_change hh_change addr_change 
 
 * changer_rels.dta has one record for every person arriving or leaving ego's 
 * household between this month and the next. There may be records for both 
@@ -23,21 +23,15 @@ keep SSUID PNUM panelmonth comp_change hh_change addr_change
 * changer_rels includes no records for individuals who experienced no composition change in the month
 * we get these records from hh_change.dta. Thus any variable we pull in with "changer_rels" is missing for everyone
 * who did not experience a composition change. For example, adult_arrive is missing for everyone with comp_change==0
-
-merge 1:m SSUID PNUM panelmonth using "$tempdir/changer_rels", keepusing(relationship ///
-bioparent parent sibling biosib halfsib stepsib grandparent nonrel child other_rel foster allelse adult_arrive adult_leave ///
+merge 1:m SSUID EPPPNUM panelmonth using "$tempdir/changer_rels_am", keepusing(relationship ///
+parent sibling grandparent nonrel other_rel foster allelse adult_arrive adult_leave ///
 adult30_arrive adult30_leave parent_arrive parent_leave otheradult30_arrive ///
 otheradult30_leave otheradult_arrive otheradult_leave change_type ///
 yadult_arrive yadult_leave otheryadult_arrive otheryadult_leave adultsib_arrive ///
 adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive) 
 
 * be sure that all cases with a comp_change were found in changer_rels
-gen err=0 if comp_change == 1
-replace err=1 if _merge !=3 & comp_change == 1
-egen error=mean(err)
-
-* we will tolerate less than .5% without changers identified on either have_arrivers or have_leavers
-assert error < .005  
+assert _merge==3 if comp_change==1
 
 drop _merge
 
@@ -49,13 +43,8 @@ gen someonearrived=0 if !missing(comp_change)
 replace someonearrived=1 if change_type==1
 replace someoneleft=1 if change_type==2
 
-gen bioparent_change=1 if comp_change==1 & bioparent==1
 gen parent_change=1 if comp_change==1 & parent==1
 gen sib_change=1 if comp_change==1 & sibling==1
-gen biosib_change=1 if comp_change==1 & biosib==1
-gen halfsib_change=1 if comp_change==1 & halfsib==1
-gen stepsib_change=1 if comp_change==1 & stepsib==1
-gen child_change=1 if comp_change==1 & child==1
 gen other_change=1 if comp_change==1 & parent!=1 & sibling !=1
 gen nonparent_change=1 if comp_change==1 & parent!=1
 gen gp_change=1 if comp_change==1 & grandparent==1
@@ -64,15 +53,14 @@ gen otherrel_change=1 if comp_change==1 & other_rel==1
 gen foster_change=1 if comp_change==1 & foster==1 		// tiny
 gen allelse_change=1 if comp_change==1 & allelse==1
 
-collapse (max) comp_change bioparent_change parent_change sib_change biosib_change ///
-halfsib_change stepsib_change child_change other_change nonparent_change gp_change ///
+collapse (max) comp_change parent_change sib_change other_change nonparent_change gp_change ///
 nonrel_change otherrel_change foster_change allelse_change adult_arrive ///
 adult_leave adult30_arrive adult30_leave someonearrived someoneleft ///
 parent_arrive parent_leave otheradult30_arrive otheradult30_leave ///
 otheradult_arrive otheradult_leave yadult_arrive yadult_leave otheryadult_arrive ///
-otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID PNUM panelmonth)
+otheryadult_leave adultsib_arrive adultsib_leave otheradult2_arrive otheradult2_leave infant_arrive, by(SSUID EPPPNUM panelmonth)
 
-merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/hh_change_am.dta"
+merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP01keep/hh_change_am.dta"
 
 drop _merge
 
@@ -80,7 +68,7 @@ drop _merge
 * unable to infer comp_change. insample is generated at the end of create_hh_change.do
 keep if insample !=0
 
-local reltyp "bioparent parent sib biosib halfsib stepsib child other nonparent gp nonrel otherrel foster allelse"
+local reltyp "parent sib other nonparent gp nonrel otherrel foster allelse"
 
 * set relationship-specific composition change variables to 0 if comp_change is not missing and specific relationship type wasn't observed among the changers.
 foreach r in `reltyp'{
@@ -121,12 +109,9 @@ replace otheradult2_leave=0 if missing(otheradult2_leave) & !missing(comp_change
 
 replace infant_arrive=0 if missing(infant_arrive) & !missing(comp_change)
 
-label variable comp_change "Household composition changed between this month and the next"
+label variable comp_change "Household composition changed bewteen this month and the next"
 label variable parent_change "Started or stopped living with a (bio/step/adoptive) parent (or parent's partner)"
 label variable sib_change "Started or stopped living with a (full/half/step) sibling entered or left household"
-label variable biosib_change "Started or stopped living with a full sibling entered or left household"
-label variable stepsib_change "Started or stopped living with a step sibling entered or left household"
-label variable halfsib_change "Started or stopped living with a half sibling entered or left household"
 label variable other_change "Started or stopped living with non-parent, non-sibling"
 label variable nonparent_change "Started or stopped living with non-parent"
 label variable gp_change "Started or stopped living with a grandparent"
@@ -169,7 +154,7 @@ label define yesno   0 "No" 1 "Yes"
 label define insample 0 "Not in sample" 1 "In this month and the next" 2 "Inferred Composition Change" 3 "Only Address Change"
 label define momeasure 0 "Never lived with parent" 1 "Biological Mother" 2 "Other Mother" 3 "Father"
 
-local changevars "comp_change bioparent_change parent_change sib_change child_change other_change nonparent_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave otheradult2_arrive otheradult2_leave infant_arrive innext hh_change inmonth"
+local changevars "comp_change parent_change sib_change other_change nonparent_change gp_change foster_change allelse_change adult_arrive adult_leave someonearrived someoneleft parent_arrive parent_leave otheradult30_arrive otheradult30_leave otheradult_arrive otheradult_leave otheradult2_arrive otheradult2_leave infant_arrive innext hh_change inmonth"
 
 foreach v in `changevars' {
 	label values `v' yesno
@@ -178,6 +163,6 @@ foreach v in `changevars' {
 label values insample insample
 label values mom_measure momeasure
 
-save "$SIPP14keep/HHchangeWithRelationships_am.dta", $replace
+save "$SIPP01keep/HHchangeWithRelationships_am.dta", $replace
 
 

@@ -5,77 +5,121 @@
 //====== ssuid_shhadid_wide.dta, person_pdemo (parents demographics), partner_of_ref_person_long (and wide)
 //=================================================================================//
 
-
 //================================================================================//
-//== Purpose: Make the shhadid member database with a single string variable 
-//== containing a list of all EPPPNUMs in a household in a month. This file will also 
-//== be used for normalize ages and so it includes a string variable with list of 
-//== all ages of household members with EPPPNUM.
+//== Section: Make the shhadid member database with a single string variable 
+//== containing a list of all EPPPNUMs in a household in a month. 
 //================================================================================//
-use "$SIPP14keep/allmonths14"
+use "$SIPP14keep/allmonths14", clear
 
-local i_vars "SSUID SHHADID" 
+* How many residenceids per sampling unit in wave 1 // we observe up to 4
+
+local i_vars "SSUID ERESIDENCEID" // note that SHHADID is all about household that spawn. Not all residences. 
 local j_vars "panelmonth"
 
-keep `i_vars' `j_vars' PNUM TAGE
+keep `i_vars' `j_vars' PNUM TAGE RHNUMPER RHNUMPERWT2 
 sort `i_vars' `j_vars' PNUM TAGE
 
 by `i_vars' `j_vars':  gen hhmemnum = _n  /* Number the people in household in each month. */
 
 egen maxpnum = max(hhmemnum) /* max n of people in household in any month. */
+
 local maxpn = `=maxpnum' /* to use below in forvalues loop */
 
 *******************************************************************************
-** Section: Generate a horizontal list of people in the household at each month.
+** Section: Generate a horizontal list of type 1 people in the household at each month.
 *******************************************************************************
+* This just gets people who were in a sample household at the time of an interview. Need to add "type 2" people
 
 * Create for_concat* variables equal to string value of pn's EPPPNUM for for_contact_*[pn] and missing otherwise
-* and for_concat_age_* variables equal to string value of TAGE-EPPPNUM
+
 forvalues pn = 1/`maxpn' {
     gen for_concat_person`pn' = string(PNUM) if (hhmemnum == `pn')
 }
 
 drop hhmemnum
 
-* Collapse by address (SSUID SHHADID) to take the first non-missing value of the 
+* Collapse by address (SSUID ERESIDENCEID) to take the first non-missing value of the 
 * variables we built above. Note that there is exactly one non-missing -- 
 * only the nth person in the household in this month got a value set for variable #n.
 
-keep `i_vars' `j_vars' for_concat_person* 
+keep `i_vars' `j_vars' for_concat_person* RHNUMPERWT2
 
-collapse (firstnm) for_concat_person* , by (`i_vars' `j_vars')
+collapse (firstnm) for_concat_person* RHNUMPERWT2, by (`i_vars' `j_vars')
 
 * Concatenate all for_concat* variables into a single string where each person number is separated by a blank.
-egen shhadid_members = concat(for_concat_person*), punct(" ")
+egen t1residence_members = concat(for_concat_person*), punct(" ")
 
 * clean up
 drop for_concat_person* 
 
+save "$tempdir/t1residence_members", $replace
+
+*******************************************************************************
+** Section: Generate a horizontal list of type 2 people in the household at each month.
+* and then merge onto list of t1 residence members
+*******************************************************************************
+
+* person-numbers for type 2 people are listed in variables ET2_LNOX, but not consecutively
+* Can concatenate and strip out missing values 
+
+use "$SIPP14keep/allmonths14_type2.dta", clear
+
+* replace missing data with blanks
+
+gen anyt2=.
+forvalues lno=1/10 {
+    replace anyt2=1 if !missing(ET2_LNO`lno')
+    tostring ET2_LNO`lno', replace
+    replace ET2_LNO`lno'=" " if ET2_LNO`lno'=="."
+}
+
+egen t2residence_members=concat(ET2_LNO*), punct(" ")
+
+keep `i_vars' `j_vars' t2residence_members anyt2
+
+* take only observations with type 2 people
+
+collapse (firstnm) anyt2 t2residence_members, by (`i_vars' `j_vars')
+
+drop anyt2
+
+merge 1:1 SSUID ERESIDENCEID panelmonth using "$tempdir/t1residence_members"
+
+drop _merge
+
+egen residence_members=concat(t1residence_members t2residence_members), punct(" ")
+
 * Strip out extra spaces.
-replace shhadid_members = strtrim(shhadid_members)
+replace residence_members = strtrim(residence_members)
 
 * Add a space at the beginning and end of the string to make sure every person appears surrounded by spaces.
-replace shhadid_members = " " + shhadid_members + " "
+replace residence_members = " " + residence_members + " "
 
 ********************************************************************
 ** Section: Compute number of household members by month and overall.
 ********************************************************************
 sort panelmonth
-gen n_shhadid_members = wordcount(shhadid_members)
-by panelmonth:  egen mx_shhadid_members = max(n_shhadid_members)
-egen overall_max_shhadid_members = max(n_shhadid_members)
-drop n_shhadid_members
+gen n_residence_members = wordcount(residence_members)
+
+* verify through comparison to census variable
+assert n_residence_members==RHNUMPERWT2
+
+* create max variables for later loops
+by panelmonth:  egen mx_residence_members = max(n_residence_members)
+egen overall_max_residence_members = max(n_residence_members)
+
+drop n_residence_members
 
 compress 
 
 macro drop i_vars j_vars 
 
-save "$tempdir/shhadid_members", $replace
+save "$tempdir/residence_members", $replace
 
 //================================================================================//
 //== Purpose: Make the ssuid member database
 //== The logic is similar for the shhadid database, but here we are going to collapse
-//== by sample unit (SSUID) instead of address (SSUID SHHADID) to create variables
+//== by sample unit (SSUID) instead of address (SSUID ERESIDENCEID) to create variables
 //== describing number of sample unit members across all months
 //================================================================================//
 
@@ -110,9 +154,49 @@ keep `i_vars' `j_vars' for_concat_person*
 collapse (firstnm) for_concat_person*, by (`i_vars' `j_vars')
 
 *Concatenate all person-numbers into a single string.
-egen ssuid_members = concat(for_concat_person*), punct(" ")
+egen t1ssuid_members = concat(for_concat_person*), punct(" ")
 
 drop for_concat_person*
+
+save "$tempdir/t1ssuid_members_wide", $replace
+
+*******************************************************************************
+** Section: Generate a horizontal list of type 2 people in the SSUID
+*******************************************************************************
+
+* person-numbers for type 2 people are listed in variables ET2_LNOX, but not consecutively
+* Can concatenate and strip out missing values 
+
+use "$SIPP14keep/allmonths14_type2.dta", clear
+
+* replace missing data with blanks
+
+gen anyt2=.
+forvalues lno=1/10 {
+    replace anyt2=1 if !missing(ET2_LNO`lno')
+    tostring ET2_LNO`lno', replace
+    replace ET2_LNO`lno'=" " if ET2_LNO`lno'=="."
+}
+
+egen t2ssuid_members=concat(ET2_LNO*), punct(" ")
+
+keep `i_vars' `j_vars' t2ssuid_members anyt2
+
+* take only observations with type 2 people
+
+collapse (firstnm) anyt2 t2ssuid_members, by (`i_vars' `j_vars')
+
+drop anyt2
+
+merge 1:1 SSUID panelmonth using "$tempdir/t1ssuid_members_wide"
+
+drop _merge
+
+egen ssuid_members= concat(t1ssuid_members t2ssuid_members), punct(" ")
+
+drop t1ssuid_members
+drop t2ssuid_members
+
 
 * Strip out extra space to save space.
 replace ssuid_members = strtrim(ssuid_members)
@@ -136,7 +220,7 @@ macro drop i_vars j_vars
 save "$tempdir/ssuid_members_wide", $replace
 
 //================================================================================//
-//== Purpose: Make the ssuid SHHADID database with information on the number of addresses (SHHADID)
+//== Purpose: Make the ssuid ERESIDENCEID database with information on the number of addresses (ERESIDENCEID)
 //== in the sampling unit (SSUID) in each month and overall.
 //================================================================================//
 
@@ -145,10 +229,10 @@ use "$SIPP14keep/allmonths14"
 local i_vars "SSUID"
 local j_vars "panelmonth"
 
-keep `i_vars' `j_vars' SHHADID
-sort `i_vars' `j_vars' SHHADID
-duplicates drop
+keep `i_vars' `j_vars' ERESIDENCEID
+sort `i_vars' `j_vars' ERESIDENCEID
 
+duplicates drop
 
 by `i_vars' `j_vars':  gen anum = _n /* Number the addresses in the household for each month. */
 
@@ -160,10 +244,10 @@ local maxan = `=maxanum'
 ** Section: Generate a horizontal list of addresses in the SSUID (original sampling unit).
 ********************************************************************
 
-* Create for_concat* variable equal to string value of address's SHHADID for for_contact_*[an] and missing otherwise
-destring SHHADID, replace
+* Create for_concat* variable equal to string value of address's ERESIDENCEID for for_contact_*[an] and missing otherwise
+
 forvalues an = 1/`maxan' {
-    gen for_concat_address`an' = string(SHHADID) if (anum == `an')
+    gen for_concat_address`an' = ERESIDENCEID if (anum == `an')
 }
 
 drop anum
@@ -176,31 +260,31 @@ collapse (firstnm) for_concat_address*, by (`i_vars' `j_vars')
 
 
 *Concatenate all "addresses" into a single string.
-egen ssuid_shhadid = concat(for_concat_address*), punct(" ")
+egen ssuid_residence = concat(for_concat_address*), punct(" ")
 
 drop for_concat_address*
 
 * Save space by stripping out extra spaces.
-replace ssuid_shhadid = strtrim(ssuid_shhadid)
+replace ssuid_residence = strtrim(ssuid_residence)
 
 * Add a space at the beginning and end of the string so we are sure every person appears surrounded by spaces.
-replace ssuid_shhadid = " " + ssuid_shhadid + " "
+replace ssuid_residence = " " + ssuid_residence + " "
 
 * Compute max number of addresses by month and overall.
 
 sort panelmonth
-gen n_ssuid_shhadid = wordcount(ssuid_shhadid)
-by panelmonth:  egen max_ssuid_shhadid = max(n_ssuid_shhadid)
-egen overall_max_ssuid_shhadid = max(n_ssuid_shhadid)
-drop n_ssuid_shhadid
+gen n_ssuid_residence = wordcount(ssuid_residence)
+by panelmonth:  egen max_ssuid_residence = max(n_ssuid_residence)
+egen overall_max_ssuid_residence = max(n_ssuid_residence)
+drop n_ssuid_residence
 
-compress 
+compress
 
-reshape wide ssuid_shhadid max_ssuid_shhadid, i(`i_vars') j(`j_vars')
+reshape wide ssuid_residence max_ssuid_residence, i(`i_vars') j(`j_vars')
 
 macro drop i_vars j_vars
 
-save "$tempdir/ssuid_shhadid_wide", $replace
+save "$tempdir/ssuid_residence_wide", $replace
 
 //================================================================================//
 //== Purpose: Create a dataset with education, immigration status (nativity, place of birth
@@ -240,7 +324,4 @@ rename ESEX psex // parent sex because the parent pointers are now gender neutra
 
 save "$tempdir/person_pdemo", $replace
 
-
-* create a dataset of household reference persons.
-do "$childhh_base_code/SIPP2014/allmonths/make_aux_refperson"
 

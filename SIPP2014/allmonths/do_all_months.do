@@ -3,27 +3,24 @@
 //===== Dataset: SIPP2014
 //===== Purpose: Executes do files to create core datafiles:
 //===== 
-*****************Code and data location macros ************************************
-*****************often these are in setup file, but they make more sense here *****
-
-* This is the location of the SIPP original data
-global SIPP2014 "/data/sipp/2014"
-
-*This is the location of the SIPP Extracts and analysis files
-global SIPP14keep "~/data/SIPP2014/"
-
-* This is where logfiles produced by stata will go
-global sipp2014_logs "~/projects/childhh/logs"
-
-* This is the location of the code
-global sipp2014_code "~/github/childhh/SIPP2014/allmonths"
-global childhh_base_code "~/github/childhh"
 
 //=========================================================================//
 //== Purpose: Preparation for running the program.
 //== 
 //== Note: This program requires the mdesc and confirmdir packages. If you do not have this, type ssc install mdesc/confirmdir before running.
 //=========================================================================//
+* make sure temporary directory is clean
+
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"
+
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
 ***************************************************************************
@@ -94,11 +91,11 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" convert_to_
 * Also produces demo_wide and demo_long data files
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" normalize_ages 
 
-** Computes biderectional base relationships (mom, dad, child, spouse) 
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_base_relationships 
+** Creates matched demographic info file for all coresident pairs of type 1 people 
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" allpairs
 
-** Identifies additional relationships transitively
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_secondary_relationships 
+** Computes biderectional base relationships (mom, dad, child, spouse) 
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_relationships 
 
 ** Creates a variable to measure change in household composition.
 ** Also creates lists of people who arrive/leave or stay in ego's household
@@ -108,7 +105,7 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_comp
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_hh_change 
 
 ** Links ego's household arrivers and stayers (in comp_change) 
-** to relationships data created by compute_secondary_relationships. 
+** to relationships data created by compute_relationships. 
 do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_changer_rels 
 
 ** Merges relationship of changers to ego back to comp_change
@@ -117,5 +114,17 @@ do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHch
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
 ** households of children, need to collapse by SSUID SHHADID and panelmonth and then select if adj_age < 18
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHComp_asis
+do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHComp_asis
 
+******************************
+* Clean up temporary directory
+******************************
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"

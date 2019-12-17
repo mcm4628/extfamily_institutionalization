@@ -1,21 +1,18 @@
 //====================================================================//
 //===== Children's Household Instability Project                    
-//===== Dataset: SIPP2008                                           
+//===== Dataset: SIPP2001                                           
 //===== Purpose: This code append all waves of SIPP2008 original data into a long form dataset. 
-//               It keeps only observations in the reference month (4).  
 //=====================================================================//
 
 ** Import first wave. 
-use "$SIPP08keep/wave${first_wave}_extract", clear 
-
-** Keep only observations in the reference month. 
-keep if SREFMON == ${refmon}
+use "$SIPP01keep/wave${first_wave}_extract", clear 
 
 ** Append the first wave with waves from the second to last, also keep only observations from the reference month. 
 forvalues wave = $second_wave/$final_wave {
-    append using "$SIPP08keep/wave`wave'_extract"
-    keep if SREFMON == ${refmon} 
+    append using "$SIPP01keep/wave`wave'_extract"
 }
 
-** allwaves.dta is a long-form datasets include all the waves from SIPP2008, month 4 data. 
-save "$tempdir/allwaves", $replace
+gen panelmonth=(SWAVE-1)*4+SREFMON
+
+** allwaves.dta is a long-form datasets include all the waves from SIPP2001, all months
+save "$tempdir/allmonths", $replace

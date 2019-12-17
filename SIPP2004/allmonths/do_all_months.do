@@ -10,8 +10,18 @@
 //== Note: This program requires the mdesc and confirmdir packages. If you do not have this, type ssc install mdesc/confirmdir before running.
 //=========================================================================//
 
-* !!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-global sipp2004_code "$childhh_base_code/SIPP2004/allmonths" // note that this needs to be edited to indicate the location of code
+
+* make sure temporary directory is clean
+
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"
 
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
@@ -33,9 +43,7 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
-do "$childhh_base_code/SIPP2004/project_macros" /* this do-file contains macros of wave, age, month, relationships */
-
-global sipp2004_code "~/github/childhh/SIPP2004/allmonths"
+do "$childhh_base_code/SIPP2004/allmonths/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
@@ -69,7 +77,7 @@ if `r(confirmdir)' {
 * Execute scripts to process data.
 ********************************************************************************
 ** Extracts data from NBER download and formats it for our scripts
-*do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" extract_and_format
+do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
 do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" merge_all_months  
@@ -108,5 +116,17 @@ do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" create_HHch
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
 ** households of children, need to collapse by SSUID SHHADID and SWAVE and then select if adj_age < 18
-do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" create_HHComp_asis_am
+*do "$childhh_base_code/do_and_log" "$sipp2004_code" "$sipp2004_logs" create_HHComp_asis_am
 
+******************************
+* Clean up temporary directory
+******************************
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"

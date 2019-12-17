@@ -9,10 +9,10 @@
 * Wave 1
 	clear
 	set maxvar 32000
-	use "$SIPP2014/pu2014w1"
-	keep tftotinc thtotinc tst_intv ems eorigin EPNPAR1 EPNPAR2 epnspouse ///
-	erace erelrp esex EPAR1TYP EPAR2TYP  tage  RHNUMPERWT2  ///
-	RFAMREFWT2 thtotinc eresidenceid einttype pnum  ///
+	use "$SIPP2014/pu2014w1_compressed"
+	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
+	erace erelrp esex epar1typ epar2typ tage rhnumperwt2 ///
+	rfamrefwt2 thtotinc eresidenceid einttype pnum  ///
 	shhadid monthcode aroutingsrop swave wpfinwgt eeduc ssuid rged ///
 	renroll eedgrade 
 	
@@ -28,12 +28,12 @@
      replace SWAVE=3 if swave==1 & MONTHCODE==12
 
 
-	save "$SIPP14keep/wave1_extract" if swave==1 & MONTHCODE==4, $replace
+	save "$SIPP14keep/wave1_extract" if SWAVE==1, $replace
 
 * Wave 2
 	clear
 	set maxvar 32000
-	use "$SIPP2014/pu2014w2"
+	use "$SIPP2014/pu2014w2_compressed"
 	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
 	erace erelrp esex epar1typ epar2typ  tage renterreason  rhnumperwt2 ///
 	rfamrefwt2 thtotinc eresidenceid einttype pnum tmover  ///
@@ -57,7 +57,7 @@
 * Wave 3
 	clear
 	set maxvar 32000
-	use "$SIPP2014/pu2014w3"
+	use "$SIPP2014/pu2014w3_compressed"
 	keep tftotinc thtotinc tst_intv ems eorigin epnpar1 epnpar2 epnspouse ///
 	erace erelrp esex epar1typ epar2typ  tage renterreason  rhnumperwt2 ///
 	rfamrefwt2 thtotinc eresidenceid einttype pnum tmover  ///

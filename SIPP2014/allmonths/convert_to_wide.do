@@ -8,19 +8,29 @@
  
 use "$SIPP14keep/allmonths14", clear  
 
-merge m:1 SSUID SHHADID panelmonth using "$tempdir/shhadid_members" 
+merge m:1 SSUID ERESIDENCEID panelmonth using "$tempdir/residence_members" 
 assert _merge == 3
 drop _merge
+*****************************************************************************
+* Section: create a dummy for whether the individual is coresiding with any original
+*          sample member to be able to drop observations that aren't
+*****************************************************************************
+
+gen with_original=0
+replace with_original=1 if PNUM >=101 & PNUM <=120 // original sample member
+
+tab with_original
+
+forvalues n=101/120 {
+    replace with_original = strpos(residence_members, " `n' ") if with_original==0 // if you find n in the list of residence members, set with_original equal to 1
+}
+
+tab with_original
 
 
-* Add characteristics of reference person
-merge m:1 SSUID SHHADID panelmonth using "$tempdir/ref_person_long"
+replace with_original=1 if with_original > 1
 
-* 1 SSUID SHHADID combo is missing for 5 panel months (25-29)
-
-drop if _merge!=3
-drop _merge
-
+tab with_original
 
 ********************************************************************************
 * Section: create variables describing mother's and father's education and mother's
@@ -97,18 +107,15 @@ label var biodad_age "Age of coresident biological father if present"
 recode EEDUC (31/38 = 1)  (39 = 2)  (40/42 = 3)  (43/46 = 4), gen (educ)
 label values educ educ
 
-gen dropout=0
-replace dropout=1 if RENROLL==3 & educ < 2
-
 ********************************************************************************
 * Section: Make the dataset wide by month (12 months).
 ********************************************************************************
 
 local i_vars "SSUID PNUM"
 local j_vars "panelmonth"
-local wide_vars "SHHADID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age shhadid_members mx_shhadid_members ref_person ref_person_sex ref_person_educ educ dropout"
+local wide_vars "ERESIDENCEID EPNPAR1 EPNPAR2 EPAR1TYP EPAR2TYP EPNSPOUSE TAGE EMS ERELRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC RHNUMPERWT2 mom_educ biomom_educ dad_educ  mom_age biomom_age dad_age biodad_age residence_members mx_residence_members educ RGED RENROLL EEDGRADE EEDGREP RFOODR RFOODS RHNUMU18 RHNUMU18WT2 RHNUM65OVER RHNUM65OVRT2 RHPOV RHPOVT2 THINCPOV THINCPOVT2 with_original"
 
-local extra_vars "overall_max_shhadid_members"
+local extra_vars "overall_max_residence_members"
 
 keep `i_vars' `j_vars' `wide_vars' `extra_vars'
 reshape wide `wide_vars', i(`i_vars') j(`j_vars')
@@ -251,20 +258,20 @@ assert _merge == 3
 drop _merge
 
 * Merge in file with information on number of addresses in sampling unit per month and overall (make_auxiliary_datasets)
-merge m:1 SSUID using "$tempdir/ssuid_shhadid_wide"
+merge m:1 SSUID using "$tempdir/ssuid_residence_wide"
 assert _merge == 3
 drop _merge
 
 * Create variables identifying first and last month of appearance for each person(which is often the same as the whole household).
-* Note: SHHADID is never missing in the base data, so we can assume here that a missing SHHADID means the person was absent from that month.
-gen my_last_month = ${first_month} if (!missing(SHHADID${first_month}))
+* Note: ERESIDENCE is never missing in the base data, so we can assume here that a missing ERESIDENCE means the person was absent from that month.
+gen my_last_month = ${first_month} if (!missing(ERESIDENCEID${first_month}))
 forvalues month = $second_month/$final_month {
-    replace my_last_month = `month' if (!missing(SHHADID`month'))
+    replace my_last_month = `month' if (!missing(ERESIDENCEID`month'))
 }
 
-gen my_first_month = ${final_month} if (!missing(SHHADID${final_month}))
+gen my_first_month = ${final_month} if (!missing(ERESIDENCEID${final_month}))
 forvalues month = $penultimate_month (-1) $first_month {
-    replace my_first_month = `month' if (!missing(SHHADID`month'))
+    replace my_first_month = `month' if (!missing(ERESIDENCEID`month')) & with_original`month'==1
 }
 
 drop ERACE* race* ESEX*

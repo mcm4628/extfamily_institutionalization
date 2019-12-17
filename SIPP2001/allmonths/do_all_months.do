@@ -1,29 +1,27 @@
 //==============================================================================//
 //===== Children's Household Instability Project
-//===== Dataset: SIPP2014
+//===== Dataset: SIPP2001
 //===== Purpose: Executes do files to create core datafiles:
 //===== 
-*****************Code and data location macros ************************************
-*****************often these are in setup file, but they make more sense here *****
-
-* This is the location of the SIPP original data
-global SIPP2014 "/data/sipp/2014"
-
-*This is the location of the SIPP Extracts and analysis files
-global SIPP14keep "$homedir/data/SIPP2014/"
-
-* This is where logfiles produced by stata will go
-global sipp2014_logs "$homedir/projects/childhh/logs"
-
-* This is the location of the code
-
-global childhh_base_code "~/github/childhh/SIPP2014/allmonths"
 
 //=========================================================================//
 //== Purpose: Preparation for running the program.
 //== 
 //== Note: This program requires the mdesc and confirmdir packages. If you do not have this, type ssc install mdesc/confirmdir before running.
 //=========================================================================//
+/*
+* make sure temporary directory is clean
+
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"
+*/
 ***************************************************************************
 ** Section: The following code attempts to make sure these packages are installed before allowing execution.
 ***************************************************************************
@@ -44,33 +42,33 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
-do "$childhh_base_code/project_macros" /* this do-file contains macros of wave, age, month, relationships */
+do "$childhh_base_code/SIPP2001/allmonths/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.
 ***************************************************************************
 
-if ("$sipp2014_code" == "") {
-    display as error "sipp2014_code macro not set."
+if ("$sipp2001_code" == "") {
+    display as error "sipp2001_code macro not set."
     display as error "This macro tells us where to find the project code."
     exit
 }
 
-if ("$sipp2014_logs" == "") {
-    display as error "sipp2014_logs macro not set."
+if ("$sipp2001_logs" == "") {
+    display as error "sipp2001_logs macro not set."
     display as error "This macro tells us where to put the log files."
     exit
 }
 
-confirmdir "$sipp2014_logs"
+confirmdir "$sipp2001_logs"
 if `r(confirmdir)' {
-    display as error "The sipp2014_logs macro specifies a directory that does not exist:  $sipp2014_logs"
+    display as error "The sipp2001_logs macro specifies a directory that does not exist:  $sipp2001_logs"
     exit
 }
 
-confirmdir "$sipp2014_code"
+confirmdir "$sipp2001_code"
 if `r(confirmdir)' {
-    display as error "The sipp2014_code macro specifies a directory that does not exist:  $sipp2014_code"
+    display as error "The sipp2001_code macro specifies a directory that does not exist:  $sipp2001_code"
     exit
 }
 
@@ -78,49 +76,56 @@ if `r(confirmdir)' {
 * Execute scripts to process data.
 ********************************************************************************
 ** Extracts data from NBER download and formats it for our scripts
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" extract_and_format
+*do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" extract_and_format
 
 ** Combines all the waves into a long file where every person-wave is a record. 
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" merge_waves  
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" merge_all_months  
 
 ** Makes sub-datasets for analyses.
 ** Includes file for maternal and parental characteristics like education and immigration status
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" make_auxiliary_datasets 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" make_auxiliary_datasets_am 
 
 ** Generates a wide dataset by person (includes static demographic variables). 
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" convert_to_wide 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" convert_to_wide_am 
 
 ** Makes sure ages are consistent in all the waves. Caveat: cleaning incomplete.
 * Also produces demo_wide and demo_long data files
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" normalize_ages 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" normalize_ages_am 
 
 ** Computes biderectional base relationships (mom, dad, child, spouse) 
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_base_relationships 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" compute_base_relationships_am 
 
 ** Identifies additional relationships transitively
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" compute_secondary_relationships 
-
-** Identifies one consistent relationship between every pair of coresident individuals
-** We no longer use unfied relationships favoring instead measures based on relationships 
-** reported in a wave
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" unify_relationships_across_waves 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" compute_secondary_relationships_am 
 
 ** Creates a variable to measure change in household composition.
 ** Also creates lists of people who arrive/leave or stay in ego's household
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_comp_change 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" create_comp_change_am 
 
 ** Creates addr_change and hh_change. Converts data file to long. Core file: hh_change.dta
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_hh_change 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" create_hh_change_am 
 
 ** Links ego's household arrivers and stayers (in comp_change) 
 ** to relationships data created by compute_secondary_relationships. 
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_changer_rels 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" create_changer_rels_am 
 
 ** Merges relationship of changers to ego back to comp_change
-do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHchangeWithRelationships 
+do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" create_HHchangeWithRelationships_am
 
 ** Creates a pairwise data file with one record per coresident individuals in each wave.
 ** Useful for identifying household composition of children, but to produce results that describe
-** households of children, need to collapse by SSUID SHHADID and panelmonth and then select if adj_age < 18
-*do "$childhh_base_code/do_and_log" "$sipp2014_code" "$sipp2014_logs" create_HHComp_asis
+** households of children, need to collapse by SSUID SHHADID and SWAVE and then select if adj_age < 18
+*do "$childhh_base_code/do_and_log" "$sipp2001_code" "$sipp2001_logs" create_HHComp_asis_am
 
+******************************
+* Clean up temporary directory
+******************************
+cd "$tempdir"
+
+local datafiles: dir "$tempdir" files "*.dta"
+
+foreach datafile of local datafiles {
+        rm `datafile'
+}
+
+cd "$childhh_base_code"

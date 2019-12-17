@@ -16,62 +16,61 @@ label define addr_change          0 "No move"
 #delimit cr
 
 ********************************************************************************
-* Function Propagate shhadid_members forard into prev_SHHADID for missing months.
+* Section Propagate residence_members forward into prev_ERESIDENCEID for missing months.
 ********************************************************************************
 
-destring SHHADID*, replace
-gen prev_SHHADID$first_month = .
+gen prev_ERESIDENCEID$first_month = .
 forvalues month = $second_month/$final_month {
     local prev_month = `month' - 1
-	gen prev_SHHADID`month' = SHHADID`prev_month' if (missing(SHHADID`month') & missing(prev_SHHADID`prev_month'))
-	replace prev_SHHADID`month' = prev_SHHADID`prev_month' if (missing(SHHADID`month') & (!missing(prev_SHHADID`prev_month')))
+	gen prev_ERESIDENCEID`month' = ERESIDENCEID`prev_month' if (missing(ERESIDENCEID`month') & missing(prev_ERESIDENCEID`prev_month'))
+	replace prev_ERESIDENCEID`month' = prev_ERESIDENCEID`prev_month' if (missing(ERESIDENCEID`month') & (!missing(prev_ERESIDENCEID`prev_month')))
 }
 
 ********************************************************************************
-** Function:  Propagate shhadid_members backward into future_hh_members for missing months.  
+** Section:  Propagate residence_members backward into future_hh_members for missing months.  
 ********************************************************************************
 
-gen future_SHHADID$final_month = .
+gen future_ERESIDENCEID$final_month = .
 forvalues month = $penultimate_month (-1) $first_month {
     local next_month = `month' + 1
-    gen future_SHHADID`month' = SHHADID`next_month' if (missing(SHHADID`month') & missing(future_SHHADID`next_month'))
-	replace future_SHHADID`month' = future_SHHADID`next_month' if (missing(SHHADID`month') & (!missing(future_SHHADID`next_month')))
+    gen future_ERESIDENCEID`month' = ERESIDENCEID`next_month' if (missing(ERESIDENCEID`month') & missing(future_ERESIDENCEID`next_month'))
+	replace future_ERESIDENCEID`month' = future_ERESIDENCEID`next_month' if (missing(ERESIDENCEID`month') & (!missing(future_ERESIDENCEID`next_month')))
 }
 
 ********************************************************************************
-** Function: walk backward through the months and for each month in which ego is missing  compare prev_SHHAIDD to see if we find anyone
+** Section: walk backward through the months and for each month in which ego is missing  compare prev_ERESIDENCEID to see if we find anyone
 ********************************************************************************
 
-gen found_prev_SHHADID$first_month = .
+gen found_prev_ERESID$first_month = .
 forvalues month = $final_month (-1) $second_month {
-	gen found_prev_SHHADID`month'= 0 if (missing(SHHADID`month'))
-	gen found_prev_SHHADID_in_gap`month'=0 if (missing(SHHADID`month'))
-	replace found_prev_SHHADID`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") != 0))
-	replace found_prev_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") !=0))
+	gen found_prev_ERESID`month'= 0 if (missing(ERESIDENCEID`month'))
+	gen found_prev_ERESID_in_gap`month'=0 if (missing(ERESIDENCEID`month'))
+	replace found_prev_ERESID`month' = 1 if ((missing(ERESIDENCEID`month')) & (strpos(ssuid_residence`month', " " + string(prev_ERESIDENCEID`month') + " ") != 0))
+	replace found_prev_ERESID_in_gap`month' = 1 if ((missing(ERESIDENCEID`month')) & (strpos(ssuid_residence`month', " " + string(prev_ERESIDENCEID`month') + " ") !=0))
 	if (`month' < $final_month) {
 		local next_month = `month' + 1
-		replace found_prev_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (found_prev_SHHADID_in_gap`next_month' == 1))
+		replace found_prev_ERESID_in_gap`month' = 1 if ((missing(ERESIDENCEID`month')) & (found_prev_ERESID_in_gap`next_month' == 1))
 	}
 }
 
 ********************************************************************************
-** Function: walk forward through the months 
+** Section: walk forward through the months 
 ********************************************************************************
 
-gen found_future_SHHADID$final_month = .
+gen found_future_ERESID$final_month = .
 forvalues month = $first_month/$penultimate_month {
-	gen found_future_SHHADID`month'= 0 if (missing(SHHADID`month'))
-	gen found_future_SHHADID_in_gap`month'=0 if (missing(SHHADID`month'))
-	replace found_future_SHHADID`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") != 0))
-	replace found_future_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (strpos(ssuid_shhadid`month', " " + string(prev_SHHADID`month') + " ") !=0))
+	gen found_future_ERESID`month'= 0 if (missing(ERESIDENCEID`month'))
+	gen found_future_ERESID_in_gap`month'=0 if (missing(ERESIDENCEID`month'))
+	replace found_future_ERESID`month' = 1 if ((missing(ERESIDENCEID`month')) & (strpos(ssuid_residence`month', " " + string(prev_ERESIDENCEID`month') + " ") != 0))
+	replace found_future_ERESID_in_gap`month' = 1 if ((missing(ERESIDENCEID`month')) & (strpos(ssuid_residence`month', " " + string(prev_ERESIDENCEID`month') + " ") !=0))
 	if (`month' > $final_month) {
 		local prev_month = `month' - 1
-		replace found_future_SHHADID_in_gap`month' = 1 if ((missing(SHHADID`month')) & (found_future_SHHADID_in_gap`prev_month' == 1))
+		replace found_future_ERESID_in_gap`month' = 1 if ((missing(ERESIDENCEID`month')) & (found_future_ERESID_in_gap`prev_month' == 1))
 	}
 }
 
 *******************************************************************************
-** Function: Compute address change.
+** Section: Compute address change.
 *******************************************************************************
 
 forvalues month = $first_month/$penultimate_month {
@@ -81,31 +80,31 @@ forvalues month = $first_month/$penultimate_month {
     gen addr_change`month' = .
 
     * If we have data in both months, just compare HH members.
-    replace addr_change`month' = (SHHADID`month' != SHHADID`next_month') if ((!missing(SHHADID`month')) & (!missing(SHHADID`next_month')))
+    replace addr_change`month' = (ERESIDENCEID`month' != ERESIDENCEID`next_month') if ((!missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')))
 
     * If we are moving from a month in which ego is missing to one in which ego is present
-    * there is an address change if we have seen the future SHHADID in the gap during which ego was missing
+    * there is an address change if we have seen the future ERESIDENCEID in the gap during which ego was missing
     * UNLESS this is ego's birth.
     * We also need to populate age and weight from the next month since ego has no data in this month.
-    replace addr_change`month' = 1 if ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (found_future_SHHADID_in_gap`month' == 1))
-    replace adj_age`month' = adj_age`next_month' if ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (found_future_SHHADID_in_gap`month' == 1))
-    replace WPFINWGT`month' = WPFINWGT`next_month' if ((missing(SHHADID`month')) & (!missing(SHHADID`next_month')) & (found_future_SHHADID_in_gap`month' == 1))
+    replace addr_change`month' = 1 if ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (found_future_ERESID_in_gap`month' == 1))
+    replace adj_age`month' = adj_age`next_month' if ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (found_future_ERESID_in_gap`month' == 1))
+    replace WPFINWGT`month' = WPFINWGT`next_month' if ((missing(ERESIDENCEID`month')) & (!missing(ERESIDENCEID`next_month')) & (found_future_ERESID_in_gap`month' == 1))
     * Undo those changes if this is birth.
     replace addr_change`month' = . if ((`next_month' == my_first_month) & (adj_age`next_month' == 0))
     replace adj_age`month' = . if ((`next_month' == my_first_month) & (adj_age`next_month' == 0))
     replace WPFINWGT`month' = . if ((`next_month' == my_first_month) & (adj_age`next_month' == 0))
 
     * If we are moving from a month in which ego is present to one in which ego is missing
-    * there is an address change if we have seen the current SHHADID in the gap 
+    * there is an address change if we have seen the current ERESIDENCEID in the gap 
     * during which ego is missing as we look forward.
-    replace addr_change`month' = 1 if ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (found_prev_SHHADID_in_gap`next_month' == 1))
+    replace addr_change`month' = 1 if ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (found_prev_ERESID_in_gap`next_month' == 1))
 
     * If we are moving from a month in which ego is present to one in which ego is missing
-    * and we do not see the current SHHADID in the gap looking forward,
-    * we compare the current SHHADID to the future SHHADID as if we move into the
-    * future household in the first missing month, unless there is no future SHHADID
+    * and we do not see the current ERESIDENCEID in the gap looking forward,
+    * we compare the current ERESIDENCEID to the future ERESIDENCEID as if we move into the
+    * future household in the first missing month, unless there is no future ERESIDENCEID
     * (ego's last appearance).
-    replace addr_change`month' = (SHHADID`month' != future_SHHADID`next_month') if ((!missing(SHHADID`month')) & (missing(SHHADID`next_month')) & (!missing(future_SHHADID`next_month')) & (found_prev_SHHADID_in_gap`next_month' != 1))
+    replace addr_change`month' = (ERESIDENCEID`month' != future_ERESIDENCEID`next_month') if ((!missing(ERESIDENCEID`month')) & (missing(ERESIDENCEID`next_month')) & (!missing(future_ERESIDENCEID`next_month')) & (found_prev_ERESID_in_gap`next_month' != 1))
 
 
     * Tab "original" addr_change and comp_change variables.
@@ -120,12 +119,12 @@ forvalues month = $first_month/$penultimate_month {
 *    tab addr_change`month' comp_change`month', m
 }
 
-gen original=1 if !missing(SHHADID1)
+gen original=1 if !missing(TAGE4)
 gen agemonth1=adj_age1 if original==1
 
-keep SSUID PNUM SHHADID* adj_age* comp_change* addr_change* comp_change_reason* original agemonth1
+keep SSUID PNUM ERESIDENCEID* adj_age* comp_change* addr_change* comp_change_reason* original agemonth1
 
-reshape long SHHADID adj_age comp_change addr_change comp_change_reason, i(SSUID PNUM) j(panelmonth)
+reshape long ERESIDENCEID adj_age comp_change addr_change comp_change_reason, i(SSUID PNUM) j(panelmonth)
 
 merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/demo_long_all_am.dta"
 
@@ -140,7 +139,7 @@ drop _merge
 gen hh_change=comp_change
 replace hh_change=1 if addr_change==1
 
-gen inmonth = !missing(ERELRP)
+gen inmonth = !missing(ERESIDENCEID)
 
 gen insample=0
 * Keep if in this month and next
