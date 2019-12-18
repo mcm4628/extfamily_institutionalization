@@ -55,7 +55,7 @@ Data for our analysis come from the 2014 panel of the Survey of Income and Progr
 	   gen month=12-(swave*12-panelmonth)
 
   keep if adj_age > 15 & adj_age < 20
-	 
+  keep if educ<3 
 	 *describe sample
 	 sort idnum panelmonth
 	 egen tagid = tag(idnum)
@@ -77,15 +77,8 @@ The primary dependent variable is school dropout prior to obtaintaing a high sch
 <<dd_do: quietly>>
 
 *************************************************************************
-* Create measures of educational attainment
+* Create measures of dropout
 *************************************************************************
-	*fill in missing educ: carry forward education from previous
-	* month if education is missing in current month
-
-	xtset idnum panelmonth
-	sort idnum panelmonth
-	by idnum: replace educ = educ[_n-1] if missing(educ)
-
 
 	**create indicator for high school dropout adjusted for summer
 	 * Note RENROLL is a Census-constructed variable based on measures
@@ -296,24 +289,11 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 	replace cchange=7 if parent_change==0 & sib_change==0 & other_change==1 //only other change
 	replace cchange=8 if parent_change==1 & sib_change==1 & other_change==1 //3 change
 
-	*create poverty status
-	gen cpov=.
-	replace cpov=1 if THINCPOVT2 <= .5
-	replace cpov=2 if THINCPOVT2 > .5 &  THINCPOVT2 <=1
-	replace cpov=3 if THINCPOVT2 > 1 &  THINCPOVT2 <=2
-	replace cpov=4 if THINCPOVT2 >2
-
-	*merge in hh composition
-	merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/HHComp_pm.dta", keepusing (parcomp sibcomp extend WPFINWGT)
-
-	keep if _merge==3 | _merge==1
-	drop _merge
-
 	*create ever variables
 	local evervar hh_change comp_change bioparent_change ///
 	parent_change sib_change biosib_change halfsib_change ///
 	stepsib_change other_change gp_change ///
-	nonrel_change otherrel_change cchange ///
+	nonrel_change otherrel_change cchange 
 	
 	foreach var in `evervar'{
 	    bysort idnum: gen tvnum_`var'= sum(`var')
@@ -327,14 +307,16 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 	local cvar hh_change comp_change bioparent_change parent_change ///
 	sib_change biosib_change halfsib_change stepsib_change ///
 	other_change gp_change nonrel_change otherrel_change cchange ///
-	parcomp sibcomp extend tvever_parent_change tvever_biosib_change ///
-	cpov tvever_halfsib_change tvever_stepsib_change ///
+    tvever_parent_change tvever_biosib_change ///
+    tvever_halfsib_change tvever_stepsib_change ///
 	tvever_sib_change  tvever_other_change
 	
 	foreach var in `cvar'{
 	    bysort idnum (panelmonth): gen `var'lag=`var'[_n-1]
         }
-
+		 
+		
+    replace panelmonth=panelmonth+1
 	save "$tempdir/monthlylagged.dta", replace
 
 	* create variables describing household instability in each
@@ -346,6 +328,7 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 			rename `var' `var'C
 		}
 
+	
 		replace swave=swave+1
 		
 		* we don't need measures of instability 
@@ -358,8 +341,38 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
 * and instability measures 
 *************************************************************************
 
-	use "$tempdir/hseduc14.dta", clear
+	use "$SIPP14keep/HHComp_pm.dta", clear
+	
+     egen id = concat (SSUID PNUM)
+	 destring id, gen(idnum)
+	 format idnum %20.0f
 
+	 drop id
+	 
+	 sort idnum panelmonth
+	 
+	 *create poverty status
+	gen cpov=.
+	replace cpov=1 if THINCPOVT2 <= .5
+	replace cpov=2 if THINCPOVT2 > .5 &  THINCPOVT2 <=1
+	replace cpov=3 if THINCPOVT2 > 1 &  THINCPOVT2 <=2
+	replace cpov=4 if THINCPOVT2 >2
+	
+	 *create poverty status, household composition at first nonmissing observation
+	 local bvar cpov parcomp sibcomp extend 
+	 
+	 foreach var in `bvar'{
+     by idnum: gen countnonmissing_`var' = sum(!missing(`var')) if !missing(`var')
+     bysort idnum (countnonmissing_`var') : gen firstnm_`var' =`var'[1] 
+	 } 
+	 
+	 keep SSUID PNUM panelmonth firstnm_cpov firstnm_parcomp firstnm_sibcomp firstnm_extend cpov parcomp sibcomp extend WPFINWGT
+	 
+	 merge 1:1 SSUID PNUM panelmonth using "$tempdir/hseduc14.dta"
+	 
+	 keep if _merge==3 
+	 drop _merge
+	
 	* merge last-year's instability onto observation
 	merge m:1 idnum swave using "$tempdir/annual_instability.dta"
 	
@@ -380,9 +393,8 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
    * make sure that merges didn't bring in some 15 year olds
    assert adj_age > 15
 
-   * no information on household instability prior to first obsservation
-   bysort idnum: gen count=_n
-   drop if count==1
+   * no information on household instability prior to first month
+   drop if panelmonth==1
 
    * tag individuals to count
    sort idnum panelmonth
@@ -409,7 +421,7 @@ We omit from the analysis <<dd_display: %5.0fc `n_omitted'>> individuals age 16-
    local n_dropouts = ndropouts
    local p_dropouts = 100*pdropouts
 
-   drop ndropouts pdropouts numdropouts perdropout tagid count // cleanup 
+   drop ndropouts pdropouts numdropouts perdropout tagid // cleanup 
 
 <</dd_do>>
 ~~~~
@@ -467,20 +479,68 @@ Household instability previous year  Percent <br>
 **************************************************************************
 * Add labels because they might come in handy later
 *************************************************************************
-label values parcomplag parcomp
-label values sibcomplag sibcomp
-label values extendlag extend
+label values firstnm_parcomp parcomp
+label values firstnm_sibcomp sibcomp
+label values firstnm_extend extend
 
 label define edu 1 "Less than HS" 2"HS Grad" 3"Some College" 4"College Grad"
 label values par_ed_first edu
 
 label define poverty 1 "Deep poverty" 2"Poor" 3"Near Poor" 4"Not Poor"
 label values cpov poverty
-label values cpovlag poverty
+label values firstnm_cpov poverty
 
 label define cchange 1 "no change" 2 "only parent change" 3 "par&sib change" 4 "par&other change" 5 "only sib change" 6 "sib&other change" 7 "only other change" 8 "3 changes"
 
 label values cchange cchange
-label values cchangelag cchange
 
 save "$SIPP14keep/dropout_month.dta", $replace
+
+~~~~
+<<dd_do: quietly>>
+
+  recode firstnm_parcomp .=5
+  recode par_ed_first .=5
+
+<</dd_do>>
+~~~~
+
+<</dd_do>>
+~~~~
+ tab tvever_parent_change dropout, row
+ tab tvever_other_change dropout, row
+ tab tvever_sib_change dropout, row
+ tab tvever_biosib_change dropout, row
+ tab tvever_stepsib_change dropout, row
+ tab tvever_halfsib_change dropout, row
+
+ tab parent_change dropout, row
+ tab other_change dropout, row
+ tab sib_change dropout, row
+ tab biosib_change dropout, row
+ tab stepsib_change dropout, row
+ tab halfsib_change dropout, row	recode par_ed_first .=5
+ 
+ 
+ *********************************************************************************
+*estimate discrete-time event history models predicting high school dropout 
+*********************************************************************************
+    *model 1
+    *household composition and dropout
+logit dropout i.firstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm_cpov i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+    *model 2
+    *household composition change and dropout
+logit dropout tvever_parent_change tvever_sib_change tvever_other_change i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+    *model 3
+    *household composition change and dropout while controling for hh composition
+logit dropout tvever_parent_change tvever_sib_change tvever_other_change i.firstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm_cpov i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+    *model 4
+    *type of sibling change
+logit dropout tvever_parent_change tvever_other_change tvever_biosib_change tvever_halfsib_change tvever_stepsib_change i.firstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm_cpov i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+<</dd_do>>
+~~~~
+
+
