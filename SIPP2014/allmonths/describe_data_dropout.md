@@ -494,19 +494,18 @@ label define cchange 1 "no change" 2 "only parent change" 3 "par&sib change" 4 "
 
 label values cchange cchange
 
-save "$SIPP14keep/dropout_month.dta", $replace
-
-~~~~
-<<dd_do: quietly>>
-
+*recode missing
   recode firstnm_parcomp .=5
   recode par_ed_first .=5
 
+save "$SIPP14keep/dropout_month.dta", $replace
 <</dd_do>>
 ~~~~
 
-<</dd_do>>
+
 ~~~~
+<<dd_do>>
+
  tab tvever_parent_change dropout, row
  tab tvever_other_change dropout, row
  tab tvever_sib_change dropout, row
@@ -519,7 +518,7 @@ save "$SIPP14keep/dropout_month.dta", $replace
  tab sib_change dropout, row
  tab biosib_change dropout, row
  tab stepsib_change dropout, row
- tab halfsib_change dropout, row	recode par_ed_first .=5
+ tab halfsib_change dropout, row	
  
  
  *********************************************************************************
@@ -540,6 +539,7 @@ logit dropout tvever_parent_change tvever_sib_change tvever_other_change i.first
     *model 4
     *type of sibling change
 logit dropout tvever_parent_change tvever_other_change tvever_biosib_change tvever_halfsib_change tvever_stepsib_change i.firstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm_cpov i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
 <</dd_do>>
 ~~~~
 
