@@ -1,6 +1,6 @@
 *This file creates a sample describing first transition into dropout by year/wave
 *household changes refer to changes happened in previous year
-*household composition and poverty status are situations at the beginning of each year (before hh changes could happen)
+*household composition and poverty status are set to values at the beginning of each year (before hh changes could happen)
 
 ~~~~
 <<dd_do: quietly>>
@@ -66,7 +66,7 @@
 
 	  gen censorwave=min(wave_firstg, wave_firstd)
 
-   *drop months that come after the first dropout or hsgrad
+   *drop waves that come after the first dropout or hsgrad
    * (create a censored sample)
       keep if swave<=censorwave
 	
