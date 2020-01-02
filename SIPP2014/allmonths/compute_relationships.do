@@ -10,6 +10,7 @@ use "$SIPP14keep/allmonths14_type2.dta", clear
 
 keep SSUID ERESIDENCEID panelmonth PNUM ET2_LNO* ET2_SEX* TT2_AGE* TAGE
 
+* create one record per type 2 person in the residence per person per  month
 reshape long ET2_LNO ET2_SEX TT2_AGE, i(SSUID ERESIDENCEID panelmonth PNUM) j(lno)
 
 rename PNUM from_num
@@ -24,6 +25,7 @@ save "$tempdir/type2_pairs.dta", $replace
 
 use "$SIPP14keep/allmonths14.dta", clear
 
+* create one record er type 1 person in the residence per person per month
 keep SSUID ERESIDENCEID PNUM RREL* RREL_PNUM* panelmonth
 
 reshape long RREL_PNUM RREL,i(SSUID ERESIDENCEID PNUM panelmonth) j(lno) 
@@ -63,11 +65,10 @@ rename RREL_PNUM to_num
 
 save "$tempdir/rel_pairs_bymonth", $replace
 
-**use "$tempdir/rel_pairs_bymonth", clear
-
 merge 1:1 SSUID ERESIDENCEID panelmonth from_num to_num using "$tempdir/allpairs"
 * all in rel_pairs are matched in allpairs, but not vice versa.
 * This is because type 2 people don't have observations in allpairs
+* allpairs is created by allpairs.do
 
 keep if _merge==3
 
