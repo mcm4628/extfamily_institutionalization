@@ -23,7 +23,7 @@ forvalues wave=1/15{
 	shhadid srefmon srotaton ssuseq swave wpfinwgt eeducate ssuid renroll ///
 	eenrlm eenlevel
 	
-	merge m:1 ssuid epppnum using "$SIPP2008/wave2_migration_extract"
+	merge m:1 ssuid epppnum using "$SIPP08keep/wave2_migration_extract"
 	drop if _merge==2
 	drop _merge
 	
