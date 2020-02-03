@@ -53,8 +53,8 @@ drop _merge
 drop pdemo_epppnum
 rename educ mom_educ
 rename page mom_age
-rename TMOVEUS mom_tmoveus
-rename TBRSTATE mom_tbrstate
+rename ptmoveus mom_tmoveus
+rename ptbrstate mom_tbrstate
 gen biomom_age=mom_age if ETYPMOM==1
 gen biomom_educ=mom_educ if ETYPMOM==1
 
@@ -71,8 +71,8 @@ drop _merge
 drop pdemo_epppnum
 rename educ dad_educ
 rename page dad_age
-rename TMOVEUS dad_tmoveus
-rename TBRSTATE dad_tbrstate 
+rename ptmoveus dad_tmoveus
+rename ptbrstate dad_tbrstate
 
 gen biodad_age=dad_age if ETYPDAD==1
 
