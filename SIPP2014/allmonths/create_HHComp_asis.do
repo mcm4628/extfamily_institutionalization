@@ -105,7 +105,10 @@ gen ngpext=1 if inlist(relationship, 16, 17, 18, 20)
 
 gen foster=1 if relationship==19
 
-collapse (count) bioparent parent stepparent sibling stphlfsib adpothsib anyext ngpext foster, by(SSUID PNUM panelmonth)
+gen anyspouse=1 if relationship==1
+gen anypartner=1 if relationship==2
+
+collapse (count) bioparent parent stepparent sibling stphlfsib adpothsib anyext ngpext foster anyspouse anypartner, by(SSUID PNUM panelmonth)
 
 save "$tempdir/comp.dta", replace
 
@@ -136,6 +139,10 @@ label define extend 0 "nuclear" 1 "grandparent" 2 "horizontal extension"
 label values parcomp parcomp
 label values sibcomp sibcomp
 label values extend extend
+
+gen marcohstat=2 if anypartner > 0
+replace marcohstat=1 if anyspouse > 0
+replace marcohstat=0 if missing(marcohstat)
 
 * one record per person
 save "$SIPP14keep/HHComp_pm.dta", $replace
