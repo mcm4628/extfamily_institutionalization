@@ -1,6 +1,6 @@
 *** We also need a dataset of reference persons.
 use "$tempdir/allmonths"
-keep SSUID EPPPNUM SHHADID ERRP ESEX EEDUCATE SWAVE
+keep SSUID EPPPNUM SHHADID ERRP ESEX EEDUCATE TMOVEUS TBRSTATE SWAVE
 
 keep if ((ERRP == 1) | (ERRP == 2))
 
@@ -18,6 +18,9 @@ recode EEDUCATE (31/38 = 1)  (39 = 2)  (40/43 = 3)  (44/47 = 4), gen (educ)
 rename EPPPNUM ref_person
 rename ESEX ref_person_sex
 rename educ ref_person_educ
+rename TMOVEUS ref_person_tmoveus
+rename TBRSTATE ref_person_tbrstate
+
 
 label values ref_person_educ educ
 

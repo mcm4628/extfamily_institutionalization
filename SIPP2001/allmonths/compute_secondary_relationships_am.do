@@ -340,7 +340,7 @@ tab relationship1 relationship2 if missing(relationship)
 display "Now working on resolving relationships"
  foreach r in dad mom child spouse sibling grandparent grandchild greatgrandchild nephewniece norel otherrel {
    display "Looking for `r'"
-   gen best_rel = .
+  gen best_rel = .
    
    * Going through each identified relationship, starting with relationship1
    * set bestrel to equal that relationship if it is not missing and it has a lower value
@@ -352,7 +352,8 @@ display "Now working on resolving relationships"
      replace best_rel = 0 if ((!missing(`v')) & (!inlist(`v', ``r'_rel_list')))
    }
    replace relationship = best_rel if (missing(relationship) & (best_rel > 0))
-   drop best_rel}
+   drop best_rel
+   }
 
 display "Where do we stand with relationships?"
 tab relationship, m

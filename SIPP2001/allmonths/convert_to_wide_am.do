@@ -53,6 +53,8 @@ drop _merge
 drop pdemo_epppnum
 rename educ mom_educ
 rename page mom_age
+rename ptmoveus mom_tmoveus
+rename ptbrstate mom_tbrstate
 gen biomom_age=mom_age if ETYPMOM==1
 gen biomom_educ=mom_educ if ETYPMOM==1
 
@@ -69,7 +71,9 @@ drop _merge
 drop pdemo_epppnum
 rename educ dad_educ
 rename page dad_age
- 
+rename ptmoveus dad_tmoveus
+rename ptbrstate dad_tbrstate
+
 gen biodad_age=dad_age if ETYPDAD==1
 
 label var dad_educ "Father's (bio, step, adopt) educational level (this wave)"
@@ -92,7 +96,7 @@ replace dropout=1 if RENROLL==3 & educ < 2
 
 local i_vars "SSUID EPPPNUM"
 local j_vars "panelmonth"
-local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_age biomom_age dad_age biodad_age shhadid_members mx_shhadid_members ref_person ref_person_sex ref_person_educ educ dropout with_original"
+local wide_vars "SHHADID EPNMOM EPNDAD ETYPMOM ETYPDAD EPNSPOUS TAGE EMS ERRP WPFINWGT ERACE ESEX EORIGIN THTOTINC TFTOTINC EHHNUMPP mom_educ biomom_educ dad_educ mom_age biomom_age dad_age biodad_age mom_tmoveus mom_tbrstate dad_tmoveus dad_tbrstate shhadid_members mx_shhadid_members ref_person ref_person_sex ref_person_educ ref_person_tmoveus ref_person_tbrstate educ dropout with_original"
 
 local extra_vars "overall_max_shhadid_members"
 

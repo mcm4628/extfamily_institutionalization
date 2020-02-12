@@ -175,11 +175,12 @@ forvalues w=1/$penultimate_month {
 save "$tempdir/person_wide_adjusted_ages_am", $replace
 
 keep SSUID EPPPNUM EMS* ERRP* WPFINWGT* EORIGIN* EBORNUS* ETYPMOM* ETYPDAD* my_race ///
-my_racealt my_sex mom_educ* dad_educ* mom_immigrant* dad_immigrant* adj_age* mom_age* ///
+my_racealt my_sex mom_educ* dad_educ* adj_age* mom_age* ///
 biomom_age* biomom_educ* dad_age* biodad_age* innext* ref_person* ref_person_sex* ///
 ref_person_educ* biomom_ed_first mom_ed_first dad_ed_first par_ed_first mom_measure ///
-check fill TAGE* THTOTINC* TFTOTINC* dad_birthplace* dad_yrmigration* biodad_birthplace* ///
-biodad_yrmigration* biomom_birthplace* biomom_yrmigration* mom_birthplace* mom_yrmigration* educ* dropout* EHHNUMPP*
+check fill TAGE* THTOTINC* TFTOTINC*  ///
+ref_person_tmoveus* ref_person_tbrstate* mom_tmoveus* dad_tmoveus* mom_tbrstate* dad_tbrstate* ///
+ educ* dropout* EHHNUMPP*
 
 
 forvalues month=1/59{
@@ -193,7 +194,7 @@ gen dropoutnw61=.
 
 save "$SIPP08keep/demo_wide_am.dta", $replace
 
-reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_immigrant dad_immigrant mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE THTOTINC TFTOTINC dad_birthplace dad_yrmigration biodad_birthplace biodad_yrmigration biomom_birthplace biomom_yrmigration mom_birthplace mom_yrmigration educ dropout dropoutnw everdropout EHHNUMPP, i(SSUID EPPPNUM) j(panelmonth)
+reshape long adj_age EMS ERRP WPFINWGT EORIGIN EBORNUS ETYPMOM ETYPDAD mom_educ dad_educ mom_age biomom_age biomom_educ dad_age biodad_age innext ref_person ref_person_sex ref_person_educ TAGE THTOTINC TFTOTINC ref_person_tmoveus ref_person_tbrstate mom_tmoveus dad_tmoveus mom_tbrstate dad_tbrstate educ dropout dropoutnw everdropout EHHNUMPP, i(SSUID EPPPNUM) j(panelmonth)
 
 label variable adj_age "Adjusted Age"
 label variable innext "Is this person observed in next month?"
