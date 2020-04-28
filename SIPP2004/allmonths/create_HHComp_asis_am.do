@@ -57,7 +57,7 @@ save "$tempdir/pairwise", $replace
 
 use "$tempdir/pairwise_bymonth", clear
 
-merge m:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth"
+merge m:1 SSUID relfrom relto panelmonth using "$SIPP04keep/relationship_pairs_bymonth"
 
 replace relationship = .a if (_merge == 1) & (missing(relationship))
 replace relationship = .m if (_merge == 3) & (missing(relationship))

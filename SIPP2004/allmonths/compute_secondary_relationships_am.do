@@ -367,7 +367,7 @@ append using "$tempdir/relationships_tc0_wide"
 
 tab relationship, m
 
-save "$tempdir/relationship_pairs_bymonth", $replace
+save "$SIPP04keep/relationship_pairs_bymonth", $replace
 
 ********************************************************************************
 *Note: File still has one observation per pair PER MONTH. 

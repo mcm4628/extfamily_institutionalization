@@ -64,7 +64,7 @@ use "$tempdir/hh_leavers_am", clear
 drop if missing(leaver)
 gen relfrom = EPPPNUM
 destring leaver, gen(relto)
-merge 1:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship)
+merge 1:1 SSUID relfrom relto panelmonth using "$SIPP08keep/relationship_pairs_bymonth", keepusing(relationship)
 	
 display "deleting relationships to self"
 drop if relfrom==relto
@@ -91,7 +91,7 @@ replace panelmonth=panelmonth+1
 drop if missing(arriver)
 gen relfrom = EPPPNUM
 destring arriver, gen(relto)
-merge 1:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship)
+merge 1:1 SSUID relfrom relto panelmonth using "$SIPP08keep/relationship_pairs_bymonth", keepusing(relationship)
 
 * return panelmonth to its original value. (Yiwen, this is the silly error I made 
 * that broke the code. I forgot to put panelmonth back to its original value). 	

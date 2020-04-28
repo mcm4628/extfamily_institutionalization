@@ -57,7 +57,7 @@ save "$tempdir/pairwise", $replace
 
 use "$tempdir/pairwise_bymonth", clear
 
-merge m:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth"
+merge m:1 SSUID relfrom relto panelmonth using "$SIPP08keep/relationship_pairs_bymonth"
 
 replace relationship = .a if (_merge == 1) & (missing(relationship))
 replace relationship = .m if (_merge == 3) & (missing(relationship))
@@ -82,3 +82,19 @@ tab relationship, m
 do "$sipp2008_code/simple_rel_label"
 
 save "$SIPP08keep/HHComp_asis_am.dta", $replace
+
+gen anyspouse=1 if relationship==12
+gen anypartner=1 if relationship==18
+
+collapse (count) anyspouse anypartner, by(SSUID EPPPNUM panelmonth)
+
+save "$tempdir/comp.dta", replace
+
+merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_interviews_am.dta"
+
+gen marcohstat=2 if anypartner > 0
+replace marcohstat=1 if anyspouse > 0
+replace marcohstat=0 if missing(marcohstat)
+
+* one record per person
+save "$SIPP08keep/HHComp_pm.dta", $replace
