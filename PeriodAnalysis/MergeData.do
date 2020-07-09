@@ -23,11 +23,25 @@ replace _gp=1 if relationship==13|relationship==14
 egen gp=max(_gp), by(panelmonth SSUID)
 drop _gp
 
-*Other relative
+*Other relative & non-relative
 gen _other=0
-replace _other=1 if relationship>=24
+replace _other=1 if relationship>=24 & relationship!=40
 egen other=max(_other), by(panelmonth SSUID)
 drop _other
+
+
+*Other relative & non-relative
+gen _other_rel=0
+replace _other_rel=1 if relationship>=24 & relationship<37
+egen other_rel=max(_other_rel), by(panelmonth SSUID)
+drop _other_rel
+
+
+* Non-relative
+gen _non_rel=0
+replace _non_rel=1 if relationship>=24 & relationship<37
+egen non_rel=max(_non_rel), by(panelmonth SSUID)
+drop _non_rel
 
 
 
@@ -80,7 +94,7 @@ save "$SIPP2008/change&comp_am.dta", replace
 * Sample
 
 bys SSUID EPPPNUM panelmonth: sample 1, count // I am in only one observation per month for each individual
-keep if TAGE<=18
+keep if TAGE<18
 keep if comp_change!=.
 
 * Regressions

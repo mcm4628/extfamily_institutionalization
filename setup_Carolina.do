@@ -1,13 +1,14 @@
 global replace "replace"
 
 global logdir "/Users/Carolina Aragao/Box/sipp files/tmp/logs"
+* This is where .xlxs and .doc files produced by stata will go
+global results "/Users/Carolina Aragao/Box/sipp files/tmp/results"
+
 
 *global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2014"
 *global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles"
 global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2004"
 *global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2001"
-
-
 
 
 global boxdir "C:/Users/Carolina Aragao/Box"
@@ -38,3 +39,6 @@ global SIPP14keep "/Users/Carolina Aragao/Box/sipp files/WorkingFiles2014"
 global SIPP08keep "/Users/Carolina Aragao/Box/sipp files/WorkingFiles2008"
 global SIPP04keep "/Users/Carolina Aragao/Box/sipp files/WorkingFiles2004"
 global SIPP01keep "/Users/Carolina Aragao/Box/sipp files/WorkingFiles2001"
+
+
+

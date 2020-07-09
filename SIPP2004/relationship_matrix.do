@@ -1,4 +1,4 @@
-use "$SIPP2008\FullFile\sippp08putm2.dta", clear
+use "$SIPP2008tm\sippp08putm2.dta", clear
 
 keep ssuid epppnum shhadid erelat* eprlpn* tage
 
