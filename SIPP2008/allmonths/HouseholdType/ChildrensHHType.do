@@ -99,7 +99,7 @@ rename relfrom EPPPNUM
 
 collapse (count) `rellist', by (SSUID EPPPNUM panelmonth) fast
 
-merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_interviews_am.dta", keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure)
+merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_interviews_am.dta", keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure mom_age)
 
 keep if _merge==3
 
