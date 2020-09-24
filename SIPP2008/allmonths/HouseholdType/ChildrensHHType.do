@@ -82,6 +82,7 @@ gen unknown=1 if relationship==40 | missing(relationship)
 gen nonnuke=1 if nonrel==1 | grandparent==1 | other_rel==1 | unknown==1 
 gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, spouses
 gen allrel=1 if !missing(relationship)
+gen all=1
 
 gen t2gp=1 if erelat==40
 gen t2au=1 if erelat==42
@@ -91,7 +92,7 @@ gen t2allrel=1 if !missing(erelat)
 
 gen extended_kin=1 if grandparent==1 | other_rel==1
 
-local rellist "bioparent parent sibling  child spartner nonrel grandparent auntuncle other_rel extended_kin unknown nonnuke allrel t2gp t2au t2or t2nr t2allrel"
+local rellist "bioparent parent sibling  child spartner nonrel grandparent auntuncle other_rel extended_kin unknown nonnuke allrel all t2gp t2au t2or t2nr t2allrel"
 
 rename relfrom EPPPNUM
 
@@ -132,7 +133,9 @@ label variable anyextended "any extended kin"
 label variable anyt2gp "any grandparent based on TM2 relationship"
 label variable anyt2au "any aunt/uncle based on TM2 relationship"
 label variable anyt2or "any other relative based on TM2 relationship"
-label variable anyt2nr "any non-relative based on TM2 relationship
+label variable anyt2nr "any non-relative based on TM2 relationship"
+
+rename all hhsize
 
 #delimit ;
 label define yesno  0 "no"
