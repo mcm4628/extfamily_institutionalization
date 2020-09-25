@@ -1,6 +1,8 @@
 
 use "$SIPP08keep/faminst_analysis.dta", clear
 
+drop if missing(comp_changey)
+
 putexcel set "$results/InstitutionalizedExtension", sheet(descriptives08) replace
 putexcel A1:T1= "Descriptive Statistics for analytical sample", merge border(bottom)
 putexcel B2:D2 = ("Total") F2:H2 = ("Non-Hispanic White") J2:L2 = ("Black") N2:P2 = ("Hispanic") R2:T2 = ("Asian"), merge border(bottom) 
