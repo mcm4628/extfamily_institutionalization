@@ -29,6 +29,8 @@ putexcel A22=" 2 bio"
 putexcel A23=" 1 bio, nostep"
 putexcel A24=" stepparent"
 putexcel A25=" no parent"
+putexcel A27="Household Change"
+putexcel A28="Household Split"
 
 // fill in the proportion column
 
@@ -36,6 +38,7 @@ local anyrel "anygp anyauntuncle anyother anynonrel"
 local redummies "nhwhite black hispanic asian otherr"
 local paredummies "plths phs pscol pcolg pedmiss" 
 local parcomp "twobio singlebio stepparent noparent"
+local hhchange "comp_changey hhsplity"
 
 keep if adj_age < 15
 
@@ -85,6 +88,17 @@ forvalues p=1/4{
     putexcel D`row' = `r(N)'
 }
 
+*comp change
+forvalues h=1/2{
+	local row=`h'+26
+	local var:word `h' of `hhchange'
+	svy: mean `var' 
+	matrix mh`h' = e(b)
+	putexcel B`row' = matrix(mh`h'), nformat(#.##)
+	count if `var'==1
+    putexcel D`row' = `r(N)'
+}
+
 * By Race/Ethnicity
 
 local columns "F G H I J K L M N O P Q R S T"
@@ -127,26 +141,36 @@ forvalues re=1/4{
 		count if `var'==1 & my_racealt==`re'
 		putexcel `ncol'`row' = `r(N)'
 	}
+	*household change
+	forvalues h=1/2{
+		local row=`h'+26
+		local var:word `h' of `hhchange'
+		svy, subpop(if my_racealt==`re'): mean `var'  
+		matrix mh`h'`re' = e(b)
+		putexcel `propcol'`row' = matrix(mh`h'`re'), nformat(#.##)
+		count if `var'==1 & my_racealt==`re'
+		putexcel `ncol'`row' = `r(N)'
+	}
 }
 * Regression analysis
 
 local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize"
 
-svy: logit comp_changey i.my_racealt
+svy: logit hhsplity i.my_racealt
 outreg2 using "$results/InstExtReg14.xls", replace ctitle(Model 1) 
 
-svy: logit comp_changey i.my_racealt `baseline' 
+svy: logit hhsplity i.my_racealt `baseline' 
 outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model 2) 
 
-svy: logit comp_changey i.my_racealt `baseline' `anyrel' 
+svy: logit hhsplity i.my_racealt `baseline' `anyrel' 
 outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 3)
 
 forvalues r=1/5{
-	svy, subpop(if my_racealt==`r'):logit comp_changey `baseline' `anyrel' 
+	svy, subpop(if my_racealt==`r'):logit hhsplity `baseline' `anyrel' 
 	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
 }
 
+/*
 Need to figure out a way to compare the effect of gp vs aunt/uncle vs other rel vs non-rel net of age of the person. Clearly older relatives run a higher
 risk of dying.
 
-must control for household size!!

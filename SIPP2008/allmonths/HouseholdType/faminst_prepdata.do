@@ -12,6 +12,7 @@
 use "$SIPP08keep/comp_change_am.dta", clear
 
 gen comp_change0=.
+gen leavers0=" "
 
 forvalues y=1/5 {
 	gen obsyear`y'=0 // dummy indicator for whether there were  observations in this year
@@ -23,17 +24,20 @@ forvalues y=1/5 {
 
 forvalues y=1/5 {
 	gen comp_changey`y'= 0 if obsyear`y' > 0
+	gen hhsplity`y'=0 if obsyear`y' > 0
 	forvalues m=0/11 {
 		local pm=((`y'-1)*12)+`m'
 		replace comp_changey`y'=1 if comp_change`pm'==1
+		replace hhsplity`y'=1 if leavers`pm' !=" " & !missing(leavers`pm')
 	}
-	tab comp_changey`y', m
+	tab comp_changey`y' hhsplity`y', m
+	
 }
 
 
-keep SSUID EPPPNUM comp_changey? obsyear?
+keep SSUID EPPPNUM comp_changey? hhsplity? obsyear?
 
-reshape long comp_changey obsyear, i(SSUID EPPPNUM) j(year)
+reshape long comp_changey hhsplity obsyear, i(SSUID EPPPNUM) j(year)
 
 replace year=year-1 // lag the dv
 
