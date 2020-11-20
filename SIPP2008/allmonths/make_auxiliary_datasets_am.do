@@ -241,11 +241,52 @@ recode EBORNUS (1 = 0)  (2 = 1) , gen (immigrant)
 
 drop EEDUCATE EBORNUS
 
+*Years in the US
+*The year the panel was taken:
+g year=2008 if panelmonth>=1 & panelmonth<=4
+forvalues y=1/5{
+replace year=2008+`y' if panelmonth>=(`y'-1)*12+5 & panelmonth<=`y'*12+4 
+}		
+
+*year of birth
+g birthyear=year-TAGE
+
+*year of migration
+g yrmigration=2008 if TMOVEUS==22
+replace yrmigration=2007 if TMOVEUS==21
+replace yrmigration=2006 if TMOVEUS==20
+replace yrmigration=2005 if TMOVEUS==19
+replace yrmigration=2004 if TMOVEUS==18
+replace yrmigration=2002.5 if TMOVEUS==17
+replace yrmigration=2001 if TMOVEUS==16
+replace yrmigration=2000 if TMOVEUS==15
+replace yrmigration=1999 if TMOVEUS==14
+replace yrmigration=1997.5 if TMOVEUS==13
+replace yrmigration=1995.5 if TMOVEUS==12
+replace yrmigration=1993.5 if TMOVEUS==11
+replace yrmigration=1991.5 if TMOVEUS==10
+replace yrmigration=1989.5 if TMOVEUS==9
+replace yrmigration=1987 if TMOVEUS==8
+replace yrmigration=1984.5 if TMOVEUS==7
+replace yrmigration=1982 if TMOVEUS==6
+replace yrmigration=1979.5 if TMOVEUS==5
+replace yrmigration=1976 if TMOVEUS==4
+replace yrmigration=1971 if TMOVEUS==3
+replace yrmigration=1965 if TMOVEUS==2
+replace yrmigration=1960 if TMOVEUS==1
+
+*age at immigration
+g age_migration=yrmigration-birthyear
+
+
+
+
+
 * demo_epppnum will be key to merge with epnmom and epndad to get parent education onto
 * ego's record
 rename EPPPNUM pdemo_epppnum
 rename TAGE page /* page for "parent age" */
-rename TMOVEUS ptmoveus /* pmoveus for "parent move to us" */
+rename age_migration ptmoveus /* pmoveus for "parent's age at immigration" */
 rename TBRSTATE ptbrstate /*pbpl for "parent birthplace"*/
 
 
