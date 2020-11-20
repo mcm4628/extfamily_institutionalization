@@ -90,6 +90,8 @@ gen singlebio=parentcomp==2
 gen stepparent=parentcomp==3
 gen noparent=parentcomp==4
 
+gen pimmigrant=((mom_tmoveus>17 & mom_tmoveus!=.) | (dad_tmoveus>17 & dad_tmoveus!=.))
+
 save "$SIPP08keep/faminst_analysis.dta", replace
 
 
