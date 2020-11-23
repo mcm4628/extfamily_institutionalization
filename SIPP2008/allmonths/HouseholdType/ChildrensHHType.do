@@ -98,9 +98,16 @@ rename relfrom EPPPNUM
 
 // convert the file to individuals from coresident others
 
-collapse (count) `rellist', by (SSUID EPPPNUM panelmonth) fast
+collapse (count) `rellist' (max) to_age, by (SSUID EPPPNUM panelmonth) fast
 
-merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_interviews_am.dta", keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ref_person_educ mom_measure mom_age mom_tmoveus dad_tmoveus)
+rename to_age hhmaxage
+
+recode hhmaxage (14/17=1)(18/49=2)(5/64=3)(65/74=4)(75/90=5), gen(chhmaxage)
+if hhmaxage < 14 then chhmaxage==2
+
+merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP08keep/demo_long_interviews_am.dta", ///
+keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ///
+ref_person_educ mom_measure mom_age mom_tmoveus dad_tmoveus)
 
 keep if _merge==3
 

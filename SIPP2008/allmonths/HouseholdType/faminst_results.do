@@ -18,19 +18,21 @@ putexcel A11=" Black"
 putexcel A12=" Non-Black Hispanic"
 putexcel A13=" Asian"
 putexcel A14=" Other, including multi-racial"
-putexcel A15="Parental Education"
-putexcel A16=" less than High School"
-putexcel A17=" diploma or GED"
-putexcel A18=" some college"
-putexcel A19=" College Grad"
-putexcel A20=" unknown"
-putexcel A21="Parent"
-putexcel A22=" 2 bio"
-putexcel A23=" 1 bio, nostep"
-putexcel A24=" stepparent"
-putexcel A25=" no parent"
-putexcel A27="Household Change"
-putexcel A28="Household Split"
+putexcel A15="Parent Immigrant"
+putexcel A16=" Yes"
+putexcel A17="Parental Education"
+putexcel A18=" less than High School"
+putexcel A19=" diploma or GED"
+putexcel A20=" some college"
+putexcel A21=" College Grad"
+putexcel A22=" unknown"
+putexcel A23="Parent"
+putexcel A24=" 2 bio"
+putexcel A25=" 1 bio, nostep"
+putexcel A26=" stepparent"
+putexcel A27=" no parent"
+putexcel A28="Household Change"
+putexcel A29="Household Split"
 
 // fill in the proportion column
 
@@ -66,9 +68,18 @@ forvalues r=1/5{
     putexcel D`row' = `r(N)'
 }
 
+* parent immigrant
+
+svy: mean pimmigrant
+matrix mpi=e(b)
+putexcel B16 = matrix(mpi), nformat(#.##)
+count if pimmigrant == 1
+putexcel D16 = `r(N)'
+
+
 * parent education
 forvalues pe=1/5{
-	local row=`pe'+15
+	local row=`pe'+17
 	local var:word `pe' of `paredummies'
 	svy: mean `var' 
 	matrix mpe`pe' = e(b)
@@ -79,7 +90,7 @@ forvalues pe=1/5{
 
 *parent composition	
 forvalues p=1/4{
-	local row=`p'+21
+	local row=`p'+23
 	local var:word `p' of `parcomp'
 	svy: mean `var' 
 	matrix mp`p' = e(b)
@@ -90,7 +101,7 @@ forvalues p=1/4{
 
 *comp change
 forvalues h=1/2{
-	local row=`h'+26
+	local row=`h'+27
 	local var:word `h' of `hhchange'
 	svy: mean `var' 
 	matrix mh`h' = e(b)
@@ -119,10 +130,16 @@ forvalues re=1/4{
 		count if `var'==1 & my_racealt==`re'
 		putexcel `ncol'`row' = `r(N)'
 	}
-     display "parent education"
+	
+	svy, subpop(if my_racealt==`re'): mean pimmigrant
+	matrix mpi`re'=e(b)
+	putexcel `propcol'16 = matrix(mpi`re'), nformat(#.##)
+	count if pimmigrant == 1 & my_racealt==`re'
+	putexcel `ncol'16 = `r(N)'
+	display "parent education"
 * parent education
 	forvalues pe=1/5{
-		local row=`pe'+15
+		local row=`pe'+17
 		local var:word `pe' of `paredummies'
 		svy, subpop(if my_racealt==`re'): mean `var' 
 		matrix mpe`pe'`re' = e(b)
@@ -133,7 +150,7 @@ forvalues re=1/4{
 	display "parent composition"
 *parent composition	
 	forvalues p=1/4{
-		local row=`p'+21
+		local row=`p'+23
 		local var:word `p' of `parcomp'
 		svy, subpop(if my_racealt==`re'): mean `var' 
 		matrix mp`p'`re' = e(b)
@@ -143,7 +160,7 @@ forvalues re=1/4{
 	}
 	*household change
 	forvalues h=1/2{
-		local row=`h'+26
+		local row=`h'+27
 		local var:word `h' of `hhchange'
 		svy, subpop(if my_racealt==`re'): mean `var'  
 		matrix mh`h'`re' = e(b)
@@ -154,19 +171,19 @@ forvalues re=1/4{
 }
 * Regression analysis
 
-local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize"
+local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
 
-svy: logit hhsplity i.my_racealt
+svy: logit hhsplity i.my_racealt pimmigrant
 outreg2 using "$results/InstExtReg14.xls", replace ctitle(Model 1) 
 
-svy: logit hhsplity i.my_racealt `baseline' 
+svy: logit hhsplity i.my_racealt pimmigrant `baseline' 
 outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model 2) 
 
-svy: logit hhsplity i.my_racealt `baseline' `anyrel' 
+svy: logit hhsplity i.my_racealt pimmigrant `baseline' `anyrel' 
 outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 3)
 
 forvalues r=1/5{
-	svy, subpop(if my_racealt==`r'):logit hhsplity `baseline' `anyrel' 
+	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `baseline' `anyrel' 
 	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
 }
 
