@@ -187,6 +187,16 @@ forvalues r=1/5{
 	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
 }
 
+* No hhsize
+local nohhsize "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 b2.chhmaxage hhmaxage"
+local anyrel "anygp anyauntuncle anyother anynonrel"
+
+forvalues r=1/5{
+	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `nohhsize' `anyrel' 
+	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
+}
+
+
 /*
 Need to figure out a way to compare the effect of gp vs aunt/uncle vs other rel vs non-rel net of age of the person. Clearly older relatives run a higher
 risk of dying.

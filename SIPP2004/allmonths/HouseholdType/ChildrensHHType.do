@@ -8,7 +8,7 @@ use "$SIPP04keep/HHComp_asis_am", clear
 rename EPPPNUM relfrom
 rename to_EPPNUM relto
 
-merge m:1 SSUID relfrom relto using "$tempdir/relationship_matrix", keepusing(erelat)
+merge m:1 SSUID relfrom relto using "$SIPP04keep/relationship_matrix", keepusing(erelat)
 
 gen t2rel=1 if _merge==3
 
