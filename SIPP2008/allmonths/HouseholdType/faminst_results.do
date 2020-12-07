@@ -174,10 +174,10 @@ forvalues re=1/4{
 local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
 
 svy: logit hhsplity i.my_racealt pimmigrant
-outreg2 using "$results/InstExtReg14.xls", replace ctitle(Model 1) 
+outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model 1) 
 
 svy: logit hhsplity i.my_racealt pimmigrant `baseline' 
-outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model 2) 
+outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 2) 
 
 svy: logit hhsplity i.my_racealt pimmigrant `baseline' `anyrel' 
 outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 3)
@@ -194,6 +194,23 @@ local anyrel "anygp anyauntuncle anyother anynonrel"
 forvalues r=1/5{
 	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `nohhsize' `anyrel' 
 	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
+}
+
+local alliv " i.my_racealt pimmigrant i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage anygp anyauntuncle anyother anynonrel"
+
+* running zero-order models by race-ethnicity and putting results each in their own spreadsheet.
+* wish I knew how to put them each on their own tab.
+
+forvalues r=1/5{
+	local re : word `r' of `redummies'
+	forvalues v=1/15 {
+		local iv : word `v' of `alliv'
+		local rv=`v'+12
+		
+		svy, subpop(if my_racealt==`r'): logit hhsplity `iv'
+		outreg2 using "$results/InstExtReg08_ZERO_`re'.xls", append ctitle(Model `rv') 
+		
+	}
 }
 
 

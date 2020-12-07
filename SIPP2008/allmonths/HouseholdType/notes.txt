@@ -1,0 +1,17 @@
+We have a puzzling finding that for whites, but not other race/ethnic groups, grandparent households are less stable than aunt/uncle households. To investigate this we first estimated models without household size because this is a linear term and extreme values might be creating distortions. After dropping hhsize we had the same pattern.
+
+commit 19bd78431eda15cc2d8e47e731059b9bd437c34a
+
+So I decided to estimate zero-order models for each independent variable by race-ethnicity. The results of these can be found in a series of spreadsheet files, one for each race/ethnic group.
+
+For non-Hispanic whites grandparent households are now more stable than aunt/uncle households. Here's a quick chart of the results, since I'm not able to automate that easily.
+
+Zero order associations between household composition and household instability
+     	   		white	black	  hispanic    asian
+grandparent		1.66	1.20	  1.10	      1.53
+aunt/uncle		2.04	1.35	  1.31	      2.20
+otherrel		1.85	1.42	  1.56	      2.04
+nonrelative		1.76	1.80	  1.25	      2.14
+All of these coefficients are statistically significant.
+
+
