@@ -143,6 +143,10 @@ label variable anyt2or "any other relative based on TM2 relationship"
 label variable anyt2nr "any non-relative based on TM2 relationship"
 
 rename all hhsize
+rename nonnuke nnsize
+
+label variable hhsize "number of people in the household"
+label variable nnsize "number of nonnuclear people in household"
 
 #delimit ;
 label define yesno  0 "no"

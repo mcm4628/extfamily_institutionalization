@@ -64,6 +64,7 @@ replace parentcomp=3 if parent > bioparent
 replace parentcomp=4 if parent==0
 
 label define parentcomp 1 "two bio parent" 2 "single bioparent" 3 "stepparent" 4 "noparent"
+label var parentcomp parentcomp
 
 * mean-center mom_age
 mean mom_age
@@ -91,6 +92,32 @@ gen stepparent=parentcomp==3
 gen noparent=parentcomp==4
 
 gen pimmigrant=((mom_tmoveus>17 & mom_tmoveus!=.) | (dad_tmoveus>17 & dad_tmoveus!=.))
+
+gen nongprel= (anyauntuncle==1 | anyother==1)
+
+gen hhexttype=0 if anygp==0 & nongprel==0 & anynonrel==0
+replace hhexttype=1 if anygp==1 & nongprel==0 & anynonrel==0
+replace hhexttype=2 if anygp==0 & nongprel==1 & anynonrel==0
+replace hhexttype=3 if anygp==1 & nongprel==1 & anynonrel==0
+replace hhexttype=4 if anygp==0 & nongprel==0 & anynonrel==1
+replace hhexttype=5 if anygp==1 & nongprel==0 & anynonrel==1
+replace hhexttype=6 if anygp==0 & nongprel==1 & anynonrel==1
+replace hhexttype=7 if anygp==1 & nongprel==1 & anynonrel==1
+
+gen nuclear= (hhexttype==0)
+gen anyext= (anygp+anyauntuncle+anyother+anynonrel > 0)
+
+* a condensed version of the household type variable to enable evaluation
+* of hypothesized contrasts
+
+recode hhexttype (0=0)(1=1)(2/3=2)(4=3)(5/7=4), gen(hhtype)
+
+label define hhtype 0 "nuclear" 1 "only grandparent" 2 "other relatives, no non-relatives" 3 "only nonrelatives" 4 "relative and non-relatives"
+label var hhtype hhtype
+
+forvalues t=1/4{
+	gen hhtype_`t' = (hhtype==`t')
+}
 
 save "$SIPP08keep/faminst_analysis.dta", replace
 

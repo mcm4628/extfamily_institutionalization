@@ -8,10 +8,10 @@ putexcel A1:T1= "Descriptive Statistics for analytical sample", merge border(bot
 putexcel B2:D2 = ("Total") F2:H2 = ("Non-Hispanic White") J2:L2 = ("Black") N2:P2 = ("Hispanic") R2:T2 = ("Asian"), merge border(bottom) 
 putexcel B3 = ("weighted proportion") D3 = ("N") F3 = ("weighted proportion") H3 = ("N") J3 = ("weighted proportion") L3 = ("N") N3 = ("weighted proportion") P3 = ("N") R3 = ("weighted proportion") T3 = ("N"), border(bottom)
 putexcel A4="Household Extension"
-putexcel A5=" any grandparent"
-putexcel A6=" any aunt or uncle"
-putexcel A7=" any other relative"
-putexcel A8=" any non-relative"
+putexcel A5=" only grandparent"
+putexcel A6=" any other relative, no nonrel"
+putexcel A7=" only non-relative"
+putexcel A8=" relatives and non-relatives"
 putexcel A9="Race/Ethnicity"
 putexcel A10=" Non-Hispanice White"
 putexcel A11=" Black"
@@ -36,7 +36,6 @@ putexcel A29="Household Split"
 
 // fill in the proportion column
 
-local anyrel "anygp anyauntuncle anyother anynonrel"
 local redummies "nhwhite black hispanic asian otherr"
 local paredummies "plths phs pscol pcolg pedmiss" 
 local parcomp "twobio singlebio stepparent noparent"
@@ -49,11 +48,10 @@ svyset [pweight=WPFINWGT]
 * relatives
 forvalues d=1/4{
 	local row=`d'+4
-	local var:word `d' of `anyrel'
-	svy: mean `var' 
+	svy: mean hhtype_`d' 
 	matrix mr`d' = e(b)
 	putexcel B`row' = matrix(mr`d'), nformat(#.##)
-	count if `var'==1
+	count if hhtype_`d'==1
     putexcel D`row' = `r(N)'
 }
 
@@ -123,11 +121,10 @@ forvalues re=1/4{
 	* relatives
 	forvalues d=1/4{
 		local row=`d'+4
-		local var:word `d' of `anyrel'
 		svy, subpop(if my_racealt==`re'): mean `var' 
 		matrix mr`d'`re' = e(b)
 		putexcel `propcol'`row' = matrix(mr`d'`re'), nformat(#.##)
-		count if `var'==1 & my_racealt==`re'
+		count if hhtype_`d'==1 & my_racealt==`re'
 		putexcel `ncol'`row' = `r(N)'
 	}
 	
@@ -137,7 +134,7 @@ forvalues re=1/4{
 	count if pimmigrant == 1 & my_racealt==`re'
 	putexcel `ncol'16 = `r(N)'
 	display "parent education"
-* parent education
+	* parent education
 	forvalues pe=1/5{
 		local row=`pe'+17
 		local var:word `pe' of `paredummies'
@@ -148,7 +145,7 @@ forvalues re=1/4{
 		putexcel `ncol'`row' = `r(N)'
 	}
 	display "parent composition"
-*parent composition	
+	*parent composition	
 	forvalues p=1/4{
 		local row=`p'+23
 		local var:word `p' of `parcomp'
@@ -171,50 +168,35 @@ forvalues re=1/4{
 }
 * Regression analysis
 
-local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
+local anyrel `anygp nongprel anynonrel'
+local relwords "Grandarent OtherRelative NonRelative"
 
-svy: logit hhsplity i.my_racealt pimmigrant
-outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model 1) 
+// Note that these are a set of not mutually exclusive categories for basic description
+svy: logit hhsplity anygp
+outreg2 using "$results/InstExtReg08.xls", replace ctitle(Model grandparent)
+svy: logit hhsplity nongprel
+outreg2 using "$results/InstExtReg08.xls", append ctitle(Model other_rel)
+svy: logit hhsplity anynonrel
+outreg2 using "$results/InstExtReg08.xls", append ctitle(Model non_rel) 
+
+
+// setting up multi-variate models
+
+local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
 
 svy: logit hhsplity i.my_racealt pimmigrant `baseline' 
 outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 2) 
 
-svy: logit hhsplity i.my_racealt pimmigrant `baseline' `anyrel' 
+// in contrast to the descriptive bivariate analysis above, these models 
+*  have mutually-exclusive household type cateogires
+
+svy: logit hhsplity i.my_racealt pimmigrant `baseline' b0.hhtype
 outreg2 using "$results/InstExtReg08.xls", append ctitle(Model 3)
 
 forvalues r=1/5{
-	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `baseline' `anyrel' 
-	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
-}
-
-* No hhsize
-local nohhsize "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 b2.chhmaxage hhmaxage"
-local anyrel "anygp anyauntuncle anyother anynonrel"
-
-forvalues r=1/5{
-	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `nohhsize' `anyrel' 
-	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`r')
-}
-
-local alliv " i.my_racealt pimmigrant i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage anygp anyauntuncle anyother anynonrel"
-
-* running zero-order models by race-ethnicity and putting results each in their own spreadsheet.
-* wish I knew how to put them each on their own tab.
-
-forvalues r=1/5{
 	local re : word `r' of `redummies'
-	forvalues v=1/15 {
-		local iv : word `v' of `alliv'
-		local rv=`v'+12
-		
-		svy, subpop(if my_racealt==`r'): logit hhsplity `iv'
-		outreg2 using "$results/InstExtReg08_ZERO_`re'.xls", append ctitle(Model `rv') 
-		
-	}
+	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `baseline' b0.hhtype 
+	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`re')
 }
 
-
-/*
-Need to figure out a way to compare the effect of gp vs aunt/uncle vs other rel vs non-rel net of age of the person. Clearly older relatives run a higher
-risk of dying.
 
