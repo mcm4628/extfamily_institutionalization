@@ -197,6 +197,60 @@ forvalues r=1/5{
 	local re : word `r' of `redummies'
 	svy, subpop(if my_racealt==`r'):logit hhsplity pimmigrant `baseline' b0.hhtype 
 	outreg2 using "$results/InstExtReg08.xls", append ctitle(re=`re')
+	margins hhtype, subpop(if my_racealt==`r') saving(file`r', replace)
 }
 
+
+// Graphs
+combomarginsplot file1 file2 file3 file4 file5, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5) ///
+labels(White Black Hispanic Asian Other) xscale(r(0 1)) xtitle(“Race”)
+combomarginsplot file1 file2, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5) ///
+labels(White Black) xscale(r(0 1)) xtitle(“Race”)
+combomarginsplot file1 file3, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5) ///
+labels(White Hispanic) xscale(r(0 1)) xtitle(“Race”)
+combomarginsplot file1 file4, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5) ///
+labels(White Asian) xscale(r(0 1)) xtitle(“Race”)
+combomarginsplot file1 file5, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5) ///
+labels(White Other) xscale(r(0 1)) xtitle(“Race”)
+
+
+// Tests - Models with interactions
+
+local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
+svy: logit hhsplity pimmigrant `baseline' b0.hhtype##my_racealt
+
+* Test 1 
+contrast hhtype##my_racealt, effects
+/* Support that some extended ararngemenst are associated with less instability
+for Black ans Hispanic hildren when compared o NH White. Asians are not different. 
+*/
+
+* Test 2: grandparent relationships are stronger than other relationships? 
+contrast {hhtype 0 1 -1 0 0}, effects // gp vs other relatives, no non-relatives s
+contrast {hhtype 0 1 0 -1 0}, effects // gp vs only non-relatives 
+contrast {hhtype 0 1 0 0 -1}, effects // gp vs relative & non-relatives 
+/* supports that gp relationships are stronger than other extented arrangements
+*/
+
+* Test 3: boundary between grandparents and non-kin is especially strong among Asian and Hispanic children’s 
+contrast {hhtype 0 1 -1 0 0}#g.my_racealt, effects
+contrast {hhtype 0 1 0 -1 0}#g.my_racealt, effects
+contrast {hhtype 0 1 0 0 -1}#g.my_racealt, effects
+/* overall does not provide support that gp arrangenets vs other types ard particularly different
+among Hispanic and Asians - yet some support that gp vs complex is different than means for Hispanics
+Asians and also Black children
+*/
+
+* Test 4: any extension less associated with instability for Black children than for White children, particularly other kin
+contrast {my_racealt 1 -1 -0 0 0}@i1.hhtype, effects
+contrast {my_racealt 1 -1 -0 0 0}@i2.hhtype, effects
+contrast {my_racealt 1 -1 -0 0 0}@i3.hhtype, effects
+contrast {my_racealt 1 -1 -0 0 0}@i4.hhtype, effects
+/* partial support, differences not significant for gp arrangements  
+*/
+
+
+
+margins hhtype##my_racealt 
+marginsplot, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5)
 
