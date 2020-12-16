@@ -114,6 +114,7 @@ recode hhexttype (0=0)(1=1)(2/3=2)(4=3)(5/7=4), gen(hhtype)
 
 label define hhtype 0 "nuclear" 1 "only grandparent" 2 "other relatives, no non-relatives" 3 "only nonrelatives" 4 "relative and non-relatives"
 label var hhtype hhtype
+label val hhtype hhtype
 
 forvalues t=1/4{
 	gen hhtype_`t' = (hhtype==`t')
