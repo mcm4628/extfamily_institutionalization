@@ -6,8 +6,8 @@ global results "/Users/Carolina Aragao/Box/sipp files/tmp/results"
 
 
 *global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2014"
-*global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles"
-global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2004"
+global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles"
+*global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2004"
 *global tempdir "/Users/Carolina Aragao/Box/sipp files/tmp/TempFiles2001"
 
 

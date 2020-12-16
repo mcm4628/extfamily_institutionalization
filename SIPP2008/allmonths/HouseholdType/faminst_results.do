@@ -214,10 +214,15 @@ combomarginsplot file1 file5, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspec
 labels(White Other) xscale(r(0 1)) xtitle(“Race”)
 
 
+log using tests, replace
+set logtype text
+
 // Tests - Models with interactions
 
 local baseline "i.year adj_age i.par_ed_first i.parentcomp mom_age mom_age2 hhsize b2.chhmaxage hhmaxage"
 svy: logit hhsplity pimmigrant `baseline' b0.hhtype##my_racealt
+outreg2 using "$results/Interaction08.xls", append ctitle(Model with interactions)
+
 
 * Test 1 
 contrast hhtype##my_racealt, effects
@@ -250,7 +255,8 @@ contrast {my_racealt 1 -1 -0 0 0}@i4.hhtype, effects
 */
 
 
-
+* Graph
 margins hhtype##my_racealt 
 marginsplot, ylabel(0(.1).8) ysc(r(0 .8)) scheme(s1color) aspectratio(.5)
 
+log close
