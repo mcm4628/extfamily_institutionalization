@@ -8,13 +8,13 @@ use "$SIPP14keep/HHComp_asis", clear
 rename PNUM relfrom
 rename to_PNUM relto
 
-merge m:1 SSUID relfrom relto using "$SIPP14keep/relationship_matrix", keepusing(erelat)
+merge m:1 SSUID relfrom relto panelmonth using "$SIPP14keep/relationship_matrix", keepusing(RREL)
 
 gen t2rel=1 if _merge==3
 
 drop _merge
 
-merge m:1 SSUID relfrom relto panelmonth using "$SIPP14keep/relationship_pairs_bymonth", keepusing(relationship)
+merge m:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship)
 
 keep if _merge==1 | _merge==3
 
@@ -45,27 +45,27 @@ forvalues c=1/25{
    local colabel : word `c' of `t2relat'
    putexcel `col'2="`colabel'"
  }
-tab relationship erelat, matcell(checkrels)
+tab relationship RREL, matcell(checkrels)
 
 putexcel C3=matrix(checkrels)
 
-fre erelat if missing(relationship) | relationship==40
+fre RREL if missing(relationship) | relationship==40
 
 * use relationship matrix variable to fill in missing information on relationships derived transitively
 * We didn't make this easy by having the relationship codes for relationship be the inverse of
 * the codes for erelat. For relationship, the codes indicate the relationship from other's perspective
 * (i.e. ego is my child), whereas erelat gives is relationship from ego's perspective (i.e. the other person is my parent)
-replace relationship=1 if erelat==10 & (missing(relationship) | relationship==40)		 // bioparent
-replace relationship=21 if inlist(erelat,11,13,14) & (missing(relationship) | relationship==40)	 // other parent
-replace relationship=17 if inlist(erelat,30,31,33) & (missing(relationship) | relationship==40)	 // sibling
-replace relationship=23 if inlist(erelat,20,21) & (missing(relationship) | relationship==40)	 // child
-replace relationship=12 if erelat==1 & (missing(relationship) | relationship==40)		 // spouse
-replace relationship=37 if inlist(erelat,61,62,65) & (missing(relationship) | relationship==40)	 // non-relative
-replace relationship=13 if erelat==40 & (missing(relationship) | relationship==40)		 // grand parent
-replace relationship=29 if erelat==42 & (missing(relationship) | relationship==40)	 	 // aunt/uncle
-replace relationship=35 if inlist(erelat,42,43,52,55) & (missing(relationship) | relationship==40)  // other relative
+replace relationship=1 if RREL==5 & (missing(relationship) | relationship==40)		 // bioparent
+replace relationship=21 if inlist(RREL,6,7) & (missing(relationship) | relationship==40)	 // other parent
+replace relationship=17 if inlist(RREL,9,10,11) & (missing(relationship) | relationship==40)	 // sibling
+replace relationship=23 if inlist(RREL,5,6) & (missing(relationship) | relationship==40)	 // child
+replace relationship=12 if inlist(RREL,1,2) & (missing(relationship) | relationship==40)		 // spouse
+replace relationship=37 if RREL==19 & (missing(relationship) | relationship==40)	 // non-relative
+replace relationship=13 if RREL==8 & (missing(relationship) | relationship==40)		 // grand parent
+replace relationship=29 if RREL==16 & (missing(relationship) | relationship==40)	 	 // aunt/uncle
+replace relationship=35 if inlist(RREL,14,15,16,17) & (missing(relationship) | relationship==40)  // other relative
 
-fre erelat if missing(relationship) | relationship==40
+fre RREL if missing(relationship) | relationship==40
 
 * Create simplified/aggregated indicators for comparison to Pilkauskas & Cross
 
@@ -84,28 +84,28 @@ gen allelse=1 if inlist(relationship,2,3,5,6,8,9,10,11,23,12,18) // children, sp
 gen allrel=1 if !missing(relationship)
 gen all=1
 
-gen t2gp=1 if erelat==40
-gen t2au=1 if erelat==42
-gen t2or=1 if inlist(erelat,43,55)
-gen t2nr=1 if inlist(erelat,61,62,63,65)
-gen t2allrel=1 if !missing(erelat)
+gen t2gp=1 if RREL==8
+gen t2au=1 if RREL==16
+gen t2or=1 if inlist(RREL,16,17)
+gen t2nr=1 if RREL==19
+gen t2allrel=1 if !missing(RREL)
 
 gen extended_kin=1 if grandparent==1 | other_rel==1
 
 local rellist "bioparent parent sibling  child spartner nonrel grandparent auntuncle other_rel extended_kin unknown nonnuke allrel all t2gp t2au t2or t2nr t2allrel"
 
-rename relfrom EPPPNUM
+rename relfrom PNUM
 
 // convert the file to individuals from coresident others
 
-collapse (count) `rellist' (max) to_age, by (SSUID EPPPNUM panelmonth) fast
+collapse (count) `rellist' (max) to_age, by (SSUID PNUM panelmonth) fast
 
 rename to_age hhmaxage
 
 recode hhmaxage (14/17=1)(18/49=2)(5/64=3)(65/74=4)(75/90=5), gen(chhmaxage)
 if hhmaxage < 14 then chhmaxage==2
 
-merge 1:1 SSUID EPPPNUM panelmonth using "$SIPP14keep/demo_long_interviews_am.dta", ///
+merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/demo_long_interviews_am.dta", ///
 keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ///
 ref_person_educ mom_measure mom_age mom_tmoveus dad_tmoveus)
 
