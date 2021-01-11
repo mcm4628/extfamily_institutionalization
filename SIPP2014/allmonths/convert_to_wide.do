@@ -11,6 +11,13 @@ use "$SIPP14keep/allmonths14", clear
 merge m:1 SSUID ERESIDENCEID panelmonth using "$tempdir/residence_members" 
 assert _merge == 3
 drop _merge
+
+* Add characteristics of reference person
+merge m:1 SSUID SHHADID SWAVE using "$tempdir/ref_person_long_am"
+
+assert _merge == 3
+drop _merge
+
 *****************************************************************************
 * Section: create a dummy for whether the individual is coresiding with any original
 *          sample member to be able to drop observations that aren't
