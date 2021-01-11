@@ -107,7 +107,7 @@ if hhmaxage < 14 then chhmaxage==2
 
 merge 1:1 SSUID PNUM panelmonth using "$SIPP14keep/demo_long_interviews_am.dta", ///
 keepusing(WPFINWGT my_racealt adj_age my_sex biomom_ed_first par_ed_first ///
-ref_person_educ mom_measure mom_age mom_tmoveus dad_tmoveus)
+mom_measure mom_age)
 
 keep if _merge==3
 
