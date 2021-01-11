@@ -324,4 +324,7 @@ rename ESEX psex // parent sex because the parent pointers are now gender neutra
 
 save "$tempdir/person_pdemo", $replace
 
+* create a dataset of household reference persons.
+do "$childhh_base_code/SIPP2014/allmonths/make_aux_refperson"
+
 
