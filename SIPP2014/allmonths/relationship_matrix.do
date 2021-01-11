@@ -1,6 +1,6 @@
 use "$SIPP14keep\allmonths14_type2", clear
 
-keep SSUID PNUM ERESIDENCEID RREL* RREL_PNUM* TAGE swave panelmonth
+keep SSUID PNUM ERESIDENCEID RREL* RREL_PNUM* TAGE swave panelmonth // using all panel months
 
 tab RREL1
 
