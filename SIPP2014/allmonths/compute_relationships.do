@@ -137,4 +137,4 @@ tab relationship, m
 tab relationship if to_num < 100
 
 
-save "$tempdir/relationship_pairs_bymonth", $replace
+save "$SIPP14keep/relationship_pairs_bymonth", $replace

@@ -61,10 +61,10 @@ joinby SSUID ERESIDENCEID panelmonth using "$tempdir/to"
 * drop pairs of ego to self
 drop if to_num==from_num
 
-save "$tempdir/pairwise_bymonth", $replace
+save "$SIPP14keep/pairwise_bymonth", $replace
 
 * relationship pairs bymonth is created by compute_relationships.do
-merge m:1 SSUID from_num to_num panelmonth using "$tempdir/relationship_pairs_bymonth"
+merge m:1 SSUID from_num to_num panelmonth using "$SIPP14keep/relationship_pairs_bymonth"
 
 replace relationship = .a if (_merge == 1) & (missing(relationship))
 replace relationship = .m if (_merge == 3) & (missing(relationship))
@@ -90,7 +90,7 @@ tab relationship, m
 
 do "$sipp2014_code/simple_rel_label"
 
-save "$SIPP14keep/HHComp_asis.dta", $replace
+save "$SIPP14keep/HHComp_asis_am.dta", $replace
 
 gen bioparent=1 if relationship==3
 gen parent=1 if inlist(relationship, 3, 5, 7)

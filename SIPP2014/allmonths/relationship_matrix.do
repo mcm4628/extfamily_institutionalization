@@ -1,4 +1,4 @@
-use "$SIPP14keep\allmonths14_type2", clear
+use "$SIPP14keep/allmonths14_type2", clear
 
 keep SSUID PNUM ERESIDENCEID RREL* RREL_PNUM* TAGE swave panelmonth // using all panel months
 
@@ -35,13 +35,13 @@ drop if relfrom==relto
 
 save "$SIPP14keep/relationship_matrix", $replace
 
-use "$tempdir/relationship_pairs_bymonth"
+use "$SIPP14keep/relationship_pairs_bymonth"
 
 
 rename from_num relfrom
 rename to_num relto
 
-save "$tempdir/relationship_pairs_bymonth", $replace
+save "$SIPP14keep/relationship_pairs_bymonth", $replace
 
 merge 1:1 SSUID panelmonth relto relfrom using "$SIPP14keep/relationship_matrix"
 

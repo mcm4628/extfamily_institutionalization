@@ -14,7 +14,10 @@ gen t2rel=1 if _merge==3
 
 drop _merge
 
-merge m:1 SSUID relfrom relto panelmonth using "$tempdir/relationship_pairs_bymonth", keepusing(relationship)
+rename relfrom from_num
+rename relto to_num
+
+merge m:1 SSUID from_num to_num panelmonth using "$SIPP14keep/relationship_pairs_bymonth", keepusing(relationship)
 
 keep if _merge==1 | _merge==3
 
@@ -94,7 +97,8 @@ gen extended_kin=1 if grandparent==1 | other_rel==1
 
 local rellist "bioparent parent sibling  child spartner nonrel grandparent auntuncle other_rel extended_kin unknown nonnuke allrel all t2gp t2au t2or t2nr t2allrel"
 
-rename relfrom PNUM
+rename from_num PNUM
+rename to_num relto
 
 // convert the file to individuals from coresident others
 
