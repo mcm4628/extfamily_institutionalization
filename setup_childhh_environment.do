@@ -40,3 +40,10 @@ if (_rc) {
         `"you can do so by clicking this link: {stata "ssc install fre":auto-install fre}"'
     exit 199
 }
+
+capture : which combomarginsplot
+if (_rc) {
+    display as error in smcl `"Please install package {it:combomarginsplot} from SSC in order to run these do-files;"' _newline ///
+        `"you can do so by clicking this link: {stata "ssc install combomarginsplot":auto-install combomarginsplot}"'
+    exit 199
+}
