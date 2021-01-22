@@ -37,7 +37,7 @@ putexcel A28="Household Split"
 
 // fill in the proportion column
 
-local anyrel "anygp anyauntunclenn anyother anynonrel"
+local anyrel "anygp anyauntuncle anyother anynonrel"
 local redummies "nhwhite black hispanic asian otherr"
 local paredummies "plths phs pscol pcolg pedmiss" 
 local parcomp "twobio singlebio stepparent noparent"
@@ -164,16 +164,16 @@ outreg2 using "$results/InstExtReg14.xls", replace ctitle(Model 1)
 svy: logit hhsplity i.my_racealt `baseline' 
 outreg2 using "$results/InstExtReg14.xls", replace ctitle(Model 2) 
 
-svy: logit hhsplity i.my_racealt `baseline' anygp anyauntunclenn anyother anynonrel
+svy: logit hhsplity i.my_racealt `baseline' anygp anyauntuncle anyother anynonrel
 outreg2 using "$results/InstExtReg14.xls", append ctitle(Model 3)
 
 forvalues r=1/5{
-	svy, subpop(if my_racealt==`r'):logit hhsplity `baseline' anygp anyauntunclenn anyother anynonrel
+	svy, subpop(if my_racealt==`r'):logit hhsplity `baseline' anygp anyauntuncle anyother anynonrel
 	outreg2 using "$results/InstExtReg14.xls", append ctitle(re=`r')
 }
 
 forvalues r=1/5{
-	logit comp_changey `baseline' anygp anyauntunclenn anyother anynonrel [pweight=WPFINWGT] if my_racealt==`r'
+	logit comp_changey `baseline' anygp anyauntuncle anyother anynonrel [pweight=WPFINWGT] if my_racealt==`r'
 }
 
 /*
