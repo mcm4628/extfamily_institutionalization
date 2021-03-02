@@ -34,7 +34,7 @@ forvalues wave=1/4 {
 	save "$SIPP14keep/wave`wave'_extract", $replace
 }
 
-/// type 2 person variables
+/// type 2 person variable
 
 clear
 
