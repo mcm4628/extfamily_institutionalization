@@ -3,7 +3,7 @@
 
 * Run do_all_months (or at least project_macros) before executing this file
 
-use "$SIPP14keep/HHComp_asis", clear
+use "$SIPP14keep/HHComp_asis_am", clear
 
 keep if adj_age < 18
 
