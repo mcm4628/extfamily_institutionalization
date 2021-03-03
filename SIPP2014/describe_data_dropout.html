@@ -1,0 +1,634 @@
+<pre><code></code></pre>
+<p>Data for our analysis come from the 2014 panel of the Survey of Income and Program Participation (SIPP). The 2014 panel initiated a redesign of the SIPP where individuals in sampled households are interviewed every year and asked questions about household composition and school enrollment in every month of the previous year, as well as educational attainment at each interview. The first interview was in 2014 and asked questions about 2013; the last interview was in 2018, covering 2017.</p>
+<pre><code></code></pre>
+<p>The SIPP is a large (N=82,464), probability sample of the non-institutionalized U.S. population. The focus of this analysis is on individuals who were age 16-19 at any time between January 2013 and December 2017 (N= 5,808). Most states have compulsory schooling to age 16 and most who will graduate from high school will do so by age 19.</p>
+<p>The primary dependent variable is school dropout prior to obtaintaing a high school degree. Many individuals who dropout of school will eventually obtain a diploma or GED, but dropping out of school is a sign of academic trouble that may have lasting consequences even if the person returns to school.</p>
+<pre><code></code></pre>
+<p>We omit from the analysis 1,193 individuals age 16-19 who had dropped out of school or had their high school degree at first observation, leaving    4,615 age 16-19. The data are censored at high school graduation or first dropout. In addition, we delete observations missing information on school enrollment, leaving us with   77,063 person-months at risk of high school dropout or graduation (4,549 adolescents).</p>
+<pre><code></code></pre>
+<p>Finally, we drop the first observation because we do not have a measure of household instability prior to this point, leaving us with a sample of    4,549 individuals and   74,653 months. We observe   755 individuals (16.8 percent of the sample) dropping out.</p>
+<pre><code></code></pre>
+<p>Characteristics of person-months Household instability previous month  Percent <br> Any Composition change          3.1 <br> Parent	  	          0.6 <br> Sibling		          1.2 <br> biological		          0.5 <br> half		          0.5 <br> step		          0.1 <br> Other			          1.8 <br> grandparent		          0.3 <br></p>
+<p>Characteristics of person-months Household instability previous year  Percent <br> Any Composition change         24.3 <br> Parent	  	          6.4 <br> Sibling		         10.8 <br> biological		          4.8 <br> half		          4.2 <br> step		          0.7 <br> Other			         13.7 <br> grandparent		          2.6 <br></p>
+<pre><code></code></pre>
+<pre><code>. 
+.  tab tvever_parent_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_pare |        dropout
+ nt_change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    67,598        671 |    68,269 
+           |     99.02       0.98 |    100.00 
+-----------+----------------------+----------
+         1 |     5,933         76 |     6,009 
+           |     98.74       1.26 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+.  tab tvever_other_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_othe |        dropout
+  r_change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    61,129        576 |    61,705 
+           |     99.07       0.93 |    100.00 
+-----------+----------------------+----------
+         1 |    12,402        171 |    12,573 
+           |     98.64       1.36 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+.  tab tvever_sib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_sib_ |        dropout
+    change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    63,643        610 |    64,253 
+           |     99.05       0.95 |    100.00 
+-----------+----------------------+----------
+         1 |     9,888        137 |    10,025 
+           |     98.63       1.37 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+.  tab tvever_biosib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_bios |        dropout
+ ib_change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    68,726        688 |    69,414 
+           |     99.01       0.99 |    100.00 
+-----------+----------------------+----------
+         1 |     4,805         59 |     4,864 
+           |     98.79       1.21 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+.  tab tvever_stepsib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_step |        dropout
+sib_change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    72,924        734 |    73,658 
+           |     99.00       1.00 |    100.00 
+-----------+----------------------+----------
+         1 |       607         13 |       620 
+           |     97.90       2.10 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+.  tab tvever_halfsib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+ RECODE of |
+tvnum_half |        dropout
+sib_change |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    69,583        695 |    70,278 
+           |     99.01       0.99 |    100.00 
+-----------+----------------------+----------
+         1 |     3,948         52 |     4,000 
+           |     98.70       1.30 |    100.00 
+-----------+----------------------+----------
+     Total |    73,531        747 |    74,278 
+           |     98.99       1.01 |    100.00 
+
+. 
+.  tab parent_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+    with a |
+(bio/step/ |
+ adoptive) |
+parent (or |
+  parent's |        dropout
+   partner |         0          1 |     Total
+-----------+----------------------+----------
+        No |    72,954        736 |    73,690 
+           |     99.00       1.00 |    100.00 
+-----------+----------------------+----------
+       Yes |       430         11 |       441 
+           |     97.51       2.49 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  tab other_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+      with |
+non-parent |
+         , |
+non-siblin |        dropout
+         g |         0          1 |     Total
+-----------+----------------------+----------
+        No |    72,105        709 |    72,814 
+           |     99.03       0.97 |    100.00 
+-----------+----------------------+----------
+       Yes |     1,279         38 |     1,317 
+           |     97.11       2.89 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  tab sib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+    with a |
+(full/half |
+    /step) |
+   sibling |
+entered or |
+      left |        dropout
+    househ |         0          1 |     Total
+-----------+----------------------+----------
+        No |    72,488        724 |    73,212 
+           |     99.01       0.99 |    100.00 
+-----------+----------------------+----------
+       Yes |       896         23 |       919 
+           |     97.50       2.50 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  tab biosib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+    with a |
+      full |
+   sibling |
+entered or |
+      left |        dropout
+ household |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    73,015        736 |    73,751 
+           |     99.00       1.00 |    100.00 
+-----------+----------------------+----------
+         1 |       369         11 |       380 
+           |     97.11       2.89 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  tab stepsib_change dropout, row
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+    with a |
+      step |
+   sibling |
+entered or |
+      left |        dropout
+ household |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    73,334        747 |    74,081 
+           |     98.99       1.01 |    100.00 
+-----------+----------------------+----------
+         1 |        50          0 |        50 
+           |    100.00       0.00 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  tab halfsib_change dropout, row        
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+Started or |
+   stopped |
+    living |
+    with a |
+      half |
+   sibling |
+entered or |
+      left |        dropout
+ household |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    73,053        743 |    73,796 
+           |     98.99       1.01 |    100.00 
+-----------+----------------------+----------
+         1 |       331          4 |       335 
+           |     98.81       1.19 |    100.00 
+-----------+----------------------+----------
+     Total |    73,384        747 |    74,131 
+           |     98.99       1.01 |    100.00 
+
+.  
+.  
+.  ***************************************************************************
+&gt; ******
+. *estimate discrete-time event history models predicting high school dropout 
+. ****************************************************************************
+&gt; *****
+.     *model 1
+.     *household composition and dropout
+. logit dropout i.firstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm
+&gt; _cpov i.adj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+Iteration 0:   log pseudolikelihood = -4219.5549  
+Iteration 1:   log pseudolikelihood = -3866.5655  
+Iteration 2:   log pseudolikelihood = -3738.5959  
+Iteration 3:   log pseudolikelihood = -3728.3089  
+Iteration 4:   log pseudolikelihood = -3728.0723  
+Iteration 5:   log pseudolikelihood = -3728.0718  
+Iteration 6:   log pseudolikelihood = -3728.0718  
+
+Logistic regression                             Number of obs     =     74,653
+                                                Wald chi2(34)     =     714.39
+                                                Prob &gt; chi2       =     0.0000
+Log pseudolikelihood = -3728.0718               Pseudo R2         =     0.1165
+
+                              (Std. Err. adjusted for 3,627 clusters in SSUID)
+------------------------------------------------------------------------------
+             |               Robust
+     dropout |      Coef.   Std. Err.      z    P&gt;|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+firstnm_pa~p |
+single pa..  |   .0957105   .0964226     0.99   0.321    -.0932744    .2846954
+step parent  |   .0151759   .1378333     0.11   0.912    -.2549724    .2853242
+  no parent  |   .1812526   .2033125     0.89   0.373    -.2172327    .5797378
+          5  |  -.0471345   .4199373    -0.11   0.911    -.8701965    .7759275
+             |
+firstnm_si~p |
+only bios..  |   .1253555   .1021527     1.23   0.220    -.0748602    .3255711
+step/half..  |   .3002265   .1227659     2.45   0.014     .0596097    .5408433
+             |
+firstnm_ex~d |
+grandparent  |   .3482899   .1605931     2.17   0.030     .0335333    .6630466
+horizonta..  |   .0723561   .1005805     0.72   0.472     -.124778    .2694903
+             |
+firstnm_cpov |
+       Poor  |   .1261265   .1430138     0.88   0.378    -.1541755    .4064285
+  Near Poor  |  -.0903945   .1340067    -0.67   0.500    -.3530428    .1722538
+   Not Poor  |  -.0924469   .1309475    -0.71   0.480    -.3490993    .1642054
+             |
+     adj_age |
+         17  |   .6801814   .0940283     7.23   0.000     .4958892    .8644735
+         18  |   .7941237   .1023401     7.76   0.000     .5935409    .9947065
+         19  |   1.425644   .1327488    10.74   0.000     1.165461    1.685827
+             |
+      my_sex |   -.064706   .0739139    -0.88   0.381    -.2095745    .0801626
+             |
+par_ed_first |
+    HS Grad  |  -.0208833   .1209104    -0.17   0.863    -.2578635    .2160968
+Some Coll..  |  -.1254851   .1231289    -1.02   0.308    -.3668133     .115843
+College G..  |  -.1534286   .1390945    -1.10   0.270    -.4260487    .1191915
+          5  |    .172114   .2147174     0.80   0.423    -.2487245    .5929525
+             |
+  my_racealt |
+   NH black  |  -.1796972   .1107212    -1.62   0.105    -.3967068    .0373124
+   Hispanic  |   .0833675   .0966263     0.86   0.388    -.1060166    .2727516
+   NH Asian  |  -.2152755   .2236589    -0.96   0.336    -.6536389     .223088
+   NH Other  |  -.0322326   .1657805    -0.19   0.846    -.3571564    .2926912
+             |
+       month |
+          2  |  -2.867034   .2895709    -9.90   0.000    -3.434583   -2.299486
+          3  |  -1.432201   .1644123    -8.71   0.000    -1.754443   -1.109959
+          4  |  -1.219253   .1482422    -8.22   0.000    -1.509803    -.928704
+          5  |  -.4854576   .1187197    -4.09   0.000    -.7181439   -.2527712
+          6  |  -.3512274   .1172783    -2.99   0.003    -.5810885   -.1213662
+          7  |  -.6722335   .1287181    -5.22   0.000    -.9245163   -.4199508
+          8  |  -3.724563   .4540732    -8.20   0.000     -4.61453   -2.834596
+          9  |  -3.029333   .3263253    -9.28   0.000    -3.668919   -2.389747
+         10  |  -2.764075   .2889231    -9.57   0.000    -3.330354   -2.197797
+         11  |  -3.380788     .38413    -8.80   0.000    -4.133669   -2.627907
+         12  |  -3.245455   .3624159    -8.96   0.000    -3.955777   -2.535133
+             |
+       _cons |    -3.8836   .2239237   -17.34   0.000    -4.322482   -3.444717
+------------------------------------------------------------------------------
+
+. 
+.     *model 2
+.     *household composition change and dropout
+. logit dropout tvever_parent_change tvever_sib_change tvever_other_change i.a
+&gt; dj_age my_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+Iteration 0:   log pseudolikelihood = -4179.0613  
+Iteration 1:   log pseudolikelihood = -3826.2693  
+Iteration 2:   log pseudolikelihood =  -3698.981  
+Iteration 3:   log pseudolikelihood = -3688.7949  
+Iteration 4:   log pseudolikelihood = -3688.5634  
+Iteration 5:   log pseudolikelihood = -3688.5628  
+Iteration 6:   log pseudolikelihood = -3688.5628  
+
+Logistic regression                             Number of obs     =     74,278
+                                                Wald chi2(26)     =     731.93
+                                                Prob &gt; chi2       =     0.0000
+Log pseudolikelihood = -3688.5628               Pseudo R2         =     0.1174
+
+                              (Std. Err. adjusted for 3,627 clusters in SSUID)
+------------------------------------------------------------------------------
+             |               Robust
+     dropout |      Coef.   Std. Err.      z    P&gt;|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+tvever_par~e |   .1076911   .1279125     0.84   0.400    -.1430127    .3583949
+tvever_sib~e |    .307263   .1062116     2.89   0.004     .0990921    .5154338
+tve~r_change |   .2659604   .0981619     2.71   0.007     .0735667    .4583542
+             |
+     adj_age |
+         17  |   .6617436   .0937354     7.06   0.000     .4780255    .8454616
+         18  |   .7673892   .1022845     7.50   0.000     .5669152    .9678632
+         19  |   1.401158   .1348134    10.39   0.000     1.136929    1.665388
+             |
+      my_sex |  -.0560071   .0747613    -0.75   0.454    -.2025364    .0905223
+             |
+par_ed_first |
+    HS Grad  |  -.0294187   .1186459    -0.25   0.804    -.2619604     .203123
+Some Coll..  |  -.1492478   .1189836    -1.25   0.210    -.3824513    .0839557
+College G..  |  -.2092129   .1297554    -1.61   0.107    -.4635289    .0451031
+          5  |   .2529611   .1615574     1.57   0.117    -.0636856    .5696078
+             |
+  my_racealt |
+   NH black  |  -.0865044   .1060898    -0.82   0.415    -.2944366    .1214279
+   Hispanic  |   .1206301   .0963638     1.25   0.211    -.0682394    .3094997
+   NH Asian  |  -.1969603   .2206867    -0.89   0.372    -.6294983    .2355777
+   NH Other  |  -.0170277   .1662371    -0.10   0.918    -.3428465    .3087911
+             |
+       month |
+          2  |  -2.865822   .2906562    -9.86   0.000    -3.435498   -2.296146
+          3  |  -1.436358   .1660934    -8.65   0.000    -1.761895    -1.11082
+          4  |  -1.228565   .1492644    -8.23   0.000    -1.521118   -.9360124
+          5  |  -.5004139   .1201717    -4.16   0.000    -.7359461   -.2648817
+          6  |  -.3740554   .1186178    -3.15   0.002    -.6065421   -.1415687
+          7  |   -.700125   .1297555    -5.40   0.000    -.9544412   -.4458089
+          8  |  -3.757807   .4544994    -8.27   0.000     -4.64861   -2.867005
+          9  |  -3.068418    .326567    -9.40   0.000    -3.708478   -2.428359
+         10  |  -2.807077   .2896247    -9.69   0.000    -3.374731   -2.239423
+         11  |  -3.427429   .3844067    -8.92   0.000    -4.180853   -2.674006
+         12  |  -3.294996   .3628329    -9.08   0.000    -4.006135   -2.583856
+             |
+       _cons |  -3.810667   .1809064   -21.06   0.000    -4.165236   -3.456097
+------------------------------------------------------------------------------
+
+. 
+.     *model 3
+.     *household composition change and dropout while controling for hh compos
+&gt; ition
+. logit dropout tvever_parent_change tvever_sib_change tvever_other_change i.f
+&gt; irstnm_parcomp i.firstnm_sibcomp i.firstnm_extend i.firstnm_cpov i.adj_age m
+&gt; y_sex i.par_ed_first i.my_racealt i.month, cluster (SSUID)
+
+Iteration 0:   log pseudolikelihood = -4179.0613  
+Iteration 1:   log pseudolikelihood = -3820.3155  
+Iteration 2:   log pseudolikelihood = -3690.9565  
+Iteration 3:   log pseudolikelihood = -3680.5212  
+Iteration 4:   log pseudolikelihood = -3680.2819  
+Iteration 5:   log pseudolikelihood = -3680.2814  
+Iteration 6:   log pseudolikelihood = -3680.2814  
+
+Logistic regression                             Number of obs     =     74,278
+                                                Wald chi2(37)     =     753.59
+                                                Prob &gt; chi2       =     0.0000
+Log pseudolikelihood = -3680.2814               Pseudo R2         =     0.1194
+
+                              (Std. Err. adjusted for 3,627 clusters in SSUID)
+------------------------------------------------------------------------------
+             |               Robust
+     dropout |      Coef.   Std. Err.      z    P&gt;|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+tvever_par~e |   .0954472   .1322786     0.72   0.471    -.1638141    .3547086
+tvever_sib~e |   .2870099    .108659     2.64   0.008     .0740422    .4999776
+tve~r_change |   .2574525   .1056595     2.44   0.015     .0503637    .4645414
+             |
+firstnm_pa~p |
+single pa..  |   .0811202   .0974397     0.83   0.405     -.109858    .2720984
+step parent  |    .007134   .1385227     0.05   0.959    -.2643656    .2786335
+  no parent  |   .0968088   .2026133     0.48   0.633     -.300306    .4939237
+          5  |  -.0476146   .4173044    -0.11   0.909    -.8655161     .770287
+             |
+firstnm_si~p |
+only bios..  |   .1086293   .1025307     1.06   0.289    -.0923272    .3095858
+step/half..  |   .2635003   .1247435     2.11   0.035     .0190075    .5079932
+             |
+firstnm_ex~d |
+grandparent  |   .3270158   .1644581     1.99   0.047     .0046839    .6493477
+horizonta..  |  -.0235737   .1079934    -0.22   0.827    -.2352368    .1880893
+             |
+firstnm_cpov |
+       Poor  |   .1461439   .1450359     1.01   0.314    -.1381212    .4304091
+  Near Poor  |  -.1017469    .135935    -0.75   0.454    -.3681746    .1646808
+   Not Poor  |  -.0795573   .1328035    -0.60   0.549    -.3398473    .1807327
+             |
+     adj_age |
+         17  |   .6732006   .0940804     7.16   0.000     .4888064    .8575949
+         18  |   .7769499   .1027674     7.56   0.000     .5755294    .9783704
+         19  |   1.404352   .1351774    10.39   0.000     1.139409    1.669295
+             |
+      my_sex |   -.059587   .0748391    -0.80   0.426    -.2062689     .087095
+             |
+par_ed_first |
+    HS Grad  |    .004047   .1223057     0.03   0.974    -.2356678    .2437619
+Some Coll..  |  -.1201533   .1249235    -0.96   0.336    -.3649988    .1246922
+College G..  |  -.1314873   .1401858    -0.94   0.348    -.4062463    .1432717
+          5  |   .2638228   .2125526     1.24   0.215    -.1527727    .6804182
+             |
+  my_racealt |
+   NH black  |  -.1750944   .1129173    -1.55   0.121    -.3964082    .0462193
+   Hispanic  |   .0842148   .0972772     0.87   0.387    -.1064449    .2748745
+   NH Asian  |   -.216391   .2234333    -0.97   0.333    -.6543122    .2215302
+   NH Other  |  -.0417593   .1687883    -0.25   0.805    -.3725784    .2890598
+             |
+       month |
+          2  |  -2.869647   .2905996    -9.87   0.000    -3.439212   -2.300082
+          3  |  -1.439749   .1661746    -8.66   0.000    -1.765445   -1.114052
+          4  |  -1.231174   .1492316    -8.25   0.000    -1.523662   -.9386853
+          5  |  -.5023731   .1200853    -4.18   0.000    -.7377359   -.2670103
+          6  |  -.3747018   .1186941    -3.16   0.002     -.607338   -.1420657
+          7  |  -.7007659   .1295968    -5.41   0.000     -.954771   -.4467608
+          8  |   -3.75833   .4544256    -8.27   0.000    -4.648988   -2.867672
+          9  |  -3.068497   .3265579    -9.40   0.000    -3.708539   -2.428455
+         10  |  -2.807017   .2894494    -9.70   0.000    -3.374328   -2.239707
+         11  |  -3.427078   .3844853    -8.91   0.000    -4.180656   -2.673501
+         12  |  -3.294338   .3626982    -9.08   0.000    -4.005213   -2.583463
+             |
+       _cons |   -3.93517   .2254395   -17.46   0.000    -4.377023   -3.493316
+------------------------------------------------------------------------------
+
+. 
+.     *model 4
+.     *type of sibling change
+. logit dropout tvever_parent_change tvever_other_change tvever_biosib_change 
+&gt; tvever_halfsib_change tvever_stepsib_change i.firstnm_parcomp i.firstnm_sibc
+&gt; omp i.firstnm_extend i.firstnm_cpov i.adj_age my_sex i.par_ed_first i.my_rac
+&gt; ealt i.month, cluster (SSUID)
+
+Iteration 0:   log pseudolikelihood = -4179.0613  
+Iteration 1:   log pseudolikelihood =  -3820.629  
+Iteration 2:   log pseudolikelihood = -3691.5358  
+Iteration 3:   log pseudolikelihood = -3681.1659  
+Iteration 4:   log pseudolikelihood =  -3680.928  
+Iteration 5:   log pseudolikelihood = -3680.9274  
+Iteration 6:   log pseudolikelihood = -3680.9274  
+
+Logistic regression                             Number of obs     =     74,278
+                                                Wald chi2(39)     =     745.74
+                                                Prob &gt; chi2       =     0.0000
+Log pseudolikelihood = -3680.9274               Pseudo R2         =     0.1192
+
+                              (Std. Err. adjusted for 3,627 clusters in SSUID)
+------------------------------------------------------------------------------
+             |               Robust
+     dropout |      Coef.   Std. Err.      z    P&gt;|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+tvever_par~e |   .0953121   .1331758     0.72   0.474    -.1657077    .3563319
+tve~r_change |   .2959873   .1032697     2.87   0.004     .0935824    .4983921
+tvever_bio.. |   .1860764   .1487363     1.25   0.211    -.1054413    .4775941
+tvever_hal~e |   .0362574   .1620382     0.22   0.823    -.2813316    .3538465
+tvever_ste~e |   .6766596   .3044961     2.22   0.026     .0798582    1.273461
+             |
+firstnm_pa~p |
+single pa..  |   .0763726   .0977634     0.78   0.435    -.1152401    .2679854
+step parent  |  -.0122017   .1409007    -0.09   0.931    -.2883621    .2639586
+  no parent  |   .1134507   .2029271     0.56   0.576    -.2842792    .5111806
+          5  |  -.0006402   .4155699    -0.00   0.999    -.8151423    .8138619
+             |
+firstnm_si~p |
+only bios..  |   .1166625   .1026485     1.14   0.256    -.0845248    .3178498
+step/half..  |   .2876519   .1269211     2.27   0.023      .038891    .5364127
+             |
+firstnm_ex~d |
+grandparent  |   .3198035   .1639256     1.95   0.051    -.0014849    .6410918
+horizonta..  |  -.0176288   .1074215    -0.16   0.870    -.2281711    .1929135
+             |
+firstnm_cpov |
+       Poor  |   .1320874   .1448597     0.91   0.362    -.1518325    .4160073
+  Near Poor  |  -.1164635   .1357763    -0.86   0.391    -.3825802    .1496532
+   Not Poor  |  -.0903967   .1323019    -0.68   0.494    -.3497036    .1689102
+             |
+     adj_age |
+         17  |   .6730888   .0941295     7.15   0.000     .4885983    .8575792
+         18  |   .7816634   .1029273     7.59   0.000     .5799296    .9833973
+         19  |   1.404493   .1352453    10.38   0.000     1.139417    1.669569
+             |
+      my_sex |  -.0644848    .074827    -0.86   0.389     -.211143    .0821734
+             |
+par_ed_first |
+    HS Grad  |   .0047694   .1218378     0.04   0.969    -.2340284    .2435671
+Some Coll..  |  -.1248984   .1249067    -1.00   0.317     -.369711    .1199141
+College G..  |  -.1326404   .1396681    -0.95   0.342    -.4063848    .1411039
+          5  |   .2426792   .2134161     1.14   0.255    -.1756087     .660967
+             |
+  my_racealt |
+   NH black  |  -.1665577   .1128313    -1.48   0.140    -.3877029    .0545875
+   Hispanic  |    .088431   .0972981     0.91   0.363    -.1022697    .2791318
+   NH Asian  |  -.2332797   .2226233    -1.05   0.295    -.6696134     .203054
+   NH Other  |  -.0334584   .1683674    -0.20   0.842    -.3634525    .2965356
+             |
+       month |
+          2  |  -2.874423   .2905943    -9.89   0.000    -3.443978   -2.304869
+          3  |  -1.443844   .1660705    -8.69   0.000    -1.769336   -1.118352
+          4  |  -1.235447   .1492852    -8.28   0.000     -1.52804    -.942853
+          5  |  -.5046359   .1201499    -4.20   0.000    -.7401254   -.2691464
+          6  |  -.3748977   .1186788    -3.16   0.002    -.6075038   -.1422915
+          7  |    -.69985   .1296478    -5.40   0.000    -.9539549   -.4457451
+          8  |  -3.757118   .4544509    -8.27   0.000    -4.647825    -2.86641
+          9  |  -3.065924   .3266599    -9.39   0.000    -3.706166   -2.425683
+         10  |  -2.804486    .289566    -9.69   0.000    -3.372025   -2.236947
+         11  |  -3.424509   .3844602    -8.91   0.000    -4.178037   -2.670981
+         12  |  -3.291705   .3626848    -9.08   0.000    -4.002554   -2.580856
+             |
+       _cons |  -3.911359   .2257844   -17.32   0.000    -4.353888   -3.468829
+------------------------------------------------------------------------------
+
+. 
+</code></pre>

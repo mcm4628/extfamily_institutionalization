@@ -1,4 +1,4 @@
-use "$SIPP2008\FullFile\sippp08putm2.dta", clear
+use "$SIPP2008tm/sippp08putm2.dta", clear
 
 keep ssuid epppnum shhadid erelat* eprlpn* tage
 
@@ -38,20 +38,21 @@ tab erelat
 drop if relto < 0
 
 rename ssuid SSUID
+
 destring relfrom, replace
 
 drop if relfrom==relto
 
-save "$tempdir/relationship_matrix", $replace
+save "$SIPP08keep/relationship_matrix", $replace
 
-use "$tempdir/relationship_pairs_bywave"
+use "$SIPP08keep/relationship_pairs_bymonth"
 
-keep if SWAVE==2
+keep if panelmonth==5
 
-merge 1:1 SSUID relto relfrom using "$tempdir/relationship_matrix"
+merge 1:1 SSUID relto relfrom using "$SIPP08keep/relationship_matrix"
 
 
-putexcel set "$results/compare_relationships.xlsx", sheet(checkrels) modify
+putexcel set "$results/compare_relationships08.xlsx", sheet(checkrels) modify
 
 tab relationship erelat, matcell(checkrels)
 

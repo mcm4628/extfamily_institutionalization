@@ -1,6 +1,6 @@
 *** We also need a dataset of reference persons.
-use "$tempdir/allwaves"
-keep SSUID PNUM SHHADID ERELRP ESEX SWAVE EEDUC
+use "$SIPP14keep/allmonths14"
+keep SSUID PNUM SHHADID ERELRP ESEX swave EEDUC
 keep if ((ERELRP == 1) | (ERELRP == 2))
 drop ERELRP
 
@@ -17,5 +17,5 @@ drop EEDUC
 duplicates drop
 save "$tempdir/ref_person_long", $replace
 
-reshape wide ref_person ref_person_sex ref_person_educ, i(SSUID SHHADID) j(SWAVE)
+reshape wide ref_person ref_person_sex ref_person_educ, i(SSUID SHHADID) j(swave)
 save "$tempdir/ref_person_wide", $replace

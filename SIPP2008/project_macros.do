@@ -17,8 +17,6 @@ global second_month=${firstmonth}+1
 global penultimate_month=${finalmonth}-1
 global adult_age 18
 
-global refmon 4
-
 ** A global macro for the number of transitive closure passes we want to do.
 global max_tc 1
 
