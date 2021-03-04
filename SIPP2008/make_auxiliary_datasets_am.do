@@ -293,5 +293,5 @@ rename TBRSTATE ptbrstate /*pbpl for "parent birthplace"*/
 save "$tempdir/person_pdemo_am", $replace
 
 * create a dataset of household reference persons.
-do "$childhh_base_code/SIPP2008/allmonths/make_aux_refperson_am"
+do "$base_code/SIPP2008/allmonths/make_aux_refperson_am"
 
