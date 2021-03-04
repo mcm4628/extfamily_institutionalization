@@ -1,5 +1,5 @@
 //=================================================================================//
-//====== Children's Household Instability Project                          
+//====== Extended Family Institutionalization Project                          
 //====== Dataset: SIPP2008                                               
 //====== Purpose: Creates sub-databases: shhadid_members.dta, ssuid_members_wide.dta
 //====== ssuid_shhadid_wide.dta, person_pdemo (parents demographics), partner_of_ref_person_long (and wide)
@@ -293,5 +293,5 @@ rename TBRSTATE ptbrstate /*pbpl for "parent birthplace"*/
 save "$tempdir/person_pdemo_am", $replace
 
 * create a dataset of household reference persons.
-do "$childhh_base_code/SIPP2008/allmonths/make_aux_refperson_am"
+do "$base_code/SIPP2008/make_aux_refperson_am"
 
