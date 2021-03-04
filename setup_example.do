@@ -34,5 +34,5 @@ global sipp2014_logs "$homedir/projects/extfamily_institutionalization/logs/2014
 
 global tempdir "$homedir/projects/extfamily_institutionalization/data/temp"
 
-
+global replace "replace"
 
