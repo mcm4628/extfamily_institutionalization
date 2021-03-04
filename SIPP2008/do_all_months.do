@@ -42,7 +42,7 @@ if ("`r(fn)'" == "") {
 ***************************************************************************
 ** Section: Creates macros for wave, age, month, relationships
 ***************************************************************************
-do "$base_code/SIPP2008/allmonths/project_macros" /* this do-file contains macros of wave, age, month, relationships */
+do "$base_code/SIPP2008/project_macros" /* this do-file contains macros of wave, age, month, relationships */
 
 ***************************************************************************
 ** Section: Check to make sure the required directories exist.

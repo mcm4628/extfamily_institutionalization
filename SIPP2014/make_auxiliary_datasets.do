@@ -1,5 +1,5 @@
 //=================================================================================//
-//====== Children's Household Instability Project                          
+//====== Extended Family Institutionalization Project                          
 //====== Dataset: SIPP2014                                             
 //====== Purpose: Creates sub-databases: shhadid_members.dta, ssuid_members_wide.dta
 //====== ssuid_shhadid_wide.dta, person_pdemo (parents demographics), partner_of_ref_person_long (and wide)
@@ -325,6 +325,6 @@ rename ESEX psex // parent sex because the parent pointers are now gender neutra
 save "$tempdir/person_pdemo", $replace
 
 * create a dataset of household reference persons.
-do "$base_code/SIPP2014/allmonths/make_aux_refperson"
+do "$base_code/SIPP2014/make_aux_refperson"
 
 
